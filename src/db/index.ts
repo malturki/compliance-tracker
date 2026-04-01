@@ -41,7 +41,7 @@ const initTables = async () => {
       last_alert_sent TEXT,
       source_document TEXT,
       notes TEXT,
-      entity TEXT DEFAULT 'Pi Squared Inc.',
+      entity TEXT DEFAULT 'Acme Corp',
       jurisdiction TEXT,
       amount REAL,
       auto_recur INTEGER DEFAULT 0,

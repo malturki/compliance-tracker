@@ -119,7 +119,7 @@ describe('GET /api/obligations/[id]', () => {
       status: 'current',
       riskLevel: 'medium',
       alertDays: '[]',
-      entity: 'Pi Squared Inc.',
+      entity: 'Acme Corp',
       autoRecur: false,
       createdAt: '2024-01-01T00:00:00Z',
       updatedAt: '2024-01-01T00:00:00Z',

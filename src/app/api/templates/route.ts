@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     }
 
     const owner = customizations?.owner || undefined
-    const entity = customizations?.entity || 'Pi Squared Inc.'
+    const entity = customizations?.entity || 'Acme Corp'
 
     const now = new Date().toISOString()
     const records = obligationsToImport.map((tpl: TemplateObligation) => {

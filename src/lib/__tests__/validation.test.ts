@@ -83,7 +83,7 @@ describe('createObligationSchema', () => {
     if (result.success) {
       expect(result.data.riskLevel).toBe('medium');
       expect(result.data.alertDays).toEqual([]);
-      expect(result.data.entity).toBe('Pi Squared Inc.');
+      expect(result.data.entity).toBe('Acme Corp');
       expect(result.data.autoRecur).toBe(false);
     }
   });

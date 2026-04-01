@@ -19,7 +19,7 @@ export const obligations = sqliteTable('obligations', {
   lastAlertSent: text('last_alert_sent'),
   sourceDocument: text('source_document'),
   notes: text('notes'),
-  entity: text('entity').default('Pi Squared Inc.'),
+  entity: text('entity').default('Acme Corp'),
   jurisdiction: text('jurisdiction'),
   amount: real('amount'),
   autoRecur: integer('auto_recur', { mode: 'boolean' }).default(false),

@@ -25,7 +25,7 @@ export const createObligationSchema = z.object({
   alertDays: z.array(z.number()).optional().default([]),
   sourceDocument: z.string().optional().nullable(),
   notes: z.string().optional().nullable(),
-  entity: z.string().default('Pi Squared Inc.'),
+  entity: z.string().default('Acme Corp'),
   jurisdiction: z.string().optional().nullable(),
   amount: z.number().optional().nullable(),
   autoRecur: z.boolean().optional().default(false),
