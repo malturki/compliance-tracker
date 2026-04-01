@@ -40,29 +40,30 @@ export function CompletionTrendChart({ trends }: Props) {
   ]
   
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-6">
-      <h3 className="text-lg font-semibold text-slate-900 mb-4">Completion Trend</h3>
-      <ResponsiveContainer width="100%" height={300}>
+    <div className="border border-[#1e2d47] bg-[#0f1629] p-4">
+      <h3 className="text-sm font-semibold text-slate-300 mb-3 uppercase tracking-wider">Completion Trend</h3>
+      <ResponsiveContainer width="100%" height={280}>
         <LineChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+          <CartesianGrid strokeDasharray="3 3" stroke="#1e2d47" />
           <XAxis 
             dataKey="period" 
             stroke="#64748b"
-            style={{ fontSize: '12px' }}
+            style={{ fontSize: '11px', fill: '#64748b' }}
           />
           <YAxis 
             stroke="#64748b"
-            style={{ fontSize: '12px' }}
+            style={{ fontSize: '11px', fill: '#64748b' }}
           />
           <Tooltip 
             contentStyle={{
-              backgroundColor: '#1e293b',
-              border: 'none',
-              borderRadius: '8px',
-              color: '#f1f5f9'
+              backgroundColor: '#0a0e1a',
+              border: '1px solid #1e2d47',
+              borderRadius: '4px',
+              color: '#e2e8f0',
+              fontSize: '11px'
             }}
           />
-          <Legend />
+          <Legend wrapperStyle={{ fontSize: '11px', color: '#94a3b8' }} />
           <Line 
             type="monotone" 
             dataKey="completionRate" 

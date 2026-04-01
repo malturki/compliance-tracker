@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { ChevronUp, ChevronDown } from 'lucide-react'
 
 interface OwnerMetrics {
   owner: string
@@ -48,46 +49,48 @@ export function OwnerPerformanceTable({ owners }: Props) {
   })
   
   const SortIcon = ({ columnKey }: { columnKey: SortKey }) => {
-    if (sortKey !== columnKey) return <span className="text-slate-400">↕</span>
-    return <span>{sortOrder === 'asc' ? '↑' : '↓'}</span>
+    if (sortKey !== columnKey) return <ChevronDown className="w-3 h-3 text-slate-600 inline-block" />
+    return sortOrder === 'asc' ? <ChevronUp className="w-3 h-3 text-amber-400 inline-block" /> : <ChevronDown className="w-3 h-3 text-amber-400 inline-block" />
   }
   
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-6">
-      <h3 className="text-lg font-semibold text-slate-900 mb-4">Owner Performance</h3>
+    <div className="border border-[#1e2d47] bg-[#0f1629] overflow-hidden">
+      <div className="px-4 py-3 border-b border-[#1e2d47]">
+        <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">Owner Performance</h3>
+      </div>
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full text-xs">
           <thead>
-            <tr className="border-b border-slate-200">
+            <tr className="border-b border-[#1e2d47] text-slate-500">
               <th 
-                className="text-left py-3 px-4 font-semibold text-slate-700 cursor-pointer hover:bg-slate-50"
+                className="text-left py-2.5 px-3 font-medium cursor-pointer hover:text-slate-300 select-none"
                 onClick={() => handleSort('owner')}
               >
                 Owner <SortIcon columnKey="owner" />
               </th>
               <th 
-                className="text-center py-3 px-4 font-semibold text-slate-700 cursor-pointer hover:bg-slate-50"
+                className="text-center py-2.5 px-3 font-medium cursor-pointer hover:text-slate-300 select-none"
                 onClick={() => handleSort('total')}
               >
                 Total <SortIcon columnKey="total" />
               </th>
               <th 
-                className="text-center py-3 px-4 font-semibold text-slate-700 cursor-pointer hover:bg-slate-50"
+                className="text-center py-2.5 px-3 font-medium cursor-pointer hover:text-slate-300 select-none"
                 onClick={() => handleSort('overdue')}
               >
                 Overdue <SortIcon columnKey="overdue" />
               </th>
-              <th className="text-center py-3 px-4 font-semibold text-slate-700">
+              <th className="text-center py-2.5 px-3 font-medium">
                 Upcoming
               </th>
               <th 
-                className="text-center py-3 px-4 font-semibold text-slate-700 cursor-pointer hover:bg-slate-50"
+                className="text-center py-2.5 px-3 font-medium cursor-pointer hover:text-slate-300 select-none"
                 onClick={() => handleSort('completionRate')}
               >
                 On-Time Rate <SortIcon columnKey="completionRate" />
               </th>
               <th 
-                className="text-center py-3 px-4 font-semibold text-slate-700 cursor-pointer hover:bg-slate-50"
+                className="text-center py-2.5 px-3 font-medium cursor-pointer hover:text-slate-300 select-none"
                 onClick={() => handleSort('avgDaysToComplete')}
               >
                 Avg Days <SortIcon columnKey="avgDaysToComplete" />
@@ -98,41 +101,41 @@ export function OwnerPerformanceTable({ owners }: Props) {
             {sortedOwners.map((owner, idx) => (
               <tr 
                 key={owner.owner}
-                className={`border-b border-slate-100 ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}
+                className={`border-b border-[#1e2d47]/50 transition-colors ${idx % 2 === 0 ? '' : 'bg-[#0a0e1a]/30'} hover:bg-[#162035]`}
               >
-                <td className="py-3 px-4 font-medium text-slate-900">
+                <td className="py-2 px-3 font-medium text-slate-200">
                   {owner.owner}
                 </td>
-                <td className="py-3 px-4 text-center text-slate-700">
+                <td className="py-2 px-3 text-center text-slate-400 font-mono">
                   {owner.total}
                 </td>
-                <td className="py-3 px-4 text-center">
+                <td className="py-2 px-3 text-center">
                   <span className={`
-                    inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-semibold
-                    ${owner.overdue === 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}
+                    inline-flex items-center justify-center px-2 py-0.5 text-[10px] font-mono font-semibold border
+                    ${owner.overdue === 0 ? 'bg-emerald-950/40 text-emerald-400 border-emerald-900/40' : 'bg-red-950/40 text-red-400 border-red-900/40'}
                   `}>
                     {owner.overdue}
                   </span>
                 </td>
-                <td className="py-3 px-4 text-center text-slate-700">
+                <td className="py-2 px-3 text-center text-slate-400 font-mono">
                   {owner.upcoming}
                 </td>
-                <td className="py-3 px-4 text-center">
+                <td className="py-2 px-3 text-center">
                   <span className={`
-                    font-semibold
-                    ${owner.completionRate >= 90 ? 'text-green-600' : 
-                      owner.completionRate >= 70 ? 'text-amber-600' : 
-                      'text-red-600'}
+                    font-mono font-semibold
+                    ${owner.completionRate >= 90 ? 'text-emerald-400' : 
+                      owner.completionRate >= 70 ? 'text-amber-400' : 
+                      'text-red-400'}
                   `}>
                     {owner.completionRate}%
                   </span>
                 </td>
-                <td className="py-3 px-4 text-center">
+                <td className="py-2 px-3 text-center">
                   <span className={`
-                    font-mono text-xs
-                    ${owner.avgDaysToComplete <= 0 ? 'text-green-600' :
-                      owner.avgDaysToComplete <= 3 ? 'text-amber-600' :
-                      'text-red-600'}
+                    font-mono text-[11px]
+                    ${owner.avgDaysToComplete <= 0 ? 'text-emerald-400' :
+                      owner.avgDaysToComplete <= 3 ? 'text-amber-400' :
+                      'text-red-400'}
                   `}>
                     {owner.avgDaysToComplete > 0 ? '+' : ''}{owner.avgDaysToComplete}
                   </span>

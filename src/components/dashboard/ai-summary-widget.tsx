@@ -49,19 +49,19 @@ export function AISummaryWidget({ analyticsData }: Props) {
   
   if (loading) {
     return (
-      <div className="rounded-lg border border-slate-200 bg-gradient-to-br from-indigo-50 to-purple-50 p-6">
+      <div className="border border-[#1e2d47] bg-gradient-to-br from-[#1a2332] to-[#1e2741] p-4 mb-6">
         <div className="flex items-start gap-3">
-          <div className="rounded-lg bg-indigo-100 p-2">
-            <Sparkles className="w-5 h-5 text-indigo-600 animate-pulse" />
+          <div className="bg-amber-950/40 border border-amber-900/40 p-2">
+            <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
           </div>
           <div className="flex-1">
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">
+            <h3 className="text-sm font-semibold text-slate-300 mb-2 uppercase tracking-wider">
               AI Insights
             </h3>
-            <div className="space-y-2">
-              <div className="h-4 bg-slate-200 rounded animate-pulse"></div>
-              <div className="h-4 bg-slate-200 rounded animate-pulse w-5/6"></div>
-              <div className="h-4 bg-slate-200 rounded animate-pulse w-4/6"></div>
+            <div className="space-y-1.5">
+              <div className="h-3 bg-[#1e2d47] rounded animate-pulse"></div>
+              <div className="h-3 bg-[#1e2d47] rounded animate-pulse w-5/6"></div>
+              <div className="h-3 bg-[#1e2d47] rounded animate-pulse w-4/6"></div>
             </div>
           </div>
         </div>
@@ -71,16 +71,16 @@ export function AISummaryWidget({ analyticsData }: Props) {
   
   if (error) {
     return (
-      <div className="rounded-lg border border-red-200 bg-red-50 p-6">
+      <div className="border border-red-900/40 bg-red-950/20 p-4 mb-6">
         <div className="flex items-start gap-3">
-          <div className="rounded-lg bg-red-100 p-2">
-            <AlertCircle className="w-5 h-5 text-red-600" />
+          <div className="bg-red-950/40 border border-red-900/40 p-2">
+            <AlertCircle className="w-4 h-4 text-red-400" />
           </div>
           <div className="flex-1">
-            <h3 className="text-lg font-semibold text-red-900 mb-1">
+            <h3 className="text-sm font-semibold text-red-400 mb-1 uppercase tracking-wider">
               Summary Unavailable
             </h3>
-            <p className="text-sm text-red-700">{error}</p>
+            <p className="text-xs text-slate-500">{error}</p>
           </div>
         </div>
       </div>
@@ -88,23 +88,23 @@ export function AISummaryWidget({ analyticsData }: Props) {
   }
   
   return (
-    <div className="rounded-lg border border-slate-200 bg-gradient-to-br from-indigo-50 to-purple-50 p-6">
+    <div className="border border-[#1e2d47] bg-gradient-to-br from-[#1a2332] to-[#1e2741] p-4 mb-6">
       <div className="flex items-start gap-3">
-        <div className="rounded-lg bg-indigo-100 p-2">
-          <Sparkles className="w-5 h-5 text-indigo-600" />
+        <div className="bg-amber-950/40 border border-amber-900/40 p-2 flex-shrink-0">
+          <Sparkles className="w-4 h-4 text-amber-400" />
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-2">
-            <h3 className="text-lg font-semibold text-slate-900">
+            <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">
               {isAI ? 'AI Insights' : 'Compliance Summary'}
             </h3>
             {!isAI && (
-              <span className="text-xs text-slate-500 bg-slate-200 px-2 py-1 rounded">
+              <span className="text-[10px] font-mono text-slate-600 bg-[#1e2d47] px-1.5 py-0.5 uppercase">
                 Basic
               </span>
             )}
           </div>
-          <p className="text-sm text-slate-700 leading-relaxed">
+          <p className="text-xs text-slate-400 leading-relaxed">
             {summary}
           </p>
         </div>

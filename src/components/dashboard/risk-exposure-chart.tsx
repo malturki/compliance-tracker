@@ -30,9 +30,9 @@ export function RiskExposureChart({ risks }: Props) {
   }))
   
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-6">
-      <h3 className="text-lg font-semibold text-slate-900 mb-4">Risk Exposure</h3>
-      <ResponsiveContainer width="100%" height={300}>
+    <div className="border border-[#1e2d47] bg-[#0f1629] p-4">
+      <h3 className="text-sm font-semibold text-slate-300 mb-3 uppercase tracking-wider">Risk Exposure</h3>
+      <ResponsiveContainer width="100%" height={280}>
         <PieChart>
           <Pie
             data={data}
@@ -43,6 +43,7 @@ export function RiskExposureChart({ risks }: Props) {
             outerRadius={100}
             fill="#8884d8"
             dataKey="value"
+            style={{ fontSize: '11px', fill: '#94a3b8' }}
           >
             {data.map((entry, index) => (
               <Cell 
@@ -53,17 +54,18 @@ export function RiskExposureChart({ risks }: Props) {
           </Pie>
           <Tooltip 
             contentStyle={{
-              backgroundColor: '#1e293b',
-              border: 'none',
-              borderRadius: '8px',
-              color: '#f1f5f9'
+              backgroundColor: '#0a0e1a',
+              border: '1px solid #1e2d47',
+              borderRadius: '4px',
+              color: '#e2e8f0',
+              fontSize: '11px'
             }}
             formatter={(value: number, name: string, props: any) => [
               `${value} obligations (${props.payload.overdue} overdue)`,
               name
             ]}
           />
-          <Legend />
+          <Legend wrapperStyle={{ fontSize: '11px', color: '#94a3b8' }} />
         </PieChart>
       </ResponsiveContainer>
     </div>
