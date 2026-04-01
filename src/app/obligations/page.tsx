@@ -4,10 +4,11 @@ import { useEffect, useState, useCallback, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { formatDate, getDaysUntil, getRiskColor, getStatusColor, getCategoryLabel } from '@/lib/utils'
 import type { Obligation, Completion, Category, Status, RiskLevel, Frequency } from '@/lib/types'
-import { Search, ChevronUp, ChevronDown, X, Plus, CheckCircle, ChevronRight, FileText } from 'lucide-react'
+import { Search, ChevronUp, ChevronDown, X, Plus, CheckCircle, ChevronRight, FileText, ExternalLink, Download, Image as ImageIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { FileUpload } from '@/components/ui/file-upload'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
@@ -61,21 +62,53 @@ function DetailPanel({
   const [completing, setCompleting] = useState(false)
   const [completedBy, setCompletedBy] = useState('')
   const [completionNotes, setCompletionNotes] = useState('')
+  const [evidenceFiles, setEvidenceFiles] = useState<File[]>([])
+  const [evidenceUrl, setEvidenceUrl] = useState('')
+  const [uploading, setUploading] = useState(false)
 
   const handleComplete = async () => {
     if (!completedBy.trim()) { toast.error('Enter your name'); return }
+    
+    setUploading(true)
     try {
+      const formData = new FormData()
+      formData.append('completedBy', completedBy)
+      formData.append('completedDate', new Date().toISOString().split('T')[0])
+      formData.append('notes', completionNotes || '')
+      
+      // Add evidence URL if provided
+      const urls: string[] = []
+      if (evidenceUrl.trim()) {
+        urls.push(evidenceUrl.trim())
+      }
+      formData.append('evidenceUrls', JSON.stringify(urls))
+      
+      // Add files
+      evidenceFiles.forEach((file, idx) => {
+        formData.append(`file_${idx}`, file)
+      })
+
       const res = await fetch(`/api/obligations/${item.id}/complete`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ completedBy, notes: completionNotes }),
+        body: formData,
       })
-      if (!res.ok) throw new Error()
+      
+      if (!res.ok) {
+        const error = await res.json()
+        throw new Error(error.error || 'Failed to complete')
+      }
+      
       toast.success('Marked as complete')
       setCompleting(false)
+      setEvidenceFiles([])
+      setEvidenceUrl('')
+      setCompletionNotes('')
+      setCompletedBy('')
       onComplete()
-    } catch {
-      toast.error('Failed to mark complete')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to mark complete')
+    } finally {
+      setUploading(false)
     }
   }
 
@@ -170,15 +203,60 @@ function DetailPanel({
                 <CheckCircle className="w-3 h-3" /> Completion History
               </div>
               <div className="space-y-1.5">
-                {item.completions.map(c => (
-                  <div key={c.id} className="bg-[#0a0e1a] border border-[#1e2d47] p-2">
-                    <div className="flex justify-between">
-                      <span className="font-mono text-emerald-400">{formatDate(c.completedDate)}</span>
-                      <span className="text-slate-500">{c.completedBy}</span>
+                {item.completions.map(c => {
+                  let evidenceUrls: string[] = []
+                  if (c.evidenceUrl) {
+                    if (Array.isArray(c.evidenceUrl)) {
+                      evidenceUrls = c.evidenceUrl
+                    } else if (typeof c.evidenceUrl === 'string') {
+                      try {
+                        const parsed = JSON.parse(c.evidenceUrl)
+                        evidenceUrls = Array.isArray(parsed) ? parsed : [c.evidenceUrl]
+                      } catch {
+                        evidenceUrls = [c.evidenceUrl]
+                      }
+                    }
+                  }
+                  
+                  return (
+                    <div key={c.id} className="bg-[#0a0e1a] border border-[#1e2d47] p-2">
+                      <div className="flex justify-between">
+                        <span className="font-mono text-emerald-400">{formatDate(c.completedDate)}</span>
+                        <span className="text-slate-500">{c.completedBy}</span>
+                      </div>
+                      {c.notes && <div className="text-slate-500 mt-0.5">{c.notes}</div>}
+                      {evidenceUrls.length > 0 && (
+                        <div className="mt-2 space-y-1">
+                          <div className="text-slate-600 text-[10px] uppercase tracking-wider">Evidence</div>
+                          {evidenceUrls.map((url, idx) => {
+                            const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(url)
+                            const isPDF = /\.pdf$/i.test(url)
+                            const isExternal = url.startsWith('http') && !url.includes('blob.vercel-storage.com')
+                            
+                            return (
+                              <div key={idx} className="flex items-center gap-2">
+                                {isImage && (
+                                  <a href={url} target="_blank" rel="noopener noreferrer" className="block">
+                                    <img src={url} alt="Evidence" className="h-16 w-16 object-cover rounded border border-[#1e2d47] hover:border-amber-500/50 transition-colors" />
+                                  </a>
+                                )}
+                                <a 
+                                  href={url} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300"
+                                >
+                                  {isExternal ? <ExternalLink className="w-3 h-3" /> : isPDF ? <FileText className="w-3 h-3" /> : <Download className="w-3 h-3" />}
+                                  <span className="truncate">{isExternal ? 'External link' : url.split('/').pop()}</span>
+                                </a>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      )}
                     </div>
-                    {c.notes && <div className="text-slate-500 mt-0.5">{c.notes}</div>}
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
           )}
@@ -201,16 +279,53 @@ function DetailPanel({
                 <textarea
                   value={completionNotes}
                   onChange={e => setCompletionNotes(e.target.value)}
-                  placeholder="Evidence, references..."
+                  placeholder="Additional details..."
                   rows={2}
                   className="mt-1 w-full bg-[#0a0e1a] border border-[#1e2d47] text-slate-200 text-xs p-2 resize-none focus:outline-none focus:border-amber-500/50"
                 />
               </div>
+              <div>
+                <Label className="text-xs text-slate-400">Evidence (optional)</Label>
+                <div className="mt-1 space-y-2">
+                  <FileUpload
+                    files={evidenceFiles}
+                    onChange={setEvidenceFiles}
+                    maxFiles={5}
+                    maxSizeMB={10}
+                  />
+                  <div className="flex items-center gap-2">
+                    <div className="h-px flex-1 bg-[#1e2d47]" />
+                    <span className="text-[10px] text-slate-600 uppercase tracking-wider">or</span>
+                    <div className="h-px flex-1 bg-[#1e2d47]" />
+                  </div>
+                  <Input
+                    value={evidenceUrl}
+                    onChange={e => setEvidenceUrl(e.target.value)}
+                    placeholder="Paste link to document..."
+                    className="bg-[#0a0e1a] border-[#1e2d47] text-slate-200 text-xs h-8"
+                  />
+                </div>
+              </div>
               <div className="flex gap-2">
-                <Button size="sm" onClick={handleComplete} className="bg-emerald-700 hover:bg-emerald-600 text-white text-xs h-7 flex-1">
-                  Confirm Complete
+                <Button 
+                  size="sm" 
+                  onClick={handleComplete} 
+                  disabled={uploading}
+                  className="bg-emerald-700 hover:bg-emerald-600 text-white text-xs h-7 flex-1 disabled:opacity-50"
+                >
+                  {uploading ? 'Uploading...' : 'Confirm Complete'}
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => setCompleting(false)} className="border-[#1e2d47] text-slate-400 text-xs h-7">
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => {
+                    setCompleting(false)
+                    setEvidenceFiles([])
+                    setEvidenceUrl('')
+                  }} 
+                  disabled={uploading}
+                  className="border-[#1e2d47] text-slate-400 text-xs h-7"
+                >
                   Cancel
                 </Button>
               </div>
