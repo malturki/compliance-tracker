@@ -39,6 +39,7 @@ async function seed() {
     jurisdiction TEXT,
     amount REAL,
     auto_recur INTEGER DEFAULT 0,
+    template_id TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
   )`,
