@@ -26,10 +26,13 @@ async function seed() {
     next_due_date TEXT NOT NULL,
     last_completed_date TEXT,
     owner TEXT NOT NULL,
+    owner_email TEXT,
     assignee TEXT,
+    assignee_email TEXT,
     status TEXT NOT NULL DEFAULT 'current',
     risk_level TEXT NOT NULL DEFAULT 'medium',
     alert_days TEXT DEFAULT '[]',
+    last_alert_sent TEXT,
     source_document TEXT,
     notes TEXT,
     entity TEXT DEFAULT 'Pi Squared Inc.',
@@ -152,14 +155,14 @@ for (const r of records) {
     sql: `
       INSERT INTO obligations (
         id, title, description, category, subcategory, frequency,
-        next_due_date, last_completed_date, owner, assignee, status,
-        risk_level, alert_days, source_document, notes, entity,
-        jurisdiction, amount, auto_recur, created_at, updated_at
+        next_due_date, last_completed_date, owner, owner_email, assignee, assignee_email,
+        status, risk_level, alert_days, last_alert_sent, source_document, notes,
+        entity, jurisdiction, amount, auto_recur, created_at, updated_at
       ) VALUES (
         ?, ?, ?, ?, ?, ?,
-        ?, ?, ?, ?, ?,
-        ?, ?, ?, ?, ?,
-        ?, ?, ?, ?, ?
+        ?, ?, ?, ?, ?, ?,
+        ?, ?, ?, ?, ?, ?,
+        ?, ?, ?, ?, ?, ?
       )
     `,
     args: [
@@ -172,11 +175,14 @@ for (const r of records) {
       r.next_due_date,
       null,
       r.owner,
-      null,
+      null, // owner_email (null for seed data - can be updated later)
+      null, // assignee
+      null, // assignee_email
       status,
       r.risk_level,
       JSON.stringify(r.alert_days ?? []),
-      null,
+      null, // last_alert_sent
+      null, // source_document
       (r as any).notes ?? null,
       'Pi Squared Inc.',
       (r as any).jurisdiction ?? null,
