@@ -4,55 +4,110 @@ import { obligations, completions } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { ulid } from 'ulid'
 import { computeNextDueDate } from '@/lib/utils'
-import { completeObligationSchema } from '@/lib/validation'
+import { uploadToBlob, validateFile } from '@/lib/blob'
 
 export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } },
 ) {
   try {
-    const body = await req.json()
-    
-    // Validate input
-    const result = completeObligationSchema.safeParse(body)
-    if (!result.success) {
-      return NextResponse.json({ error: result.error.issues }, { status: 400 })
+    const contentType = req.headers.get('content-type') || ''
+    let data: {
+      completedBy: string
+      completedDate: string
+      notes: string | null
+      evidenceUrls: string[]
     }
-    
-    const data = result.data
-    const now = new Date().toISOString()
+    let files: File[] = []
 
+    if (contentType.includes('multipart/form-data')) {
+      const formData = await req.formData()
+
+      data = {
+        completedBy: formData.get('completedBy') as string,
+        completedDate: (formData.get('completedDate') as string) || new Date().toISOString().split('T')[0],
+        notes: formData.get('notes') as string | null,
+        evidenceUrls: formData.get('evidenceUrls') ? JSON.parse(formData.get('evidenceUrls') as string) : [],
+      }
+
+      // Extract files (keyed as file_0, file_1, etc.)
+      Array.from(formData.entries()).forEach(([key, value]) => {
+        if (key.startsWith('file_') && value instanceof File) {
+          files.push(value)
+        }
+      })
+
+      if (files.length > 5) {
+        return NextResponse.json(
+          { error: 'Maximum 5 files allowed per completion' },
+          { status: 400 }
+        )
+      }
+
+      // Validate each file
+      for (const file of files) {
+        const validation = validateFile(file, 10)
+        if (!validation.valid) {
+          return NextResponse.json(
+            { error: validation.error },
+            { status: 400 }
+          )
+        }
+      }
+
+      // Upload files to Vercel Blob
+      const uploadedUrls = await Promise.all(
+        files.map((file) => uploadToBlob(file))
+      )
+
+      data.evidenceUrls = [...data.evidenceUrls, ...uploadedUrls]
+    } else {
+      // JSON request (backward compatible)
+      const body = await req.json()
+      data = {
+        completedBy: body.completedBy,
+        completedDate: body.completedDate || new Date().toISOString().split('T')[0],
+        notes: body.notes || null,
+        evidenceUrls: body.evidenceUrl ? [body.evidenceUrl] : [],
+      }
+    }
+
+    if (!data.completedBy?.trim()) {
+      return NextResponse.json(
+        { error: 'completedBy is required' },
+        { status: 400 }
+      )
+    }
+
+    const now = new Date().toISOString()
     const rows = await db.select().from(obligations).where(eq(obligations.id, params.id))
-    if (rows.length === 0) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    
+    if (rows.length === 0) {
+      return NextResponse.json({ error: 'Obligation not found' }, { status: 404 })
+    }
 
     const obligation = rows[0]
     const completionId = ulid()
-    const completedDate = data.completedDate
 
-    // Use transaction to ensure atomicity
     await db.transaction(async (tx) => {
-      // Create completion record
       await tx.insert(completions).values({
         id: completionId,
         obligationId: params.id,
-        completedDate,
+        completedDate: data.completedDate,
         completedBy: data.completedBy,
-        evidenceUrl: data.evidenceUrl ?? null,
-        notes: data.notes ?? null,
+        evidenceUrl: data.evidenceUrls.length > 0 ? JSON.stringify(data.evidenceUrls) : null,
+        notes: data.notes,
         createdAt: now,
       })
 
-      // Update obligation
       const updateData: Partial<typeof obligations.$inferSelect> = {
-        lastCompletedDate: completedDate,
+        lastCompletedDate: data.completedDate,
         updatedAt: now,
       }
 
-      // If auto-recur, advance next due date
-      // Use max of completion date and current next due date as the base
       if (obligation.autoRecur && obligation.frequency !== 'event-triggered' && obligation.frequency !== 'one-time') {
-        const baseDate = new Date(completedDate) > new Date(obligation.nextDueDate) 
-          ? completedDate 
+        const baseDate = new Date(data.completedDate) > new Date(obligation.nextDueDate) 
+          ? data.completedDate 
           : obligation.nextDueDate
         updateData['nextDueDate'] = computeNextDueDate(baseDate, obligation.frequency)
       }
@@ -60,9 +115,19 @@ export async function POST(
       await tx.update(obligations).set(updateData).where(eq(obligations.id, params.id))
     })
 
-    return NextResponse.json({ id: completionId, success: true }, { status: 201 })
+    return NextResponse.json(
+      { 
+        id: completionId, 
+        success: true,
+        evidenceUrls: data.evidenceUrls,
+      },
+      { status: 201 }
+    )
   } catch (err) {
-    console.error(err)
-    return NextResponse.json({ error: 'Failed to record completion' }, { status: 500 })
+    console.error('Complete obligation error:', err)
+    return NextResponse.json(
+      { error: 'Failed to record completion' },
+      { status: 500 }
+    )
   }
 }

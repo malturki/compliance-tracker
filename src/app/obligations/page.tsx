@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { formatDate, getDaysUntil, getRiskColor, getStatusColor, getCategoryLabel } from '@/lib/utils'
 import type { Obligation, Completion, Category, Status, RiskLevel, Frequency } from '@/lib/types'
-import { Search, ChevronUp, ChevronDown, X, Plus, CheckCircle, ChevronRight } from 'lucide-react'
+import { Search, ChevronUp, ChevronDown, X, Plus, CheckCircle, ChevronRight, FileText } from 'lucide-react'
 import { toast } from 'sonner'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -408,9 +408,19 @@ function ObligationsPageContent() {
             <h1 className="text-lg font-semibold text-slate-100">Obligations</h1>
             <p className="text-xs text-slate-500 mt-0.5 font-mono">{items.length} obligations</p>
           </div>
-          <Button size="sm" onClick={() => setShowAdd(true)} className="bg-amber-600 hover:bg-amber-500 text-white text-xs h-7 gap-1.5">
-            <Plus className="w-3 h-3" /> Add
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => router.push('/templates')}
+              className="border-[#1e2d47] text-slate-300 hover:text-slate-100 hover:bg-[#1e2d47] text-xs h-7 gap-1.5"
+            >
+              <FileText className="w-3 h-3" /> Import Template
+            </Button>
+            <Button size="sm" onClick={() => setShowAdd(true)} className="bg-amber-600 hover:bg-amber-500 text-white text-xs h-7 gap-1.5">
+              <Plus className="w-3 h-3" /> Add
+            </Button>
+          </div>
         </div>
 
         {/* Filters */}

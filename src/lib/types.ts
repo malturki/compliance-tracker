@@ -32,7 +32,7 @@ export interface Completion {
   obligationId: string
   completedDate: string
   completedBy: string
-  evidenceUrl?: string | null
+  evidenceUrl?: string[] | null
   notes?: string | null
   createdAt: string
 }
