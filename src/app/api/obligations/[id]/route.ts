@@ -3,6 +3,7 @@ import { db } from '@/db'
 import { obligations, completions } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { computeStatus } from '@/lib/utils'
+import { updateObligationSchema } from '@/lib/validation'
 
 export async function GET(
   _req: NextRequest,
@@ -34,20 +35,33 @@ export async function PUT(
 ) {
   try {
     const body = await req.json()
+    
+    // Validate input
+    const result = updateObligationSchema.safeParse(body)
+    if (!result.success) {
+      return NextResponse.json({ error: result.error.issues }, { status: 400 })
+    }
+    
+    const data = result.data
     const now = new Date().toISOString()
 
-    const updateData: Record<string, unknown> = { updatedAt: now }
+    const updateData: Partial<typeof obligations.$inferSelect> = { updatedAt: now }
     const allowed = [
       'title', 'description', 'category', 'subcategory', 'frequency',
       'nextDueDate', 'lastCompletedDate', 'owner', 'assignee', 'riskLevel',
       'sourceDocument', 'notes', 'entity', 'jurisdiction', 'amount', 'autoRecur',
-    ]
+    ] as const
+    
     for (const key of allowed) {
-      if (key in body) updateData[key] = body[key]
+      if (key in data) {
+        updateData[key] = data[key] as any
+      }
     }
-    if ('alertDays' in body) updateData['alertDays'] = JSON.stringify(body.alertDays)
+    if ('alertDays' in data) {
+      updateData['alertDays'] = JSON.stringify(data.alertDays)
+    }
 
-    await db.update(obligations).set(updateData as any).where(eq(obligations.id, params.id))
+    await db.update(obligations).set(updateData).where(eq(obligations.id, params.id))
     return NextResponse.json({ success: true })
   } catch (err) {
     console.error(err)

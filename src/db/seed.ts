@@ -1,13 +1,20 @@
-import Database from 'better-sqlite3'
+import { createClient } from '@libsql/client'
 import { ulid } from 'ulid'
-import { join } from 'path'
 
-const dbPath = process.env.DATABASE_URL || join(process.cwd(), 'compliance.db')
-const sqlite = new Database(dbPath)
-sqlite.pragma('journal_mode = WAL')
-sqlite.pragma('foreign_keys = ON')
+async function seed() {
+  const tursoUrl = process.env.TURSO_DATABASE_URL
+  const tursoAuthToken = process.env.TURSO_AUTH_TOKEN
 
-const CREATE_TABLES_SQL = [
+  if (!tursoUrl || !tursoAuthToken) {
+    throw new Error('Missing required Turso environment variables: TURSO_DATABASE_URL and TURSO_AUTH_TOKEN')
+  }
+
+  const client = createClient({
+    url: tursoUrl,
+    authToken: tursoAuthToken,
+  })
+
+  const CREATE_TABLES_SQL = [
   `CREATE TABLE IF NOT EXISTS obligations (
     id TEXT PRIMARY KEY,
     title TEXT NOT NULL,
@@ -42,8 +49,9 @@ const CREATE_TABLES_SQL = [
   )`,
 ]
 
+// Execute table creation with Turso client
 for (const sql of CREATE_TABLES_SQL) {
-  sqlite.prepare(sql).run()
+  await client.execute(sql)
 }
 
 // Today is 2026-04-01 for seed purposes
@@ -130,53 +138,58 @@ const records = [
 ]
 
 // Clear existing data
-sqlite.prepare('DELETE FROM completions').run()
-sqlite.prepare('DELETE FROM obligations').run()
+await client.execute('DELETE FROM completions')
+await client.execute('DELETE FROM obligations')
 
 const now = new Date().toISOString()
-
-const insert = sqlite.prepare(`
-  INSERT INTO obligations (
-    id, title, description, category, subcategory, frequency,
-    next_due_date, last_completed_date, owner, assignee, status,
-    risk_level, alert_days, source_document, notes, entity,
-    jurisdiction, amount, auto_recur, created_at, updated_at
-  ) VALUES (
-    ?, ?, ?, ?, ?, ?,
-    ?, ?, ?, ?, ?,
-    ?, ?, ?, ?, ?,
-    ?, ?, ?, ?, ?
-  )
-`)
 
 let inserted = 0
 for (const r of records) {
   const status = computeStatus(r.next_due_date)
-  insert.run(
-    ulid(),
-    r.title,
-    null,
-    r.category,
-    r.subcategory ?? null,
-    r.frequency,
-    r.next_due_date,
-    null,
-    r.owner,
-    null,
-    status,
-    r.risk_level,
-    JSON.stringify(r.alert_days ?? []),
-    null,
-    (r as any).notes ?? null,
-    'Pi Squared Inc.',
-    (r as any).jurisdiction ?? null,
-    (r as any).amount ?? null,
-    r.auto_recur ? 1 : 0,
-    now,
-    now,
-  )
+  
+  await client.execute({
+    sql: `
+      INSERT INTO obligations (
+        id, title, description, category, subcategory, frequency,
+        next_due_date, last_completed_date, owner, assignee, status,
+        risk_level, alert_days, source_document, notes, entity,
+        jurisdiction, amount, auto_recur, created_at, updated_at
+      ) VALUES (
+        ?, ?, ?, ?, ?, ?,
+        ?, ?, ?, ?, ?,
+        ?, ?, ?, ?, ?,
+        ?, ?, ?, ?, ?
+      )
+    `,
+    args: [
+      ulid(),
+      r.title,
+      null,
+      r.category,
+      r.subcategory ?? null,
+      r.frequency,
+      r.next_due_date,
+      null,
+      r.owner,
+      null,
+      status,
+      r.risk_level,
+      JSON.stringify(r.alert_days ?? []),
+      null,
+      (r as any).notes ?? null,
+      'Pi Squared Inc.',
+      (r as any).jurisdiction ?? null,
+      (r as any).amount ?? null,
+      r.auto_recur ? 1 : 0,
+      now,
+      now,
+    ]
+  })
   inserted++
 }
 
-console.log(`Seeded ${inserted} obligations.`)
-sqlite.close()
+  console.log(`Seeded ${inserted} obligations.`)
+  await client.close()
+}
+
+seed().catch(console.error)

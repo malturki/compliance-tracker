@@ -1,52 +1,66 @@
-import Database from 'better-sqlite3'
-import { drizzle } from 'drizzle-orm/better-sqlite3'
+import { createClient } from '@libsql/client'
+import { drizzle } from 'drizzle-orm/libsql'
 import * as schema from './schema'
-import { join } from 'path'
 
-const dbPath = process.env.DATABASE_URL || join(process.cwd(), 'compliance.db')
-const sqlite = new Database(dbPath)
-sqlite.pragma('journal_mode = WAL')
-sqlite.pragma('foreign_keys = ON')
+const tursoUrl = process.env.TURSO_DATABASE_URL
+const tursoAuthToken = process.env.TURSO_AUTH_TOKEN
 
-export const db = drizzle(sqlite, { schema })
-
-const CREATE_TABLES_SQL = [
-  `CREATE TABLE IF NOT EXISTS obligations (
-    id TEXT PRIMARY KEY,
-    title TEXT NOT NULL,
-    description TEXT,
-    category TEXT NOT NULL,
-    subcategory TEXT,
-    frequency TEXT NOT NULL,
-    next_due_date TEXT NOT NULL,
-    last_completed_date TEXT,
-    owner TEXT NOT NULL,
-    assignee TEXT,
-    status TEXT NOT NULL DEFAULT 'current',
-    risk_level TEXT NOT NULL DEFAULT 'medium',
-    alert_days TEXT DEFAULT '[]',
-    source_document TEXT,
-    notes TEXT,
-    entity TEXT DEFAULT 'Pi Squared Inc.',
-    jurisdiction TEXT,
-    amount REAL,
-    auto_recur INTEGER DEFAULT 0,
-    created_at TEXT NOT NULL,
-    updated_at TEXT NOT NULL
-  )`,
-  `CREATE TABLE IF NOT EXISTS completions (
-    id TEXT PRIMARY KEY,
-    obligation_id TEXT NOT NULL REFERENCES obligations(id),
-    completed_date TEXT NOT NULL,
-    completed_by TEXT NOT NULL,
-    evidence_url TEXT,
-    notes TEXT,
-    created_at TEXT NOT NULL
-  )`,
-]
-
-for (const sql of CREATE_TABLES_SQL) {
-  sqlite.prepare(sql).run()
+if (!tursoUrl || !tursoAuthToken) {
+  throw new Error('Missing required Turso environment variables: TURSO_DATABASE_URL and TURSO_AUTH_TOKEN')
 }
+
+const client = createClient({
+  url: tursoUrl,
+  authToken: tursoAuthToken,
+})
+
+export const db = drizzle(client, { schema })
+
+// Initialize tables (runs once on module load)
+// Note: Drizzle-kit should handle migrations in production
+// This is a fallback for development
+const initTables = async () => {
+  const CREATE_TABLES_SQL = [
+    `CREATE TABLE IF NOT EXISTS obligations (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      description TEXT,
+      category TEXT NOT NULL,
+      subcategory TEXT,
+      frequency TEXT NOT NULL,
+      next_due_date TEXT NOT NULL,
+      last_completed_date TEXT,
+      owner TEXT NOT NULL,
+      assignee TEXT,
+      status TEXT NOT NULL DEFAULT 'current',
+      risk_level TEXT NOT NULL DEFAULT 'medium',
+      alert_days TEXT DEFAULT '[]',
+      source_document TEXT,
+      notes TEXT,
+      entity TEXT DEFAULT 'Pi Squared Inc.',
+      jurisdiction TEXT,
+      amount REAL,
+      auto_recur INTEGER DEFAULT 0,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    )`,
+    `CREATE TABLE IF NOT EXISTS completions (
+      id TEXT PRIMARY KEY,
+      obligation_id TEXT NOT NULL REFERENCES obligations(id),
+      completed_date TEXT NOT NULL,
+      completed_by TEXT NOT NULL,
+      evidence_url TEXT,
+      notes TEXT,
+      created_at TEXT NOT NULL
+    )`,
+  ]
+
+  for (const sql of CREATE_TABLES_SQL) {
+    await client.execute(sql)
+  }
+}
+
+// Initialize tables on import (fire-and-forget)
+initTables().catch(console.error)
 
 export default db

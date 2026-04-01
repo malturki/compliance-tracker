@@ -4,6 +4,7 @@ import { obligations } from '@/db/schema'
 import { eq, and, like, asc, desc, or } from 'drizzle-orm'
 import { ulid } from 'ulid'
 import { computeStatus } from '@/lib/utils'
+import { createObligationSchema } from '@/lib/validation'
 
 export async function GET(req: NextRequest) {
   try {
@@ -68,31 +69,39 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
+    
+    // Validate input
+    const result = createObligationSchema.safeParse(body)
+    if (!result.success) {
+      return NextResponse.json({ error: result.error.issues }, { status: 400 })
+    }
+    
+    const data = result.data
     const now = new Date().toISOString()
     const id = ulid()
 
-    const status = computeStatus(body.nextDueDate, body.lastCompletedDate)
+    const status = computeStatus(data.nextDueDate, data.lastCompletedDate ?? null)
 
     await db.insert(obligations).values({
       id,
-      title: body.title,
-      description: body.description ?? null,
-      category: body.category,
-      subcategory: body.subcategory ?? null,
-      frequency: body.frequency,
-      nextDueDate: body.nextDueDate,
-      lastCompletedDate: body.lastCompletedDate ?? null,
-      owner: body.owner,
-      assignee: body.assignee ?? null,
+      title: data.title,
+      description: data.description ?? null,
+      category: data.category,
+      subcategory: data.subcategory ?? null,
+      frequency: data.frequency,
+      nextDueDate: data.nextDueDate,
+      lastCompletedDate: data.lastCompletedDate ?? null,
+      owner: data.owner,
+      assignee: data.assignee ?? null,
       status,
-      riskLevel: body.riskLevel || 'medium',
-      alertDays: JSON.stringify(body.alertDays || []),
-      sourceDocument: body.sourceDocument ?? null,
-      notes: body.notes ?? null,
-      entity: body.entity || 'Pi Squared Inc.',
-      jurisdiction: body.jurisdiction ?? null,
-      amount: body.amount ?? null,
-      autoRecur: body.autoRecur ?? false,
+      riskLevel: data.riskLevel,
+      alertDays: JSON.stringify(data.alertDays),
+      sourceDocument: data.sourceDocument ?? null,
+      notes: data.notes ?? null,
+      entity: data.entity,
+      jurisdiction: data.jurisdiction ?? null,
+      amount: data.amount ?? null,
+      autoRecur: data.autoRecur,
       createdAt: now,
       updatedAt: now,
     })
