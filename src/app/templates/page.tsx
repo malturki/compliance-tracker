@@ -55,7 +55,7 @@ export default function TemplatesPage() {
 
   const [selectedIndexes, setSelectedIndexes] = useState<number[]>([])
   const [customOwner, setCustomOwner] = useState('')
-  const [customEntity, setCustomEntity] = useState('Pi Squared Inc.')
+  const [customEntity, setCustomEntity] = useState('Acme Corp')
 
   useEffect(() => {
     loadTemplates()
@@ -104,7 +104,7 @@ export default function TemplatesPage() {
           templateId: selectedTemplate.id,
           customizations: {
             owner: customOwner.trim() || undefined,
-            entity: customEntity.trim() || 'Pi Squared Inc.',
+            entity: customEntity.trim() || 'Acme Corp',
             selectedObligationIndexes: selectedIndexes,
           },
         }),

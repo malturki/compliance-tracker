@@ -26,7 +26,7 @@ export function Sidebar() {
             <Shield className="w-4 h-4 text-amber-400" />
           </div>
           <div>
-            <div className="text-sm font-semibold text-slate-100 leading-tight">Pi Squared</div>
+            <div className="text-sm font-semibold text-slate-100 leading-tight">Acme Corp</div>
             <div className="text-[10px] text-amber-500/80 font-mono uppercase tracking-widest">Compliance</div>
           </div>
         </div>
@@ -56,7 +56,7 @@ export function Sidebar() {
 
       {/* Footer */}
       <div className="px-5 py-3 border-t border-[#1e2d47]">
-        <div className="text-[11px] text-slate-600 font-mono">Pi Squared Inc.</div>
+        <div className="text-[11px] text-slate-600 font-mono">Acme Corp</div>
         <div className="text-[10px] text-slate-700 mt-0.5">Delaware C-Corp</div>
       </div>
     </aside>
