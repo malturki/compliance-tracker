@@ -14,6 +14,11 @@ import { Label } from '@/components/ui/label'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
+import { Checkbox } from '@/components/ui/checkbox'
+import { BulkActionBar } from '@/components/obligations/bulk-action-bar'
+import { BulkCompleteDialog } from '@/components/obligations/bulk-complete-dialog'
+import { BulkEditDialog } from '@/components/obligations/bulk-edit-dialog'
+import { BulkDeleteDialog } from '@/components/obligations/bulk-delete-dialog'
 
 const CATEGORIES: Category[] = ['tax', 'investor', 'equity', 'state', 'federal', 'contract', 'insurance', 'benefits', 'governance', 'vendor']
 const STATUSES: Status[] = ['overdue', 'upcoming', 'current', 'completed']
@@ -361,6 +366,15 @@ function ObligationsPageContent() {
   const [selectedItem, setSelectedItem] = useState<(Obligation & { computedStatus: Status; completions?: Completion[] }) | null>(null)
   const [showAdd, setShowAdd] = useState(false)
 
+  // Bulk selection state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(null)
+  const [showBulkComplete, setShowBulkComplete] = useState(false)
+  const [showBulkEdit, setShowBulkEdit] = useState(false)
+  const [showBulkDelete, setShowBulkDelete] = useState(false)
+
+  const bulkMode = selectedIds.size > 0
+
   const fetchItems = useCallback(async () => {
     setLoading(true)
     const params = new URLSearchParams()
@@ -389,15 +403,152 @@ function ObligationsPageContent() {
       .catch(() => setSelectedItem(null))
   }, [selectedId])
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Escape to clear selection
+      if (e.key === 'Escape' && bulkMode) {
+        setSelectedIds(new Set())
+        setLastSelectedIndex(null)
+      }
+      // Ctrl/Cmd+A to select all
+      if ((e.ctrlKey || e.metaKey) && e.key === 'a' && !bulkMode) {
+        e.preventDefault()
+        setSelectedIds(new Set(items.map(i => i.id)))
+        setLastSelectedIndex(null)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [bulkMode, items])
+
   const handleSort = (field: SortField) => {
     if (sortBy === field) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
     else { setSortBy(field); setSortDir('asc') }
+  }
+
+  const handleRowClick = (item: ObligationWithStatus, index: number, e: React.MouseEvent) => {
+    if (bulkMode) {
+      // In bulk mode, clicking toggles selection
+      e.preventDefault()
+      handleCheckboxChange(item.id, index, e)
+    } else {
+      // Normal mode, open detail panel
+      setSelectedId(item.id === selectedId ? null : item.id)
+    }
+  }
+
+  const handleCheckboxChange = (id: string, index: number, e: React.MouseEvent | React.ChangeEvent) => {
+    const checked = selectedIds.has(id)
+
+    if ('shiftKey' in e && e.shiftKey && lastSelectedIndex !== null) {
+      // Range selection
+      const start = Math.min(lastSelectedIndex, index)
+      const end = Math.max(lastSelectedIndex, index)
+      const newSelection = new Set(selectedIds)
+      for (let i = start; i <= end; i++) {
+        newSelection.add(items[i].id)
+      }
+      setSelectedIds(newSelection)
+    } else {
+      // Single toggle
+      const newSelection = new Set(selectedIds)
+      if (checked) {
+        newSelection.delete(id)
+      } else {
+        newSelection.add(id)
+      }
+      setSelectedIds(newSelection)
+      setLastSelectedIndex(index)
+    }
+  }
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(new Set(items.map(i => i.id)))
+    } else {
+      setSelectedIds(new Set())
+    }
+    setLastSelectedIndex(null)
+  }
+
+  const handleBulkComplete = async (completedBy: string, notes: string) => {
+    try {
+      const res = await fetch('/api/obligations/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'mark-complete',
+          ids: Array.from(selectedIds),
+          data: { completedBy, completionNotes: notes },
+        }),
+      })
+      if (!res.ok) throw new Error()
+      const result = await res.json()
+      toast.success(`Completed ${result.completed} obligation${result.completed > 1 ? 's' : ''}`)
+      setSelectedIds(new Set())
+      setLastSelectedIndex(null)
+      fetchItems()
+    } catch {
+      toast.error('Failed to complete obligations')
+      throw new Error()
+    }
+  }
+
+  const handleBulkEdit = async (field: 'owner' | 'risk', value: string, email?: string) => {
+    try {
+      const action = field === 'owner' ? 'update-owner' : 'update-risk'
+      const data: any = field === 'owner' 
+        ? { owner: value, ownerEmail: email }
+        : { riskLevel: value }
+
+      const res = await fetch('/api/obligations/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action,
+          ids: Array.from(selectedIds),
+          data,
+        }),
+      })
+      if (!res.ok) throw new Error()
+      toast.success(`Updated ${selectedIds.size} obligation${selectedIds.size > 1 ? 's' : ''}`)
+      setSelectedIds(new Set())
+      setLastSelectedIndex(null)
+      fetchItems()
+    } catch {
+      toast.error('Failed to update obligations')
+      throw new Error()
+    }
+  }
+
+  const handleBulkDelete = async () => {
+    try {
+      const res = await fetch('/api/obligations/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'delete',
+          ids: Array.from(selectedIds),
+        }),
+      })
+      if (!res.ok) throw new Error()
+      toast.success(`Deleted ${selectedIds.size} obligation${selectedIds.size > 1 ? 's' : ''}`)
+      setSelectedIds(new Set())
+      setLastSelectedIndex(null)
+      fetchItems()
+    } catch {
+      toast.error('Failed to delete obligations')
+      throw new Error()
+    }
   }
 
   const SortIcon = ({ field }: { field: SortField }) => {
     if (sortBy !== field) return <ChevronDown className="w-3 h-3 text-slate-600" />
     return sortDir === 'asc' ? <ChevronUp className="w-3 h-3 text-amber-400" /> : <ChevronDown className="w-3 h-3 text-amber-400" />
   }
+
+  const allSelected = items.length > 0 && selectedIds.size === items.length
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -408,80 +559,102 @@ function ObligationsPageContent() {
             <h1 className="text-lg font-semibold text-slate-100">Obligations</h1>
             <p className="text-xs text-slate-500 mt-0.5 font-mono">{items.length} obligations</p>
           </div>
-          <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => router.push('/templates')}
-              className="border-[#1e2d47] text-slate-300 hover:text-slate-100 hover:bg-[#1e2d47] text-xs h-7 gap-1.5"
-            >
-              <FileText className="w-3 h-3" /> Import Template
-            </Button>
-            <Button size="sm" onClick={() => setShowAdd(true)} className="bg-amber-600 hover:bg-amber-500 text-white text-xs h-7 gap-1.5">
-              <Plus className="w-3 h-3" /> Add
-            </Button>
-          </div>
-        </div>
-
-        {/* Filters */}
-        <div className="px-6 py-3 border-b border-[#1e2d47] flex items-center gap-3 flex-shrink-0 bg-[#0a0e1a]">
-          <div className="relative flex-shrink-0 w-52">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-500" />
-            <Input
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Search..."
-              className="pl-7 bg-[#0f1629] border-[#1e2d47] text-slate-200 text-xs h-7 placeholder:text-slate-600"
-            />
-          </div>
-          <Select value={category || 'all'} onValueChange={v => v && setCategory(v === 'all' ? '' : v)}>
-            <SelectTrigger className="w-36 bg-[#0f1629] border-[#1e2d47] text-slate-300 text-xs h-7">
-              <SelectValue placeholder="Category" />
-            </SelectTrigger>
-            <SelectContent className="bg-[#0f1629] border-[#1e2d47]">
-              <SelectItem value="all" className="text-slate-300 text-xs">All Categories</SelectItem>
-              {CATEGORIES.map(c => (
-                <SelectItem key={c} value={c} className="text-slate-300 text-xs">{getCategoryLabel(c)}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={status || 'all'} onValueChange={v => v && setStatus(v === 'all' ? '' : v)}>
-            <SelectTrigger className="w-32 bg-[#0f1629] border-[#1e2d47] text-slate-300 text-xs h-7">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent className="bg-[#0f1629] border-[#1e2d47]">
-              <SelectItem value="all" className="text-slate-300 text-xs">All Status</SelectItem>
-              {STATUSES.map(s => (
-                <SelectItem key={s} value={s} className="text-slate-300 text-xs capitalize">{s}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={riskLevel || 'all'} onValueChange={v => v && setRiskLevel(v === 'all' ? '' : v)}>
-            <SelectTrigger className="w-28 bg-[#0f1629] border-[#1e2d47] text-slate-300 text-xs h-7">
-              <SelectValue placeholder="Risk" />
-            </SelectTrigger>
-            <SelectContent className="bg-[#0f1629] border-[#1e2d47]">
-              <SelectItem value="all" className="text-slate-300 text-xs">All Risk</SelectItem>
-              {RISK_LEVELS.map(r => (
-                <SelectItem key={r} value={r} className="text-slate-300 text-xs capitalize">{r}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {(category || status || riskLevel || search) && (
-            <button
-              onClick={() => { setCategory(''); setStatus(''); setRiskLevel(''); setSearch('') }}
-              className="text-xs text-slate-500 hover:text-slate-300 flex items-center gap-1"
-            >
-              <X className="w-3 h-3" /> Clear
-            </button>
+          {!bulkMode && (
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => router.push('/templates')}
+                className="border-[#1e2d47] text-slate-300 hover:text-slate-100 hover:bg-[#1e2d47] text-xs h-7 gap-1.5"
+              >
+                <FileText className="w-3 h-3" /> Import Template
+              </Button>
+              <Button size="sm" onClick={() => setShowAdd(true)} className="bg-amber-600 hover:bg-amber-500 text-white text-xs h-7 gap-1.5">
+                <Plus className="w-3 h-3" /> Add
+              </Button>
+            </div>
           )}
         </div>
+
+        {/* Bulk action bar or filters */}
+        {bulkMode ? (
+          <BulkActionBar
+            selectedCount={selectedIds.size}
+            onClear={() => {
+              setSelectedIds(new Set())
+              setLastSelectedIndex(null)
+            }}
+            onMarkComplete={() => setShowBulkComplete(true)}
+            onEdit={() => setShowBulkEdit(true)}
+            onDelete={() => setShowBulkDelete(true)}
+          />
+        ) : (
+          <div className="px-6 py-3 border-b border-[#1e2d47] flex items-center gap-3 flex-shrink-0 bg-[#0a0e1a]">
+            <div className="relative flex-shrink-0 w-52">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-500" />
+              <Input
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Search..."
+                className="pl-7 bg-[#0f1629] border-[#1e2d47] text-slate-200 text-xs h-7 placeholder:text-slate-600"
+              />
+            </div>
+            <Select value={category || 'all'} onValueChange={v => v && setCategory(v === 'all' ? '' : v)}>
+              <SelectTrigger className="w-36 bg-[#0f1629] border-[#1e2d47] text-slate-300 text-xs h-7">
+                <SelectValue placeholder="Category" />
+              </SelectTrigger>
+              <SelectContent className="bg-[#0f1629] border-[#1e2d47]">
+                <SelectItem value="all" className="text-slate-300 text-xs">All Categories</SelectItem>
+                {CATEGORIES.map(c => (
+                  <SelectItem key={c} value={c} className="text-slate-300 text-xs">{getCategoryLabel(c)}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={status || 'all'} onValueChange={v => v && setStatus(v === 'all' ? '' : v)}>
+              <SelectTrigger className="w-32 bg-[#0f1629] border-[#1e2d47] text-slate-300 text-xs h-7">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent className="bg-[#0f1629] border-[#1e2d47]">
+                <SelectItem value="all" className="text-slate-300 text-xs">All Status</SelectItem>
+                {STATUSES.map(s => (
+                  <SelectItem key={s} value={s} className="text-slate-300 text-xs capitalize">{s}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={riskLevel || 'all'} onValueChange={v => v && setRiskLevel(v === 'all' ? '' : v)}>
+              <SelectTrigger className="w-28 bg-[#0f1629] border-[#1e2d47] text-slate-300 text-xs h-7">
+                <SelectValue placeholder="Risk" />
+              </SelectTrigger>
+              <SelectContent className="bg-[#0f1629] border-[#1e2d47]">
+                <SelectItem value="all" className="text-slate-300 text-xs">All Risk</SelectItem>
+                {RISK_LEVELS.map(r => (
+                  <SelectItem key={r} value={r} className="text-slate-300 text-xs capitalize">{r}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {(category || status || riskLevel || search) && (
+              <button
+                onClick={() => { setCategory(''); setStatus(''); setRiskLevel(''); setSearch('') }}
+                className="text-xs text-slate-500 hover:text-slate-300 flex items-center gap-1"
+              >
+                <X className="w-3 h-3" /> Clear
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Table */}
         <div className="flex-1 overflow-auto">
           <table className="w-full text-xs">
             <thead className="sticky top-0 bg-[#0a0e1a] border-b border-[#1e2d47] z-10">
               <tr>
+                <th className="px-3 py-2.5 w-10">
+                  <Checkbox
+                    checked={allSelected}
+                    onCheckedChange={handleSelectAll}
+                    className="border-slate-600"
+                  />
+                </th>
                 {([
                   ['title', 'Obligation', 'text-left'],
                   ['category', 'Category', 'text-left'],
@@ -506,27 +679,37 @@ function ObligationsPageContent() {
                 >
                   <span className="inline-flex items-center gap-1">Risk <SortIcon field="risk_level" /></span>
                 </th>
-                <th className="w-6" />
+                {!bulkMode && <th className="w-6" />}
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={8} className="px-3 py-8 text-center text-slate-600">Loading...</td></tr>
+                <tr><td colSpan={9} className="px-3 py-8 text-center text-slate-600">Loading...</td></tr>
               ) : items.length === 0 ? (
-                <tr><td colSpan={8} className="px-3 py-8 text-center text-slate-600">No obligations found</td></tr>
+                <tr><td colSpan={9} className="px-3 py-8 text-center text-slate-600">No obligations found</td></tr>
               ) : (
                 items.map((item, i) => {
                   const days = getDaysUntil(item.nextDueDate)
-                  const isSelected = selectedId === item.id
+                  const isSelected = bulkMode ? selectedIds.has(item.id) : selectedId === item.id
                   return (
                     <tr
                       key={item.id}
-                      onClick={() => setSelectedId(isSelected ? null : item.id)}
+                      onClick={(e) => !bulkMode && handleRowClick(item, i, e)}
                       className={`border-b border-[#1e2d47]/50 cursor-pointer transition-colors
-                        ${isSelected ? 'bg-amber-950/20 border-l-2 border-l-amber-500' : i % 2 === 0 ? 'hover:bg-[#0f1629]' : 'bg-[#0a0e1a]/50 hover:bg-[#0f1629]'}
+                        ${isSelected && !bulkMode ? 'bg-amber-950/20 border-l-2 border-l-amber-500' : ''}
+                        ${isSelected && bulkMode ? 'bg-amber-950/20' : ''}
+                        ${!isSelected && (i % 2 === 0 ? 'hover:bg-[#0f1629]' : 'bg-[#0a0e1a]/50 hover:bg-[#0f1629]')}
                         ${item.computedStatus === 'overdue' ? 'hover:bg-red-950/10' : ''}
                       `}
                     >
+                      <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
+                        <Checkbox
+                          checked={selectedIds.has(item.id)}
+                          onCheckedChange={() => handleCheckboxChange(item.id, i, new MouseEvent('click') as any)}
+                          onClick={(e) => handleCheckboxChange(item.id, i, e)}
+                          className="border-slate-600"
+                        />
+                      </td>
                       <td className="px-3 py-2 max-w-[280px]">
                         <span className={`font-medium leading-tight ${item.computedStatus === 'overdue' ? 'text-red-300' : 'text-slate-200'}`}>
                           {item.title}
@@ -546,7 +729,7 @@ function ObligationsPageContent() {
                       <td className="px-3 py-2 text-slate-500 max-w-[140px] truncate">{item.owner}</td>
                       <td className="px-3 py-2 text-center"><StatusBadge status={item.computedStatus} /></td>
                       <td className="px-3 py-2 text-center"><RiskBadge risk={item.riskLevel as RiskLevel} /></td>
-                      <td className="px-2 py-2 text-slate-600"><ChevronRight className="w-3 h-3" /></td>
+                      {!bulkMode && <td className="px-2 py-2 text-slate-600"><ChevronRight className="w-3 h-3" /></td>}
                     </tr>
                   )
                 })
@@ -557,7 +740,7 @@ function ObligationsPageContent() {
       </div>
 
       {/* Side panel */}
-      <Sheet open={!!selectedId && !!selectedItem} onOpenChange={open => !open && setSelectedId(null)}>
+      <Sheet open={!!selectedId && !!selectedItem && !bulkMode} onOpenChange={open => !open && setSelectedId(null)}>
         <SheetContent
           side="right"
           className="w-[420px] p-0 bg-[#0f1629] border-l border-[#1e2d47] text-slate-200"
@@ -573,6 +756,26 @@ function ObligationsPageContent() {
       </Sheet>
 
       <AddObligationDialog open={showAdd} onClose={() => setShowAdd(false)} onSave={fetchItems} />
+
+      {/* Bulk dialogs */}
+      <BulkCompleteDialog
+        open={showBulkComplete}
+        selectedCount={selectedIds.size}
+        onClose={() => setShowBulkComplete(false)}
+        onComplete={handleBulkComplete}
+      />
+      <BulkEditDialog
+        open={showBulkEdit}
+        selectedCount={selectedIds.size}
+        onClose={() => setShowBulkEdit(false)}
+        onUpdate={handleBulkEdit}
+      />
+      <BulkDeleteDialog
+        open={showBulkDelete}
+        selectedCount={selectedIds.size}
+        onClose={() => setShowBulkDelete(false)}
+        onDelete={handleBulkDelete}
+      />
     </div>
   )
 }

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/db'
 import { obligations } from '@/db/schema'
-import { eq, and, like, asc, desc, or } from 'drizzle-orm'
+import { eq, and, like, asc, desc, or, inArray } from 'drizzle-orm'
 import { ulid } from 'ulid'
 import { computeStatus } from '@/lib/utils'
 import { createObligationSchema } from '@/lib/validation'
@@ -110,5 +110,23 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     console.error(err)
     return NextResponse.json({ error: 'Failed to create obligation' }, { status: 500 })
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const body = await req.json()
+    const { ids } = body as { ids: string[] }
+
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return NextResponse.json({ error: 'ids array is required' }, { status: 400 })
+    }
+
+    await db.delete(obligations).where(inArray(obligations.id, ids))
+
+    return NextResponse.json({ deleted: ids.length })
+  } catch (err) {
+    console.error(err)
+    return NextResponse.json({ error: 'Failed to delete obligations' }, { status: 500 })
   }
 }
