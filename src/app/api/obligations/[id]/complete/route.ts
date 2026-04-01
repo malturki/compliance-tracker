@@ -5,6 +5,7 @@ import { eq } from 'drizzle-orm'
 import { ulid } from 'ulid'
 import { computeNextDueDate } from '@/lib/utils'
 import { uploadToBlob, validateFile } from '@/lib/blob'
+import { completeObligationSchema } from '@/lib/validation'
 
 export async function POST(
   req: NextRequest,
@@ -72,11 +73,19 @@ export async function POST(
       }
     }
 
-    if (!data.completedBy?.trim()) {
+    // Validate input data
+    const validationResult = completeObligationSchema.safeParse({
+      completedBy: data.completedBy,
+      completedDate: data.completedDate,
+      notes: data.notes,
+      evidenceUrl: data.evidenceUrls.length > 0 ? data.evidenceUrls[0] : undefined,
+    });
+    
+    if (!validationResult.success) {
       return NextResponse.json(
-        { error: 'completedBy is required' },
+        { error: validationResult.error.issues },
         { status: 400 }
-      )
+      );
     }
 
     const now = new Date().toISOString()

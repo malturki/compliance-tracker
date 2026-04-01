@@ -48,7 +48,7 @@ export async function PUT(
     const updateData: Partial<typeof obligations.$inferSelect> = { updatedAt: now }
     const allowed = [
       'title', 'description', 'category', 'subcategory', 'frequency',
-      'nextDueDate', 'lastCompletedDate', 'owner', 'assignee', 'riskLevel',
+      'nextDueDate', 'lastCompletedDate', 'owner', 'ownerEmail', 'assignee', 'assigneeEmail', 'riskLevel',
       'sourceDocument', 'notes', 'entity', 'jurisdiction', 'amount', 'autoRecur',
     ] as const
     
