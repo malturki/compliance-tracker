@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/db'
+import { db, dbReady } from '@/db'
 import { obligations } from '@/db/schema'
 import { sql, lt } from 'drizzle-orm'
 import nodemailer from 'nodemailer'
@@ -11,6 +11,7 @@ import { generateAlertEmail } from '@/lib/email-templates'
  */
 export async function POST(request: NextRequest) {
   try {
+    await dbReady
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 

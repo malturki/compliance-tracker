@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/db'
+import { db, dbReady } from '@/db'
 import { obligations } from '@/db/schema'
 import { eq, inArray } from 'drizzle-orm'
 
@@ -19,6 +19,7 @@ interface BulkRequest {
 
 export async function POST(request: NextRequest) {
   try {
+    await dbReady
     const body: BulkRequest = await request.json()
     const { action, ids, data } = body
 

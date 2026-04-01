@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/db'
+import { db, dbReady } from '@/db'
 import { obligations, completions } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { ulid } from 'ulid'
@@ -12,6 +12,7 @@ export async function POST(
   { params }: { params: { id: string } },
 ) {
   try {
+    await dbReady
     const contentType = req.headers.get('content-type') || ''
     let data: {
       completedBy: string

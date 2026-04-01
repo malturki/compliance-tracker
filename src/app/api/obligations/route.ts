@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/db'
+import { db, dbReady } from '@/db'
 import { obligations } from '@/db/schema'
 import { eq, and, like, asc, desc, or, inArray } from 'drizzle-orm'
 import { ulid } from 'ulid'
@@ -8,6 +8,7 @@ import { createObligationSchema } from '@/lib/validation'
 
 export async function GET(req: NextRequest) {
   try {
+    await dbReady
     const { searchParams } = req.nextUrl
     const category = searchParams.get('category')
     const statusFilter = searchParams.get('status')
@@ -68,6 +69,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    await dbReady
     const body = await req.json()
     
     // Validate input
@@ -117,6 +119,7 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
+    await dbReady
     const body = await req.json()
     const { ids } = body as { ids: string[] }
 

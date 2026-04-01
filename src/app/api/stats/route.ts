@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { db } from '@/db'
+import { db, dbReady } from '@/db'
 import { obligations } from '@/db/schema'
 import { computeStatus } from '@/lib/utils'
 import { addDays, startOfDay, endOfDay, endOfMonth } from 'date-fns'
@@ -7,6 +7,7 @@ import type { Stats } from '@/lib/types'
 
 export async function GET() {
   try {
+    await dbReady
     const rows = await db.select().from(obligations)
 
     const today = startOfDay(new Date())

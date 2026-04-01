@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { db } from '@/db'
+import { db, dbReady } from '@/db'
 import { obligations, completions } from '@/db/schema'
 import { eq, and, gte, lte, sql } from 'drizzle-orm'
 import { addDays, subDays, startOfDay, parseISO, differenceInDays } from 'date-fns'
@@ -60,6 +60,7 @@ interface RiskMetrics {
 
 export async function GET() {
   try {
+    await dbReady
     const today = startOfDay(new Date())
     const todayStr = today.toISOString().split('T')[0]
     

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/db'
+import { db, dbReady } from '@/db'
 import { obligations, completions } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { computeStatus } from '@/lib/utils'
@@ -10,6 +10,7 @@ export async function GET(
   { params }: { params: { id: string } },
 ) {
   try {
+    await dbReady
     const rows = await db.select().from(obligations).where(eq(obligations.id, params.id))
     if (rows.length === 0) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
@@ -34,6 +35,7 @@ export async function PUT(
   { params }: { params: { id: string } },
 ) {
   try {
+    await dbReady
     const body = await req.json()
     
     // Validate input
@@ -74,6 +76,7 @@ export async function DELETE(
   { params }: { params: { id: string } },
 ) {
   try {
+    await dbReady
     await db.delete(completions).where(eq(completions.obligationId, params.id))
     await db.delete(obligations).where(eq(obligations.id, params.id))
     return NextResponse.json({ success: true })

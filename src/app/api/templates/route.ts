@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/db'
+import { db, dbReady } from '@/db'
 import { obligations } from '@/db/schema'
 import { templates, calculateDueDate, formatDueDateForDb } from '@/data/templates'
 import type { TemplateObligation } from '@/data/templates'
@@ -7,6 +7,7 @@ import { ulid } from 'ulid'
 
 export async function GET() {
   try {
+    await dbReady
     const templateList = templates.map(t => ({
       id: t.id,
       name: t.name,
@@ -24,6 +25,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    await dbReady
     const body = await request.json()
     const { templateId, customizations } = body
 
