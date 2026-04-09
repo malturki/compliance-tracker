@@ -4,6 +4,8 @@ import { obligations, completions } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { computeStatus } from '@/lib/utils'
 import { updateObligationSchema } from '@/lib/validation'
+import { getActor } from '@/lib/actor'
+import { auditedUpdate } from '@/lib/audit-helpers'
 
 export async function GET(
   _req: NextRequest,
@@ -45,9 +47,8 @@ export async function PUT(
     }
     
     const data = result.data
-    const now = new Date().toISOString()
 
-    const updateData: Partial<typeof obligations.$inferSelect> = { updatedAt: now }
+    const updateData: Partial<typeof obligations.$inferSelect> = {}
     const allowed = [
       'title', 'description', 'category', 'subcategory', 'frequency',
       'nextDueDate', 'lastCompletedDate', 'owner', 'ownerEmail', 'assignee', 'assigneeEmail', 'riskLevel',
@@ -63,7 +64,11 @@ export async function PUT(
       updateData['alertDays'] = JSON.stringify(data.alertDays)
     }
 
-    await db.update(obligations).set(updateData).where(eq(obligations.id, params.id))
+    const actor = await getActor(req)
+    const updated = await auditedUpdate(params.id, updateData, actor)
+    if (!updated) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    }
     return NextResponse.json({ success: true })
   } catch (err) {
     console.error(err)

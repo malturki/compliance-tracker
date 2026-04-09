@@ -211,3 +211,53 @@ describe('audit: POST /api/obligations', () => {
     }
   });
 });
+
+describe('audit: PUT /api/obligations/[id]', () => {
+  it('writes an obligation.updated audit row with diff', async () => {
+    vi.resetModules();
+    vi.doUnmock('@/db');
+    vi.doUnmock('ulid');
+    const { PUT } = await import('../[id]/route');
+    const { db, dbReady } = await import('@/db');
+    const { auditLog, obligations } = await import('@/db/schema');
+    const { eq } = await import('drizzle-orm');
+    await dbReady;
+    await db.delete(auditLog);
+
+    const id = 'test-audit-upd-1';
+    await db.delete(obligations).where(eq(obligations.id, id));
+    const nowIso = new Date().toISOString();
+    await db.insert(obligations).values({
+      id,
+      title: 'Original',
+      category: 'tax',
+      frequency: 'annual',
+      nextDueDate: '2026-12-31',
+      owner: 'Internal',
+      status: 'current',
+      riskLevel: 'medium',
+      alertDays: '[]',
+      createdAt: nowIso,
+      updatedAt: nowIso,
+    });
+
+    const request = new NextRequest(`http://localhost/api/obligations/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ owner: 'Anderson & Co' }),
+    });
+
+    const response = await PUT(request, { params: { id } });
+    expect(response.status).toBe(200);
+
+    const rows = await db
+      .select()
+      .from(auditLog)
+      .where(eq(auditLog.eventType, 'obligation.updated'));
+    expect(rows).toHaveLength(1);
+    const diff = JSON.parse(rows[0].diff || '{}');
+    expect(diff).toMatchObject({ owner: ['Internal', 'Anderson & Co'] });
+
+    await db.delete(obligations).where(eq(obligations.id, id));
+    await db.delete(auditLog);
+  });
+});
