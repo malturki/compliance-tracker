@@ -5,9 +5,10 @@ import seedObligations from '@/data/seed-obligations.json'
 
 const tursoUrl = process.env.TURSO_DATABASE_URL
 const tursoAuthToken = process.env.TURSO_AUTH_TOKEN
-const isServerlessInMemory = !tursoUrl && process.env.NODE_ENV === 'production'
+// Use in-memory SQLite (seeded from JSON below) whenever Turso isn't configured.
+// This covers both Vercel serverless and local dev without creds.
+const useInMemory = !tursoUrl
 
-// Support Turso (remote), local SQLite (dev), or in-memory with seed data (Vercel serverless)
 let client: ReturnType<typeof createClient>
 
 if (tursoUrl) {
@@ -15,14 +16,9 @@ if (tursoUrl) {
     url: tursoUrl,
     authToken: tursoAuthToken,
   })
-} else if (isServerlessInMemory) {
-  // Vercel serverless without Turso: use in-memory SQLite seeded from JSON
-  client = createClient({
-    url: ':memory:',
-  })
 } else {
   client = createClient({
-    url: 'file:compliance.db',
+    url: ':memory:',
   })
 }
 
@@ -30,7 +26,7 @@ export const db = drizzle(client, { schema })
 
 // For in-memory mode (Vercel without Turso), seed from JSON on each cold start
 const initInMemory = async () => {
-  if (!isServerlessInMemory) return
+  if (!useInMemory) return
 
   // Create tables
   await client.execute(`CREATE TABLE IF NOT EXISTS obligations (
