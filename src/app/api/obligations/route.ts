@@ -5,6 +5,8 @@ import { eq, and, like, asc, desc, or, inArray } from 'drizzle-orm'
 import { ulid } from 'ulid'
 import { computeStatus } from '@/lib/utils'
 import { createObligationSchema } from '@/lib/validation'
+import { getActor } from '@/lib/actor'
+import { logEvent } from '@/lib/audit'
 
 export async function GET(req: NextRequest) {
   try {
@@ -108,6 +110,16 @@ export async function POST(req: NextRequest) {
       autoRecur: data.autoRecur,
       createdAt: now,
       updatedAt: now,
+    })
+
+    const actor = await getActor(req)
+    await logEvent({
+      type: 'obligation.created',
+      actor,
+      entityType: 'obligation',
+      entityId: id,
+      summary: `Created "${data.title}"`,
+      metadata: { fields: Object.keys(body) },
     })
 
     return NextResponse.json({ id }, { status: 201 })

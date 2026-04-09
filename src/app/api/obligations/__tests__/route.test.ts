@@ -151,8 +151,63 @@ describe('GET /api/obligations', () => {
 
   it('supports search parameter', async () => {
     const request = new NextRequest('http://localhost/api/obligations?search=tax');
-    
+
     const response = await GET(request);
     expect(response.status).toBe(200);
+  });
+});
+
+describe('audit: POST /api/obligations', () => {
+  beforeEach(async () => {
+    vi.resetModules();
+    vi.doUnmock('@/db');
+    vi.doUnmock('ulid');
+    const { db, dbReady } = await import('@/db');
+    const { auditLog } = await import('@/db/schema');
+    await dbReady;
+    await db.delete(auditLog);
+  });
+
+  it('writes an obligation.created audit row', async () => {
+    vi.resetModules();
+    vi.doUnmock('@/db');
+    vi.doUnmock('ulid');
+    const { POST: RealPOST } = await import('../route');
+    const { db, dbReady } = await import('@/db');
+    const { auditLog, obligations } = await import('@/db/schema');
+    const { eq } = await import('drizzle-orm');
+    await dbReady;
+    await db.delete(auditLog);
+
+    const title = 'Audit Trail Test Filing ' + Date.now();
+    const validData = {
+      title,
+      category: 'tax',
+      frequency: 'annual',
+      nextDueDate: '2026-12-31',
+      owner: 'Jane Doe',
+      riskLevel: 'high',
+    };
+
+    const request = new NextRequest('http://localhost/api/obligations', {
+      method: 'POST',
+      body: JSON.stringify(validData),
+    });
+
+    const response = await RealPOST(request);
+    expect([200, 201]).toContain(response.status);
+
+    const rows = await db
+      .select()
+      .from(auditLog)
+      .where(eq(auditLog.eventType, 'obligation.created'));
+    expect(rows).toHaveLength(1);
+    expect(rows[0].summary).toContain(title);
+
+    // cleanup created obligation
+    const created = await response.json();
+    if (created?.id) {
+      await db.delete(obligations).where(eq(obligations.id, created.id));
+    }
   });
 });
