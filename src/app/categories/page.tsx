@@ -1,4 +1,4 @@
-import { db } from '@/db'
+import { db, dbReady } from '@/db'
 import { obligations } from '@/db/schema'
 import { computeStatus, formatDate, getCategoryLabel } from '@/lib/utils'
 import { FileText, AlertTriangle, Calendar, TrendingUp } from 'lucide-react'
@@ -33,6 +33,7 @@ const CATEGORY_DESCRIPTIONS: Record<string, string> = {
 }
 
 async function getData() {
+  await dbReady
   const rows = await db.select().from(obligations)
   const enriched = rows.map(row => ({
     ...row,

@@ -1,4 +1,4 @@
-import { db } from '@/db'
+import { db, dbReady } from '@/db'
 import { obligations } from '@/db/schema'
 import { computeStatus, formatDate, getDaysUntil, getRiskColor, getCategoryLabel } from '@/lib/utils'
 import { format } from 'date-fns'
@@ -8,6 +8,7 @@ import Link from 'next/link'
 export const dynamic = 'force-dynamic'
 
 async function getData() {
+  await dbReady
   const rows = await db.select().from(obligations)
   const today = new Date()
 
