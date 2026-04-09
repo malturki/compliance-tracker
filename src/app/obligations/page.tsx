@@ -20,6 +20,7 @@ import { BulkActionBar } from '@/components/obligations/bulk-action-bar'
 import { BulkCompleteDialog } from '@/components/obligations/bulk-complete-dialog'
 import { BulkEditDialog } from '@/components/obligations/bulk-edit-dialog'
 import { BulkDeleteDialog } from '@/components/obligations/bulk-delete-dialog'
+import { ObligationHistory } from '@/components/ObligationHistory'
 
 const CATEGORIES: Category[] = ['tax', 'investor', 'equity', 'state', 'federal', 'contract', 'insurance', 'benefits', 'governance', 'vendor']
 const STATUSES: Status[] = ['overdue', 'upcoming', 'current', 'completed']
@@ -260,6 +261,10 @@ function DetailPanel({
               </div>
             </div>
           )}
+
+          {/* Audit history */}
+          <Separator className="bg-[#1e2d47]" />
+          <ObligationHistory obligationId={item.id} />
 
           {/* Mark complete */}
           <Separator className="bg-[#1e2d47]" />
