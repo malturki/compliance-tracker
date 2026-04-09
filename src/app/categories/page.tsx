@@ -4,6 +4,8 @@ import { computeStatus, formatDate, getCategoryLabel } from '@/lib/utils'
 import { FileText, AlertTriangle, Calendar, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
 
+export const dynamic = 'force-dynamic'
+
 const CATEGORY_ICONS: Record<string, any> = {
   tax: FileText,
   investor: TrendingUp,

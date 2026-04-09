@@ -1,9 +1,11 @@
 import { db } from '@/db'
 import { obligations } from '@/db/schema'
-import { computeStatus, formatDate, getDaysUntil, getRiskColor, getStatusColor, getCategoryLabel } from '@/lib/utils'
+import { computeStatus, formatDate, getDaysUntil, getRiskColor, getCategoryLabel } from '@/lib/utils'
 import { format } from 'date-fns'
-import { AlertTriangle, Clock, TrendingUp, FileCheck } from 'lucide-react'
+import { AlertTriangle, Clock, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
+
+export const dynamic = 'force-dynamic'
 
 async function getData() {
   const rows = await db.select().from(obligations)
@@ -23,7 +25,12 @@ async function getData() {
   const dueThisMonth = enriched
     .filter(r => {
       const due = new Date(r.nextDueDate)
-      return due.getFullYear() === today.getFullYear() && due.getMonth() === today.getMonth() && r.computedStatus !== 'overdue'
+      return (
+        due.getFullYear() === today.getFullYear() &&
+        due.getMonth() === today.getMonth() &&
+        r.computedStatus !== 'overdue' &&
+        r.computedStatus !== 'upcoming'
+      )
     })
     .sort((a, b) => a.nextDueDate.localeCompare(b.nextDueDate))
 
