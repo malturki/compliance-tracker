@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db, dbReady } from '@/db'
 import { obligations } from '@/db/schema'
 import { eq, inArray } from 'drizzle-orm'
+import { getActor } from '@/lib/actor'
+import { logEvent } from '@/lib/audit'
 
 type BulkAction = 'mark-complete' | 'update-owner' | 'update-risk' | 'delete'
 
@@ -145,6 +147,16 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         )
     }
+
+    const actor = await getActor(request)
+    await logEvent({
+      type: 'obligation.bulk_updated',
+      actor,
+      entityType: 'obligation',
+      entityId: null,
+      summary: `Bulk ${action} on ${ids.length} obligations`,
+      metadata: { action, ids, count: ids.length },
+    })
 
     return NextResponse.json(result)
   } catch (error) {

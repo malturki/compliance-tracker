@@ -6,6 +6,8 @@ import { ulid } from 'ulid'
 import { computeNextDueDate } from '@/lib/utils'
 import { uploadToBlob, validateFile } from '@/lib/blob'
 import { completeObligationSchema } from '@/lib/validation'
+import { getActor } from '@/lib/actor'
+import { logEvent } from '@/lib/audit'
 
 export async function POST(
   req: NextRequest,
@@ -125,9 +127,23 @@ export async function POST(
       await tx.update(obligations).set(updateData).where(eq(obligations.id, params.id))
     })
 
+    const actor = await getActor(req)
+    await logEvent({
+      type: 'obligation.completed',
+      actor,
+      entityType: 'obligation',
+      entityId: params.id,
+      summary: `Marked "${obligation.title}" complete`,
+      metadata: {
+        completionId,
+        evidenceCount: data.evidenceUrls.length,
+        completedBy: data.completedBy,
+      },
+    })
+
     return NextResponse.json(
-      { 
-        id: completionId, 
+      {
+        id: completionId,
         success: true,
         evidenceUrls: data.evidenceUrls,
       },

@@ -4,6 +4,8 @@ import { obligations } from '@/db/schema'
 import { templates, calculateDueDate, formatDueDateForDb } from '@/data/templates'
 import type { TemplateObligation } from '@/data/templates'
 import { ulid } from 'ulid'
+import { getActor } from '@/lib/actor'
+import { logEvent } from '@/lib/audit'
 
 export async function GET() {
   try {
@@ -82,11 +84,22 @@ export async function POST(request: NextRequest) {
 
     await db.insert(obligations).values(records)
 
+    const actor = await getActor(request)
+    const createdIds = records.map(o => o.id)
+    await logEvent({
+      type: 'template.applied',
+      actor,
+      entityType: 'template',
+      entityId: templateId,
+      summary: `Applied template "${template.name}" (${createdIds.length} obligations)`,
+      metadata: { templateId, createdIds, count: createdIds.length },
+    })
+
     return NextResponse.json({
       success: true,
       message: `Created ${records.length} obligations from "${template.name}"`,
       count: records.length,
-      obligationIds: records.map(o => o.id),
+      obligationIds: createdIds,
     })
   } catch (error: any) {
     console.error('Error applying template:', error)

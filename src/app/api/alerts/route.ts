@@ -4,6 +4,8 @@ import { obligations } from '@/db/schema'
 import { sql, lt } from 'drizzle-orm'
 import nodemailer from 'nodemailer'
 import { generateAlertEmail } from '@/lib/email-templates'
+import { getActor } from '@/lib/actor'
+import { logEvent } from '@/lib/audit'
 
 /**
  * Check for obligations that need alerts sent
@@ -106,6 +108,16 @@ export async function POST(request: NextRequest) {
           subject,
           text,
           html,
+        })
+
+        const alertActor = await getActor(request)
+        await logEvent({
+          type: 'alert.sent',
+          actor: alertActor,
+          entityType: 'alert',
+          entityId: obligation.id,
+          summary: `Sent alert for "${obligation.title}" to ${recipientEmail}`,
+          metadata: { obligationId: obligation.id, recipient: recipientEmail, channel: 'email', daysUntilDue },
         })
 
         // Update lastAlertSent
