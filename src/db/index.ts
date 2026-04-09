@@ -67,6 +67,22 @@ const initInMemory = async () => {
     created_at TEXT NOT NULL
   )`)
 
+  await client.execute(`CREATE TABLE IF NOT EXISTS audit_log (
+    id TEXT PRIMARY KEY,
+    ts TEXT NOT NULL,
+    event_type TEXT NOT NULL,
+    actor TEXT NOT NULL,
+    actor_source TEXT NOT NULL,
+    entity_type TEXT NOT NULL,
+    entity_id TEXT,
+    summary TEXT NOT NULL,
+    diff TEXT,
+    metadata TEXT
+  )`)
+
+  await client.execute(`CREATE INDEX IF NOT EXISTS idx_audit_log_ts ON audit_log(ts DESC)`)
+  await client.execute(`CREATE INDEX IF NOT EXISTS idx_audit_log_entity ON audit_log(entity_type, entity_id, ts DESC)`)
+
   // Seed obligations from JSON
   for (const row of seedObligations) {
     const r = row as Record<string, unknown>

@@ -37,3 +37,16 @@ export const completions = sqliteTable('completions', {
   notes: text('notes'),
   createdAt: text('created_at').notNull(),
 })
+
+export const auditLog = sqliteTable('audit_log', {
+  id: text('id').primaryKey(),
+  ts: text('ts').notNull(),
+  eventType: text('event_type').notNull(),
+  actor: text('actor').notNull(),
+  actorSource: text('actor_source').notNull(),
+  entityType: text('entity_type').notNull(),
+  entityId: text('entity_id'),
+  summary: text('summary').notNull(),
+  diff: text('diff'),
+  metadata: text('metadata'),
+})
