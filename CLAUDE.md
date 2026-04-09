@@ -23,7 +23,7 @@
 
 ## Current repo gotchas
 
-- `npm run build` passes as of 2026-04-09.
+- `npm run build` is expected to pass — investigate if it doesn't.
 - `npm test -- --run` currently has failing API tests. Do not assume the full suite is green.
 - `npm run lint` is not fully configured yet and can trigger the Next.js interactive ESLint setup prompt. Do not rely on lint unless ESLint is explicitly configured in the repo.
 - App runtime reads `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN`, while `drizzle.config.ts` still reads `DATABASE_URL`. Be careful when changing DB config and keep local and remote flows aligned.
@@ -31,11 +31,17 @@
 
 ## Workflow
 
-- Prefer Plan mode for multi-file or architectural changes.
+- For multi-file or architectural changes, propose a plan and confirm before editing.
 - For small isolated changes, edit directly.
 - Run the smallest meaningful verification first, then broader checks if needed.
 - When editing API behavior, update or add Vitest coverage in the adjacent `__tests__` files.
 - Keep diffs tight. Do not reformat unrelated files.
+
+## Commits and PRs
+
+- Use conventional commit prefixes (`fix:`, `feat:`, `chore:`, `refactor:`) to match existing history.
+- Subject line in the imperative, lowercase, no trailing period.
+- Only commit when explicitly asked.
 
 ## Data and privacy
 
