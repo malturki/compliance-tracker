@@ -13,7 +13,8 @@ export async function GET(req: NextRequest) {
     const actor = searchParams.get('actor')
     const entity = searchParams.get('entity')
     const before = searchParams.get('before')
-    const limit = Math.min(Number(searchParams.get('limit') ?? '50'), 200)
+    const rawLimit = Number(searchParams.get('limit') ?? '50')
+    const limit = Math.min(Math.max(Number.isFinite(rawLimit) ? rawLimit : 50, 1), 200)
 
     const clauses: SQL[] = []
     if (type) clauses.push(eq(auditLog.eventType, type))
