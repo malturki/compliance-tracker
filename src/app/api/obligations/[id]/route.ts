@@ -6,6 +6,7 @@ import { computeStatus } from '@/lib/utils'
 import { updateObligationSchema } from '@/lib/validation'
 import { getActor } from '@/lib/actor'
 import { auditedUpdate } from '@/lib/audit-helpers'
+import { logEvent } from '@/lib/audit'
 
 export async function GET(
   _req: NextRequest,
@@ -77,13 +78,29 @@ export async function PUT(
 }
 
 export async function DELETE(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: { id: string } },
 ) {
   try {
     await dbReady
+    const existing = (await db.select().from(obligations).where(eq(obligations.id, params.id)))[0]
+    if (!existing) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    }
+
+    const actor = await getActor(req)
     await db.delete(completions).where(eq(completions.obligationId, params.id))
     await db.delete(obligations).where(eq(obligations.id, params.id))
+
+    await logEvent({
+      type: 'obligation.deleted',
+      actor,
+      entityType: 'obligation',
+      entityId: params.id,
+      summary: `Deleted "${existing.title}"`,
+      metadata: { snapshot: existing },
+    })
+
     return NextResponse.json({ success: true })
   } catch (err) {
     console.error(err)
