@@ -19,6 +19,13 @@ export default auth((req) => {
     return NextResponse.redirect(signInUrl)
   }
 
+  // Viewer-only: restrict to overview and dashboard pages
+  const role = req.auth.user?.role
+  const editorOnlyPages = ['/calendar', '/obligations', '/templates', '/activity', '/categories', '/settings']
+  if (role === 'viewer' && editorOnlyPages.some(p => pathname.startsWith(p))) {
+    return NextResponse.redirect(new URL('/', req.nextUrl.origin))
+  }
+
   return NextResponse.next()
 })
 

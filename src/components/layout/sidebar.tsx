@@ -7,14 +7,16 @@ import { LayoutDashboard, Calendar, FileText, Tag, Shield, Sparkles, TrendingUp,
 import { cn } from '@/lib/utils'
 
 const navItems = [
-  { href: '/', label: 'Overview', icon: LayoutDashboard },
-  { href: '/dashboard', label: 'Dashboard', icon: TrendingUp },
-  { href: '/calendar', label: 'Calendar', icon: Calendar },
-  { href: '/obligations', label: 'Obligations', icon: FileText },
-  { href: '/templates', label: 'Templates', icon: Sparkles },
-  { href: '/activity', label: 'Activity', icon: History },
-  { href: '/categories', label: 'Categories', icon: Tag },
+  { href: '/', label: 'Overview', icon: LayoutDashboard, minRole: 'viewer' as const },
+  { href: '/dashboard', label: 'Dashboard', icon: TrendingUp, minRole: 'viewer' as const },
+  { href: '/calendar', label: 'Calendar', icon: Calendar, minRole: 'editor' as const },
+  { href: '/obligations', label: 'Obligations', icon: FileText, minRole: 'editor' as const },
+  { href: '/templates', label: 'Templates', icon: Sparkles, minRole: 'editor' as const },
+  { href: '/activity', label: 'Activity', icon: History, minRole: 'editor' as const },
+  { href: '/categories', label: 'Categories', icon: Tag, minRole: 'editor' as const },
 ]
+
+const ROLE_LEVEL: Record<string, number> = { viewer: 0, editor: 1, admin: 2 }
 
 const roleBadgeColors: Record<string, string> = {
   admin: 'text-red-400 bg-red-950/50 border-red-800/50',
@@ -42,7 +44,7 @@ export function Sidebar() {
       </div>
 
       <nav className="flex-1 px-2 py-3 space-y-0.5">
-        {navItems.map(({ href, label, icon: Icon }) => {
+        {navItems.filter(item => (ROLE_LEVEL[role] ?? 0) >= (ROLE_LEVEL[item.minRole] ?? 0)).map(({ href, label, icon: Icon }) => {
           const active = pathname === href || (href !== '/' && pathname.startsWith(href))
           return (
             <Link
