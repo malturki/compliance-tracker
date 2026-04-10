@@ -518,7 +518,7 @@ function ObligationsPageContent() {
   useEffect(() => {
     if (!selectedId) { setSelectedItem(null); return }
     fetch(`/api/obligations/${selectedId}`)
-      .then(r => r.json())
+      .then(r => { if (!r.ok) throw new Error('fetch failed'); return r.json() })
       .then(d => setSelectedItem({ ...d, alertDays: d.alertDays || [], computedStatus: d.status }))
       .catch(() => setSelectedItem(null))
   }, [selectedId])
@@ -869,7 +869,7 @@ function ObligationsPageContent() {
             <DetailPanel
               item={selectedItem}
               onClose={() => setSelectedId(null)}
-              onComplete={() => { fetchItems(); if (selectedId) { fetch(`/api/obligations/${selectedId}`).then(r => r.json()).then(d => setSelectedItem({ ...d, alertDays: d.alertDays || [], computedStatus: d.status })) } }}
+              onComplete={() => { fetchItems(); if (selectedId) { fetch(`/api/obligations/${selectedId}`).then(r => { if (!r.ok) throw new Error('fetch failed'); return r.json() }).then(d => setSelectedItem({ ...d, alertDays: d.alertDays || [], computedStatus: d.status })).catch(() => setSelectedId(null)) } }}
             />
           )}
         </SheetContent>
