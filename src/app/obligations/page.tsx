@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { formatDate, getDaysUntil, getRiskColor, getStatusColor, getCategoryLabel } from '@/lib/utils'
 import type { Obligation, Completion, Category, Status, RiskLevel, Frequency } from '@/lib/types'
 import { Search, ChevronUp, ChevronDown, X, Plus, CheckCircle, ChevronRight, FileText, ExternalLink, Download, Image as ImageIcon } from 'lucide-react'
+import { useSession } from 'next-auth/react'
 import { toast } from 'sonner'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -55,10 +56,12 @@ function DetailPanel({
   item,
   onClose,
   onComplete,
+  canEdit,
 }: {
   item: Obligation & { computedStatus: Status; completions?: Completion[] }
   onClose: () => void
   onComplete: () => void
+  canEdit: boolean
 }) {
   const [completing, setCompleting] = useState(false)
   const [completedBy, setCompletedBy] = useState('')
@@ -267,6 +270,8 @@ function DetailPanel({
           <ObligationHistory obligationId={item.id} />
 
           {/* Mark complete */}
+          {canEdit && (
+            <>
           <Separator className="bg-[#1e2d47]" />
           {completing ? (
             <div className="space-y-3">
@@ -343,6 +348,8 @@ function DetailPanel({
             >
               <CheckCircle className="w-3 h-3 mr-1.5" /> Mark Complete
             </Button>
+          )}
+            </>
           )}
         </div>
       </ScrollArea>
@@ -473,6 +480,8 @@ function AddObligationDialog({ open, onClose, onSave }: { open: boolean; onClose
 function ObligationsPageContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
+  const { data: session } = useSession()
+  const canEdit = session?.user?.role === 'editor' || session?.user?.role === 'admin'
 
   const [items, setItems] = useState<ObligationWithStatus[]>([])
   const [loading, setLoading] = useState(true)
@@ -679,7 +688,7 @@ function ObligationsPageContent() {
             <h1 className="text-lg font-semibold text-slate-100">Obligations</h1>
             <p className="text-xs text-slate-500 mt-0.5 font-mono">{items.length} obligations</p>
           </div>
-          {!bulkMode && (
+          {!bulkMode && canEdit && (
             <div className="flex items-center gap-2">
               <Button
                 size="sm"
@@ -697,7 +706,7 @@ function ObligationsPageContent() {
         </div>
 
         {/* Bulk action bar or filters */}
-        {bulkMode ? (
+        {canEdit && bulkMode ? (
           <BulkActionBar
             selectedCount={selectedIds.size}
             onClear={() => {
@@ -768,6 +777,7 @@ function ObligationsPageContent() {
           <table className="w-full text-xs">
             <thead className="sticky top-0 bg-[#0a0e1a] border-b border-[#1e2d47] z-10">
               <tr>
+                {canEdit && (
                 <th className="px-3 py-2.5 w-10">
                   <Checkbox
                     checked={allSelected}
@@ -775,6 +785,7 @@ function ObligationsPageContent() {
                     className="border-slate-600"
                   />
                 </th>
+                )}
                 {([
                   ['title', 'Obligation', 'text-left'],
                   ['category', 'Category', 'text-left'],
@@ -822,6 +833,7 @@ function ObligationsPageContent() {
                         ${item.computedStatus === 'overdue' ? 'hover:bg-red-950/10' : ''}
                       `}
                     >
+                      {canEdit && (
                       <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
                         <Checkbox
                           checked={selectedIds.has(item.id)}
@@ -830,6 +842,7 @@ function ObligationsPageContent() {
                           className="border-slate-600"
                         />
                       </td>
+                      )}
                       <td className="px-3 py-2 max-w-[280px]">
                         <span className={`font-medium leading-tight ${item.computedStatus === 'overdue' ? 'text-red-300' : 'text-slate-200'}`}>
                           {item.title}
@@ -870,6 +883,7 @@ function ObligationsPageContent() {
               item={selectedItem}
               onClose={() => setSelectedId(null)}
               onComplete={() => { fetchItems(); if (selectedId) { fetch(`/api/obligations/${selectedId}`).then(r => { if (!r.ok) throw new Error('fetch failed'); return r.json() }).then(d => setSelectedItem({ ...d, alertDays: d.alertDays || [], computedStatus: d.status })).catch(() => setSelectedId(null)) } }}
+              canEdit={canEdit}
             />
           )}
         </SheetContent>
