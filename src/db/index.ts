@@ -102,6 +102,16 @@ async function initInMemory() {
   await client.execute(`CREATE INDEX IF NOT EXISTS idx_audit_log_ts ON audit_log(ts DESC)`)
   await client.execute(`CREATE INDEX IF NOT EXISTS idx_audit_log_entity ON audit_log(entity_type, entity_id, ts DESC)`)
 
+  await client.execute(`CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY,
+    email TEXT NOT NULL UNIQUE,
+    name TEXT,
+    image TEXT,
+    role TEXT NOT NULL DEFAULT 'viewer',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  )`)
+
   // Seed obligations from JSON
   for (const row of seedObligations) {
     const r = row as Record<string, unknown>

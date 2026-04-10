@@ -50,3 +50,13 @@ export const auditLog = sqliteTable('audit_log', {
   diff: text('diff'),
   metadata: text('metadata'),
 })
+
+export const users = sqliteTable('users', {
+  id: text('id').primaryKey(),
+  email: text('email').notNull().unique(),
+  name: text('name'),
+  image: text('image'),
+  role: text('role').notNull().default('viewer'),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+})
