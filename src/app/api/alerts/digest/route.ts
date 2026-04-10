@@ -4,6 +4,7 @@ import { obligations } from '@/db/schema'
 import { sql } from 'drizzle-orm'
 import nodemailer from 'nodemailer'
 import { generateDigestEmail } from '@/lib/email-templates'
+import { requireRole } from '@/lib/auth-helpers'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,6 +13,9 @@ export const dynamic = 'force-dynamic'
  */
 export async function POST(request: NextRequest) {
   try {
+    const { error: authError } = await requireRole('admin')
+    if (authError) return authError
+
     await dbReady
     const today = new Date()
     today.setHours(0, 0, 0, 0)

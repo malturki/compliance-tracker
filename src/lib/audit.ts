@@ -11,8 +11,9 @@ export type AuditEventType =
   | 'obligation.bulk_updated'
   | 'template.applied'
   | 'alert.sent'
+  | 'user.role_changed'
 
-export type AuditEntityType = 'obligation' | 'template' | 'alert'
+export type AuditEntityType = 'obligation' | 'template' | 'alert' | 'user'
 
 export type LogEventInput = {
   type: AuditEventType

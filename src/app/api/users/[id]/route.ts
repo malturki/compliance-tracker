@@ -49,9 +49,9 @@ export async function PUT(
 
     const actor = await getActor(req)
     await logEvent({
-      type: 'obligation.updated' as any,
+      type: 'user.role_changed',
       actor,
-      entityType: 'obligation' as any,
+      entityType: 'user',
       entityId: params.id,
       summary: `Changed ${user.email} role from ${oldRole} to ${newRole}`,
       diff: { role: [oldRole, newRole] },

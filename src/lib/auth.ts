@@ -53,23 +53,44 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           token.userId = existing[0].id
           token.role = existing[0].role
         } else {
-          const allUsers = await db.select().from(users)
-          const isFirstUser = allUsers.length === 0
+          const countResult = await db.select().from(users)
+          const isFirstUser = countResult.length === 0
           const now = new Date().toISOString()
           const newId = ulid()
+          const assignedRole = isFirstUser ? 'admin' : 'viewer'
 
-          await db.insert(users).values({
-            id: newId,
-            email: user.email,
-            name: user.name ?? null,
-            image: user.image ?? null,
-            role: isFirstUser ? 'admin' : 'viewer',
-            createdAt: now,
-            updatedAt: now,
-          })
+          try {
+            await db.insert(users).values({
+              id: newId,
+              email: user.email,
+              name: user.name ?? null,
+              image: user.image ?? null,
+              role: assignedRole,
+              createdAt: now,
+              updatedAt: now,
+            })
 
-          token.userId = newId
-          token.role = isFirstUser ? 'admin' : 'viewer'
+            token.userId = newId
+            token.role = assignedRole
+          } catch (insertErr: any) {
+            // UNIQUE constraint violation = another request already created this user
+            if (insertErr?.code === 'SQLITE_CONSTRAINT' || insertErr?.message?.includes('UNIQUE')) {
+              const existing = await db.select().from(users).where(eq(users.email, user.email))
+              if (existing.length > 0) {
+                token.userId = existing[0].id
+                token.role = existing[0].role
+                return token
+              }
+            }
+            throw insertErr
+          }
+        }
+      } else if (token.email) {
+        // Re-read role from DB on every token refresh so role changes take effect promptly
+        const current = await db.select().from(users).where(eq(users.email, token.email as string))
+        if (current.length > 0) {
+          token.role = current[0].role
+          token.userId = current[0].id
         }
       }
       return token

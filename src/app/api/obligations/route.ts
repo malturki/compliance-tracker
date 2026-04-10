@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db, dbReady } from '@/db'
-import { obligations } from '@/db/schema'
+import { obligations, completions } from '@/db/schema'
 import { eq, and, like, asc, desc, or, inArray } from 'drizzle-orm'
 import { ulid } from 'ulid'
 import { computeStatus } from '@/lib/utils'
@@ -8,6 +8,7 @@ import { createObligationSchema } from '@/lib/validation'
 import { getActor } from '@/lib/actor'
 import { logEvent } from '@/lib/audit'
 import { requireRole } from '@/lib/auth-helpers'
+import { z } from 'zod'
 
 export const dynamic = 'force-dynamic'
 
@@ -142,13 +143,24 @@ export async function DELETE(req: NextRequest) {
     if (authError) return authError
     await dbReady
     const body = await req.json()
-    const { ids } = body as { ids: string[] }
-
-    if (!ids || !Array.isArray(ids) || ids.length === 0) {
-      return NextResponse.json({ error: 'ids array is required' }, { status: 400 })
+    const parsed = z.object({ ids: z.array(z.string().min(1)).min(1).max(100) }).safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'ids must be a non-empty array of strings (max 100)' }, { status: 400 })
     }
+    const { ids } = parsed.data
 
+    await db.delete(completions).where(inArray(completions.obligationId, ids))
     await db.delete(obligations).where(inArray(obligations.id, ids))
+
+    const actor = await getActor(req)
+    await logEvent({
+      type: 'obligation.deleted',
+      actor,
+      entityType: 'obligation',
+      entityId: null,
+      summary: `Bulk deleted ${ids.length} obligations`,
+      metadata: { ids, count: ids.length },
+    })
 
     return NextResponse.json({ deleted: ids.length })
   } catch (err) {

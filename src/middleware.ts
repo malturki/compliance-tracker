@@ -26,6 +26,11 @@ export default auth((req) => {
     return NextResponse.redirect(new URL('/', req.nextUrl.origin))
   }
 
+  // Block viewer mutations on API routes
+  if (role === 'viewer' && pathname.startsWith('/api/') && req.method !== 'GET') {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
   return NextResponse.next()
 })
 

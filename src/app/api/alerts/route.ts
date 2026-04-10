@@ -6,6 +6,7 @@ import nodemailer from 'nodemailer'
 import { generateAlertEmail } from '@/lib/email-templates'
 import { getActor } from '@/lib/actor'
 import { logEvent } from '@/lib/audit'
+import { requireRole } from '@/lib/auth-helpers'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,6 +16,9 @@ export const dynamic = 'force-dynamic'
  */
 export async function POST(request: NextRequest) {
   try {
+    const { error: authError } = await requireRole('admin')
+    if (authError) return authError
+
     await dbReady
     const today = new Date()
     today.setHours(0, 0, 0, 0)
