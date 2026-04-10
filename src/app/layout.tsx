@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Plus_Jakarta_Sans, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
+import { SessionProvider } from 'next-auth/react'
 import { AppShell } from '@/components/layout/app-shell'
 import { Toaster } from 'sonner'
 
@@ -24,8 +25,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${jakartaSans.variable} ${jetbrainsMono.variable} dark`}>
       <body className="bg-[#0a0e1a] text-slate-200 font-sans antialiased">
-        <AppShell>{children}</AppShell>
-        <Toaster theme="dark" position="top-right" />
+        <SessionProvider>
+          <AppShell>{children}</AppShell>
+          <Toaster position="bottom-right" theme="dark" />
+        </SessionProvider>
       </body>
     </html>
   )
