@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { db, dbReady } from '@/db'
 import { obligations, completions } from '@/db/schema'
 import { eq, and, gte, lte, sql } from 'drizzle-orm'
+import { requireRole } from '@/lib/auth-helpers'
 import { addDays, subDays, startOfDay, parseISO, differenceInDays } from 'date-fns'
 
 export const dynamic = 'force-dynamic'
@@ -60,6 +61,9 @@ interface RiskMetrics {
 
 export async function GET() {
   try {
+    const { error: authError } = await requireRole('viewer')
+    if (authError) return authError
+
     await dbReady
     const today = startOfDay(new Date())
     const todayStr = today.toISOString().split('T')[0]

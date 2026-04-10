@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import OpenAI from 'openai'
+import { requireRole } from '@/lib/auth-helpers'
 
 export const dynamic = 'force-dynamic'
 
@@ -9,8 +10,11 @@ const openai = process.env.OPENAI_API_KEY
 
 export async function POST(request: Request) {
   try {
+    const { error: authError } = await requireRole('viewer')
+    if (authError) return authError
+
     const analyticsData = await request.json()
-    
+
     // If no OpenAI key, return graceful fallback
     if (!openai) {
       return NextResponse.json({

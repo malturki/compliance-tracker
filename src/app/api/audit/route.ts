@@ -2,11 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { and, desc, eq, lt, type SQL } from 'drizzle-orm'
 import { db, dbReady } from '@/db'
 import { auditLog } from '@/db/schema'
+import { requireRole } from '@/lib/auth-helpers'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(req: NextRequest) {
   try {
+    const { error: authError } = await requireRole('viewer')
+    if (authError) return authError
+
     await dbReady
     const { searchParams } = req.nextUrl
     const type = searchParams.get('type')

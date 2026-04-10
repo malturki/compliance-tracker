@@ -4,6 +4,7 @@ import { obligations } from '@/db/schema'
 import { eq, inArray } from 'drizzle-orm'
 import { getActor } from '@/lib/actor'
 import { logEvent } from '@/lib/audit'
+import { requireRole } from '@/lib/auth-helpers'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,6 +24,9 @@ interface BulkRequest {
 
 export async function POST(request: NextRequest) {
   try {
+    const { error: authError } = await requireRole('editor')
+    if (authError) return authError
+
     await dbReady
     const body: BulkRequest = await request.json()
     const { action, ids, data } = body

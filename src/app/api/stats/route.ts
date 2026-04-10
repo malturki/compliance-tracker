@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { db, dbReady } from '@/db'
 import { obligations } from '@/db/schema'
 import { computeStatus } from '@/lib/utils'
+import { requireRole } from '@/lib/auth-helpers'
 import { addDays, startOfDay, endOfDay, endOfMonth } from 'date-fns'
 import type { Stats } from '@/lib/types'
 
@@ -9,6 +10,9 @@ export const dynamic = 'force-dynamic'
 
 export async function GET() {
   try {
+    const { error: authError } = await requireRole('viewer')
+    if (authError) return authError
+
     await dbReady
     const rows = await db.select().from(obligations)
 

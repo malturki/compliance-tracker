@@ -7,11 +7,14 @@ import { computeStatus } from '@/lib/utils'
 import { createObligationSchema } from '@/lib/validation'
 import { getActor } from '@/lib/actor'
 import { logEvent } from '@/lib/audit'
+import { requireRole } from '@/lib/auth-helpers'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(req: NextRequest) {
   try {
+    const { error: authError } = await requireRole('viewer')
+    if (authError) return authError
     await dbReady
     const { searchParams } = req.nextUrl
     const category = searchParams.get('category')
@@ -73,6 +76,8 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const { error: authError } = await requireRole('editor')
+    if (authError) return authError
     await dbReady
     const body = await req.json()
     
@@ -133,6 +138,8 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
+    const { error: authError } = await requireRole('editor')
+    if (authError) return authError
     await dbReady
     const body = await req.json()
     const { ids } = body as { ids: string[] }

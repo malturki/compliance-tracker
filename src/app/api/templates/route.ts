@@ -6,11 +6,15 @@ import type { TemplateObligation } from '@/data/templates'
 import { ulid } from 'ulid'
 import { getActor } from '@/lib/actor'
 import { logEvent } from '@/lib/audit'
+import { requireRole } from '@/lib/auth-helpers'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET() {
   try {
+    const { error: authError } = await requireRole('viewer')
+    if (authError) return authError
+
     await dbReady
     const templateList = templates.map(t => ({
       id: t.id,
@@ -29,6 +33,9 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const { error: authError } = await requireRole('editor')
+    if (authError) return authError
+
     await dbReady
     const body = await request.json()
     const { templateId, customizations } = body

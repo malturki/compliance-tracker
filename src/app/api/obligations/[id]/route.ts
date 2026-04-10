@@ -7,6 +7,7 @@ import { updateObligationSchema } from '@/lib/validation'
 import { getActor } from '@/lib/actor'
 import { auditedUpdate } from '@/lib/audit-helpers'
 import { logEvent } from '@/lib/audit'
+import { requireRole } from '@/lib/auth-helpers'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,6 +16,8 @@ export async function GET(
   { params }: { params: { id: string } },
 ) {
   try {
+    const { error: authError } = await requireRole('viewer')
+    if (authError) return authError
     await dbReady
     const rows = await db.select().from(obligations).where(eq(obligations.id, params.id))
     if (rows.length === 0) return NextResponse.json({ error: 'Not found' }, { status: 404 })
@@ -40,6 +43,8 @@ export async function PUT(
   { params }: { params: { id: string } },
 ) {
   try {
+    const { error: authError } = await requireRole('editor')
+    if (authError) return authError
     await dbReady
     const body = await req.json()
     
@@ -84,6 +89,8 @@ export async function DELETE(
   { params }: { params: { id: string } },
 ) {
   try {
+    const { error: authError } = await requireRole('editor')
+    if (authError) return authError
     await dbReady
     const existing = (await db.select().from(obligations).where(eq(obligations.id, params.id)))[0]
     if (!existing) {

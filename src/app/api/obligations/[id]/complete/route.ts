@@ -8,6 +8,7 @@ import { uploadToBlob, validateFile } from '@/lib/blob'
 import { completeObligationSchema } from '@/lib/validation'
 import { getActor } from '@/lib/actor'
 import { logEvent } from '@/lib/audit'
+import { requireRole } from '@/lib/auth-helpers'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,6 +17,9 @@ export async function POST(
   { params }: { params: { id: string } },
 ) {
   try {
+    const { error: authError } = await requireRole('editor')
+    if (authError) return authError
+
     await dbReady
     const contentType = req.headers.get('content-type') || ''
     let data: {
