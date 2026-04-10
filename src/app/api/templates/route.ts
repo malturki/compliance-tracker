@@ -7,6 +7,8 @@ import { ulid } from 'ulid'
 import { getActor } from '@/lib/actor'
 import { logEvent } from '@/lib/audit'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
   try {
     await dbReady

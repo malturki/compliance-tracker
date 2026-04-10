@@ -5,6 +5,8 @@ import { computeStatus } from '@/lib/utils'
 import { addDays, startOfDay, endOfDay, endOfMonth } from 'date-fns'
 import type { Stats } from '@/lib/types'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
   try {
     await dbReady

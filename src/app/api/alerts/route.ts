@@ -7,6 +7,8 @@ import { generateAlertEmail } from '@/lib/email-templates'
 import { getActor } from '@/lib/actor'
 import { logEvent } from '@/lib/audit'
 
+export const dynamic = 'force-dynamic'
+
 /**
  * Check for obligations that need alerts sent
  * Checks alertDays array and sends emails if within alert window

@@ -5,6 +5,8 @@ import { sql } from 'drizzle-orm'
 import nodemailer from 'nodemailer'
 import { generateDigestEmail } from '@/lib/email-templates'
 
+export const dynamic = 'force-dynamic'
+
 /**
  * Generate and send weekly digest report
  */

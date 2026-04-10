@@ -9,6 +9,8 @@ import { completeObligationSchema } from '@/lib/validation'
 import { getActor } from '@/lib/actor'
 import { logEvent } from '@/lib/audit'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } },

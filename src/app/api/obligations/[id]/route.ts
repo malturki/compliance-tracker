@@ -8,6 +8,8 @@ import { getActor } from '@/lib/actor'
 import { auditedUpdate } from '@/lib/audit-helpers'
 import { logEvent } from '@/lib/audit'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(
   _req: NextRequest,
   { params }: { params: { id: string } },

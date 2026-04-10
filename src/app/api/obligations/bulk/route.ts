@@ -5,6 +5,8 @@ import { eq, inArray } from 'drizzle-orm'
 import { getActor } from '@/lib/actor'
 import { logEvent } from '@/lib/audit'
 
+export const dynamic = 'force-dynamic'
+
 type BulkAction = 'mark-complete' | 'update-owner' | 'update-risk' | 'delete'
 
 interface BulkRequest {
