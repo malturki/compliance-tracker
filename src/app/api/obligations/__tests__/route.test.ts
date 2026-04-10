@@ -13,7 +13,11 @@ vi.mock('@/db', () => ({
         where: vi.fn(() => Promise.resolve([])),
       })),
     })),
+    delete: vi.fn(() => ({
+      where: vi.fn(),
+    })),
   },
+  dbReady: Promise.resolve(),
 }));
 
 // Mock ulid

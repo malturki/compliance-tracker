@@ -19,6 +19,7 @@ vi.mock('@/db', () => {
       })),
       transaction: mockTransaction,
     },
+    dbReady: Promise.resolve(),
   };
 });
 

@@ -18,13 +18,25 @@ vi.mock('@/db', () => ({
         where: mockSelect,
       })),
     })),
+    delete: vi.fn(() => ({
+      where: vi.fn(),
+    })),
   },
+  dbReady: Promise.resolve(),
 }));
 
 describe('PUT /api/obligations/[id]', () => {
+  const mockObligation = {
+    id: '123', title: 'Test', category: 'tax', frequency: 'annual',
+    nextDueDate: '2024-12-31', owner: 'Internal', riskLevel: 'medium',
+    notes: '', createdAt: '2024-01-01', updatedAt: '2024-01-01',
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
     mockUpdate.mockResolvedValue(undefined);
+    // auditedUpdate calls select().from().where() to load the before-state
+    mockSelect.mockResolvedValue([mockObligation]);
   });
 
   it('updates obligation with valid data (200)', async () => {

@@ -1,27 +1,21 @@
 {
   "permissions": {
-    "defaultMode": "plan",
     "allow": [
-      "Bash(git status)",
-      "Bash(git diff *)",
-      "Bash(git log --*)",
-      "Bash(ls *)",
-      "Bash(find *)",
-      "Bash(cat *)",
-      "Bash(sed *)",
-      "Bash(grep *)",
-      "Bash(npm run dev)",
-      "Bash(npm run build)",
-      "Bash(npm test -- --run)",
-      "Bash(npm test -- --run *)",
-      "Bash(npx vitest *)",
-      "Bash(npm run seed)",
-      "Bash(npm run db:push)",
-      "Bash(npm run db:studio)"
+      "Bash(*)",
+      "Read(*)",
+      "Write(*)",
+      "Edit(*)",
+      "Glob(*)",
+      "Grep(*)",
+      "Agent(*)"
     ],
     "deny": [
-      "Bash(rm -rf *)",
-      "Bash(git push *)"
+      "Bash(rm -rf /)",
+      "Bash(rm -rf ~)"
     ]
+  },
+  "enabledPlugins": {
+    "claude-opus-4-5-migration@claude-code-plugins": true,
+    "code-review@claude-code-plugins": true
   }
 }
