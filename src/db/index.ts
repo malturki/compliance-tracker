@@ -3,30 +3,49 @@ import { drizzle } from 'drizzle-orm/libsql'
 import * as schema from './schema'
 import seedObligations from '@/data/seed-obligations.json'
 
-const tursoUrl = process.env.TURSO_DATABASE_URL
-const tursoAuthToken = process.env.TURSO_AUTH_TOKEN
-// Use in-memory SQLite (seeded from JSON below) whenever Turso isn't configured.
-// This covers both Vercel serverless and local dev without creds.
-const useInMemory = !tursoUrl
+// Lazy initialization: defer client creation from module import time to first
+// use. This prevents Next.js build "Collecting page data" from triggering
+// network connections or URL-parsing errors when Turso env vars are present.
 
-let client: ReturnType<typeof createClient>
+let _client: ReturnType<typeof createClient> | null = null
+let _db: ReturnType<typeof drizzle<typeof schema>> | null = null
+let _dbReadyPromise: Promise<void> | null = null
 
-if (tursoUrl) {
-  client = createClient({
-    url: tursoUrl,
-    authToken: tursoAuthToken,
-  })
-} else {
-  client = createClient({
-    url: ':memory:',
-  })
+function getClient() {
+  if (_client) return _client
+
+  const tursoUrl = process.env.TURSO_DATABASE_URL
+  const tursoAuthToken = process.env.TURSO_AUTH_TOKEN
+
+  if (tursoUrl) {
+    _client = createClient({
+      url: tursoUrl,
+      authToken: tursoAuthToken,
+    })
+  } else {
+    _client = createClient({
+      url: ':memory:',
+    })
+  }
+
+  return _client
 }
 
-export const db = drizzle(client, { schema })
+// Proxy that lazily initializes the drizzle db instance on first property access.
+// This ensures createClient() only runs at request time, never at build time.
+export const db = new Proxy({} as ReturnType<typeof drizzle<typeof schema>>, {
+  get(_target, prop, receiver) {
+    if (!_db) {
+      _db = drizzle(getClient(), { schema })
+    }
+    return Reflect.get(_db, prop, receiver)
+  },
+})
 
-// For in-memory mode (Vercel without Turso), seed from JSON on each cold start
-const initInMemory = async () => {
-  if (!useInMemory) return
+async function initInMemory() {
+  const client = getClient()
+  const tursoUrl = process.env.TURSO_DATABASE_URL
+  if (tursoUrl) return // Turso is persistent, no in-memory seeding needed
 
   // Create tables
   await client.execute(`CREATE TABLE IF NOT EXISTS obligations (
@@ -102,30 +121,16 @@ const initInMemory = async () => {
   }
 }
 
-// Initialize in-memory DB (awaited before first query via promise)
-export const dbReady = initInMemory()
-
-// Development: init tables from SQL
-if (process.env.NODE_ENV !== 'production' && !tursoUrl) {
-  const initTables = async () => {
-    await client.execute(`CREATE TABLE IF NOT EXISTS obligations (
-      id TEXT PRIMARY KEY, title TEXT NOT NULL, description TEXT, category TEXT NOT NULL,
-      subcategory TEXT, frequency TEXT NOT NULL, next_due_date TEXT NOT NULL,
-      last_completed_date TEXT, owner TEXT NOT NULL, owner_email TEXT, assignee TEXT,
-      assignee_email TEXT, status TEXT NOT NULL DEFAULT 'current',
-      risk_level TEXT NOT NULL DEFAULT 'medium', alert_days TEXT DEFAULT '[]',
-      last_alert_sent TEXT, source_document TEXT, notes TEXT,
-      entity TEXT DEFAULT 'Acme Corp', jurisdiction TEXT, amount REAL,
-      auto_recur INTEGER DEFAULT 0, template_id TEXT,
-      created_at TEXT NOT NULL, updated_at TEXT NOT NULL
-    )`)
-    await client.execute(`CREATE TABLE IF NOT EXISTS completions (
-      id TEXT PRIMARY KEY, obligation_id TEXT NOT NULL REFERENCES obligations(id),
-      completed_date TEXT NOT NULL, completed_by TEXT NOT NULL,
-      evidence_url TEXT, notes TEXT, created_at TEXT NOT NULL
-    )`)
+// Awaited by route handlers before first query. On Turso, resolves immediately.
+// On in-memory, creates tables and seeds data.
+export const dbReady = (async () => {
+  // Only initialize if we're in a real runtime context, not during build
+  if (typeof globalThis !== 'undefined') {
+    if (!_dbReadyPromise) {
+      _dbReadyPromise = initInMemory()
+    }
+    return _dbReadyPromise
   }
-  initTables().catch(console.error)
-}
+})()
 
 export default db
