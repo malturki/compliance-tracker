@@ -33,11 +33,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   callbacks: {
     async signIn({ user }) {
-      const allowedDomain = process.env.GOOGLE_ALLOWED_DOMAIN
-      if (!allowedDomain) return true
+      const allowedDomains = process.env.GOOGLE_ALLOWED_DOMAIN
+      if (!allowedDomains) return true
       const email = user.email
       if (!email) return false
-      if (!email.endsWith(`@${allowedDomain}`)) return false
+      const domains = allowedDomains.split(',').map(d => d.trim())
+      if (!domains.some(domain => email.endsWith(`@${domain}`))) return false
       return true
     },
 
