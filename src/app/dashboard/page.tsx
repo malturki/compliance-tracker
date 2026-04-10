@@ -7,6 +7,7 @@ import { CategoryPerformanceChart } from '@/components/dashboard/category-perfor
 import { RiskExposureChart } from '@/components/dashboard/risk-exposure-chart'
 import { OwnerPerformanceTable } from '@/components/dashboard/owner-performance-table'
 import { AISummaryWidget } from '@/components/dashboard/ai-summary-widget'
+import { useSession } from 'next-auth/react'
 import { 
   TrendingUp, 
   AlertCircle, 
@@ -30,6 +31,8 @@ interface AnalyticsData {
 }
 
 export default function DashboardPage() {
+  const { data: session } = useSession()
+  const isViewer = session?.user?.role === 'viewer'
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -201,8 +204,8 @@ export default function DashboardPage() {
         </div>
       </div>
       
-      {/* Owner Performance Table */}
-      <OwnerPerformanceTable owners={analytics.ownerPerformance} />
+      {/* Owner Performance Table (hidden for viewers) */}
+      {!isViewer && <OwnerPerformanceTable owners={analytics.ownerPerformance} />}
     </div>
   )
 }

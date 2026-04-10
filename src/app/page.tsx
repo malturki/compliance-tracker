@@ -4,6 +4,7 @@ import { computeStatus, formatDate, getDaysUntil, getRiskColor, getCategoryLabel
 import { format } from 'date-fns'
 import { AlertTriangle, Clock, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
+import { auth } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
@@ -57,6 +58,8 @@ async function getData() {
 export default async function OverviewPage() {
   const data = await getData()
   const today = new Date()
+  const session = await auth()
+  const isViewer = session?.user?.role === 'viewer'
 
   const categoryKeys = Object.keys(data.byCategory).sort()
   const maxTotal = Math.max(...categoryKeys.map(k => data.byCategory[k].total), 1)
@@ -102,9 +105,9 @@ export default async function OverviewPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
-        {/* Left: Overdue + Upcoming */}
-        <div className="col-span-2 space-y-4">
+      <div className={isViewer ? '' : 'grid grid-cols-3 gap-4'}>
+        {/* Left: Overdue + Upcoming (hidden for viewers) */}
+        {!isViewer && <div className="col-span-2 space-y-4">
           {/* Overdue */}
           {data.overdue.length > 0 && (
             <section>
@@ -242,9 +245,9 @@ export default async function OverviewPage() {
               </div>
             </section>
           )}
-        </div>
+        </div>}
 
-        {/* Right: Category breakdown */}
+        {/* Category breakdown */}
         <div className="space-y-3">
           <div>
             <div className="flex items-center gap-2 mb-2">
