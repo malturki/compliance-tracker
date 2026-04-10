@@ -1,9 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
@@ -31,6 +30,20 @@ export function BulkEditDialog({
   const [ownerEmail, setOwnerEmail] = useState('')
   const [riskLevel, setRiskLevel] = useState<RiskLevel>('medium')
   const [submitting, setSubmitting] = useState(false)
+  const [usersList, setUsersList] = useState<{ id: string; name: string | null; email: string }[]>([])
+
+  useEffect(() => {
+    if (open) {
+      fetch('/api/users').then(r => r.ok ? r.json() : { users: [] }).then(d => setUsersList(d.users ?? [])).catch(() => {})
+    }
+  }, [open])
+
+  const handleOwnerSelect = (v: string | null) => {
+    if (!v) return
+    const user = usersList.find(u => (u.name ?? u.email) === v)
+    setOwner(v)
+    setOwnerEmail(user?.email ?? '')
+  }
 
   const handleSubmit = async () => {
     if (field === 'owner' && !owner.trim()) {
@@ -80,27 +93,19 @@ export function BulkEditDialog({
           </div>
 
           {field === 'owner' ? (
-            <>
-              <div>
-                <Label className="text-xs text-slate-400">Owner *</Label>
-                <Input
-                  value={owner}
-                  onChange={e => setOwner(e.target.value)}
-                  placeholder="Owner name"
-                  className="mt-1 bg-[#0a0e1a] border-[#1e2d47] text-slate-200 text-xs"
-                />
-              </div>
-              <div>
-                <Label className="text-xs text-slate-400">Owner Email (optional)</Label>
-                <Input
-                  type="email"
-                  value={ownerEmail}
-                  onChange={e => setOwnerEmail(e.target.value)}
-                  placeholder="owner@example.com"
-                  className="mt-1 bg-[#0a0e1a] border-[#1e2d47] text-slate-200 text-xs"
-                />
-              </div>
-            </>
+            <div>
+              <Label className="text-xs text-slate-400">Owner *</Label>
+              <Select value={owner} onValueChange={handleOwnerSelect}>
+                <SelectTrigger className="mt-1 bg-[#0a0e1a] border-[#1e2d47] text-slate-200 text-xs h-9">
+                  <SelectValue placeholder="Select owner" />
+                </SelectTrigger>
+                <SelectContent className="bg-[#0f1629] border-[#1e2d47]">
+                  {usersList.map(u => (
+                    <SelectItem key={u.id} value={u.name ?? u.email} className="text-slate-200 text-xs">{u.name ?? u.email}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           ) : (
             <div>
               <Label className="text-xs text-slate-400">Risk Level</Label>

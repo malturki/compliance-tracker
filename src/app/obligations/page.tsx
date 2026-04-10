@@ -363,6 +363,13 @@ function AddObligationDialog({ open, onClose, onSave }: { open: boolean; onClose
     nextDueDate: '', owner: '', riskLevel: 'medium' as RiskLevel,
     notes: '', jurisdiction: '', subcategory: '', amount: '',
   })
+  const [usersList, setUsersList] = useState<{ id: string; name: string | null; email: string }[]>([])
+
+  useEffect(() => {
+    if (open) {
+      fetch('/api/users').then(r => r.ok ? r.json() : { users: [] }).then(d => setUsersList(d.users ?? [])).catch(() => {})
+    }
+  }, [open])
 
   const set = <K extends keyof typeof form>(k: K, v: typeof form[K]) => setForm(f => ({ ...f, [k]: v }))
 
@@ -451,7 +458,16 @@ function AddObligationDialog({ open, onClose, onSave }: { open: boolean; onClose
           </div>
           <div>
             <Label className="text-xs text-slate-400">Owner *</Label>
-            <Input value={form.owner} onChange={e => set('owner', e.target.value)} className="mt-1 bg-[#0a0e1a] border-[#1e2d47] text-slate-200 text-xs" />
+            <Select value={form.owner} onValueChange={v => v && set('owner', v)}>
+              <SelectTrigger className="mt-1 bg-[#0a0e1a] border-[#1e2d47] text-slate-200 text-xs h-9">
+                <SelectValue placeholder="Select owner" />
+              </SelectTrigger>
+              <SelectContent className="bg-[#0f1629] border-[#1e2d47]">
+                {usersList.map(u => (
+                  <SelectItem key={u.id} value={u.name ?? u.email} className="text-slate-200 text-xs">{u.name ?? u.email}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>

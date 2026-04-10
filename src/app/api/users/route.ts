@@ -7,7 +7,7 @@ import { requireRole } from '@/lib/auth-helpers'
 export const dynamic = 'force-dynamic'
 
 export async function GET() {
-  const { error } = await requireRole('admin')
+  const { error } = await requireRole('viewer')
   if (error) return error
 
   try {
