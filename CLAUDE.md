@@ -26,8 +26,11 @@
 - `npm run build` is expected to pass — investigate if it doesn't.
 - `npm test -- --run` currently has failing API tests. Do not assume the full suite is green.
 - `npm run lint` is not fully configured yet and can trigger the Next.js interactive ESLint setup prompt. Do not rely on lint unless ESLint is explicitly configured in the repo.
-- App runtime reads `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN`, while `drizzle.config.ts` still reads `DATABASE_URL`. Be careful when changing DB config and keep local and remote flows aligned.
+- Production uses Turso (`TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN` set on Vercel). Local dev uses in-memory SQLite seeded from JSON. `drizzle.config.ts` reads `DATABASE_URL` for schema push.
+- DB client creation is lazy (Proxy in `src/db/index.ts`) to avoid build-time connection failures.
 - `.env.local` on the VPS is the working local config. Never commit secrets.
+- When setting Vercel env vars via CLI, use `printf` not `echo` to avoid trailing newlines.
+- Vercel build cache can serve stale webpack chunks after DB init changes. If a deploy 500s but local build works, redeploy with `vercel --prod --force` to bypass cache.
 
 ## Workflow
 
