@@ -11,15 +11,22 @@ const useInMemory = !tursoUrl
 
 let client: ReturnType<typeof createClient>
 
-if (tursoUrl) {
-  client = createClient({
-    url: tursoUrl,
-    authToken: tursoAuthToken,
-  })
-} else {
-  client = createClient({
-    url: ':memory:',
-  })
+try {
+  if (tursoUrl) {
+    client = createClient({
+      url: tursoUrl,
+      authToken: tursoAuthToken,
+    })
+  } else {
+    client = createClient({
+      url: ':memory:',
+    })
+  }
+} catch {
+  // Fallback to in-memory if Turso URL fails (e.g., during Next.js build
+  // "Collecting page data" phase where the URL protocol isn't supported).
+  // Runtime requests will use the real Turso client via a fresh cold start.
+  client = createClient({ url: ':memory:' })
 }
 
 export const db = drizzle(client, { schema })
