@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 
 export default auth((req) => {
   const { pathname } = req.nextUrl
-  const isAuthRoute = pathname.startsWith('/api/auth')
+  const isAuthRoute = pathname.startsWith('/api/auth') || pathname.startsWith('/auth/')
   const isCronRoute = pathname.startsWith('/api/cron')
 
   // Allow auth and cron routes through without session
