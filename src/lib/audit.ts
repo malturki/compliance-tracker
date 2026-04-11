@@ -12,8 +12,11 @@ export type AuditEventType =
   | 'template.applied'
   | 'alert.sent'
   | 'user.role_changed'
+  | 'agent.created'
+  | 'agent.regenerated'
+  | 'agent.revoked'
 
-export type AuditEntityType = 'obligation' | 'template' | 'alert' | 'user'
+export type AuditEntityType = 'obligation' | 'template' | 'alert' | 'user' | 'agent'
 
 export type LogEventInput = {
   type: AuditEventType

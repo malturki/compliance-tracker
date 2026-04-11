@@ -2,7 +2,7 @@ import { auth } from './auth'
 
 export type Actor = {
   email: string
-  source: 'sso' | 'cron' | 'dev' | 'system'
+  source: 'sso' | 'cron' | 'dev' | 'system' | 'agent'
 }
 
 export async function getActor(req?: Request): Promise<Actor> {
