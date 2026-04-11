@@ -60,7 +60,7 @@ export async function PUT(
     const allowed = [
       'title', 'description', 'category', 'subcategory', 'frequency',
       'nextDueDate', 'lastCompletedDate', 'owner', 'ownerEmail', 'assignee', 'assigneeEmail', 'riskLevel',
-      'sourceDocument', 'notes', 'entity', 'jurisdiction', 'amount', 'autoRecur',
+      'sourceDocument', 'notes', 'entity', 'counterparty', 'jurisdiction', 'amount', 'autoRecur',
     ] as const
     
     for (const key of allowed) {

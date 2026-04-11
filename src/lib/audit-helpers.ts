@@ -18,6 +18,8 @@ export const TRACKED_OBLIGATION_FIELDS = [
   'autoRecur',
   'category',
   'notes',
+  'counterparty',
+  'jurisdiction',
 ] as const
 
 type ObligationRow = typeof obligations.$inferSelect

@@ -26,6 +26,7 @@ const DDL_STATEMENTS = [
     source_document TEXT,
     notes TEXT,
     entity TEXT DEFAULT 'Pi Squared Inc.',
+    counterparty TEXT,
     jurisdiction TEXT,
     amount REAL,
     auto_recur INTEGER DEFAULT 0,
@@ -181,6 +182,7 @@ export async function insertObligation(overrides: Partial<{
   status: string
   autoRecur: boolean
   alertDays: string
+  counterparty: string | null
 }> = {}) {
   const now = new Date().toISOString()
   const id = overrides.id ?? ulid()
@@ -204,6 +206,7 @@ export async function insertObligation(overrides: Partial<{
     sourceDocument: null,
     notes: null,
     entity: 'Pi Squared Inc.',
+    counterparty: overrides.counterparty ?? null,
     jurisdiction: null,
     amount: null,
     autoRecur: overrides.autoRecur ?? false,

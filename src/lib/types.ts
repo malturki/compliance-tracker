@@ -20,6 +20,7 @@ export interface Obligation {
   sourceDocument?: string | null
   notes?: string | null
   entity: string
+  counterparty?: string | null
   jurisdiction?: string | null
   amount?: number | null
   autoRecur: boolean

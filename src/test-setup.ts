@@ -39,6 +39,7 @@ beforeAll(async () => {
       alert_days TEXT DEFAULT '[]', last_alert_sent TEXT,
       source_document TEXT, notes TEXT,
       entity TEXT DEFAULT 'Pi Squared Inc.',
+      counterparty TEXT,
       jurisdiction TEXT, amount REAL,
       auto_recur INTEGER DEFAULT 0, template_id TEXT,
       created_at TEXT NOT NULL, updated_at TEXT NOT NULL

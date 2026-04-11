@@ -36,6 +36,7 @@ async function seed() {
     source_document TEXT,
     notes TEXT,
     entity TEXT DEFAULT 'Pi Squared Inc.',
+    counterparty TEXT,
     jurisdiction TEXT,
     amount REAL,
     auto_recur INTEGER DEFAULT 0,
@@ -231,12 +232,12 @@ for (const r of records) {
         id, title, description, category, subcategory, frequency,
         next_due_date, last_completed_date, owner, owner_email, assignee, assignee_email,
         status, risk_level, alert_days, last_alert_sent, source_document, notes,
-        entity, jurisdiction, amount, auto_recur, created_at, updated_at
+        entity, counterparty, jurisdiction, amount, auto_recur, created_at, updated_at
       ) VALUES (
         ?, ?, ?, ?, ?, ?,
         ?, ?, ?, ?, ?, ?,
         ?, ?, ?, ?, ?, ?,
-        ?, ?, ?, ?, ?, ?
+        ?, ?, ?, ?, ?, ?, ?
       )
     `,
     args: [
@@ -259,6 +260,7 @@ for (const r of records) {
       null, // source_document
       (r as any).notes ?? null,
       'Pi Squared Inc.',
+      (r as any).counterparty ?? null,
       (r as any).jurisdiction ?? null,
       (r as any).amount ?? null,
       r.auto_recur ? 1 : 0,

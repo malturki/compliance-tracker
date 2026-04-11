@@ -59,6 +59,7 @@
 - Vercel build cache can serve stale webpack chunks after DB init changes. If a deploy 500s but local build works, redeploy with `vercel --prod --force` to bypass cache.
 - Agent tokens use `ct_live_` prefix. Hashed with SHA-256 via Web Crypto (`src/lib/token-utils.ts`) so the same code works in Edge middleware and Node runtime.
 - The hosted skill URL (`/.well-known/compliance-tracker-skill`) is in the middleware's bypass list so agents can fetch it without auth.
+- Schema changes need updates in **5 places**: `src/db/schema.ts`, `src/db/index.ts` (in-memory init DDL + the seed INSERT), `src/db/seed.ts` (DDL + INSERT), `src/test-setup.ts`, and `src/test/integration-helpers.ts`. Plus a Turso `ALTER TABLE` for prod, and any `__tests__/*.test.ts` legacy files that build their own DDL.
 
 ## Workflow
 

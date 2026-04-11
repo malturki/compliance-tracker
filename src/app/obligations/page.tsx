@@ -202,10 +202,16 @@ function DetailPanel({
           </div>
 
           {/* Details — only render if any field is present */}
-          {(item.jurisdiction || item.entity || item.amount != null || item.subcategory) && (
+          {(item.counterparty || item.jurisdiction || item.entity || item.amount != null || item.subcategory) && (
             <div>
               <div className="text-[10px] text-slate-500 uppercase tracking-wider mb-2">Details</div>
               <div className="bg-[#0a0e1a] border border-[#1e2d47] divide-y divide-[#1e2d47]">
+                {item.counterparty && (
+                  <div className="flex justify-between px-3 py-2">
+                    <span className="text-slate-500">Counterparty</span>
+                    <span className="font-mono text-slate-300 text-right">{item.counterparty}</span>
+                  </div>
+                )}
                 {item.jurisdiction && (
                   <div className="flex justify-between px-3 py-2">
                     <span className="text-slate-500">Jurisdiction</span>
@@ -406,13 +412,18 @@ function AddObligationDialog({ open, onClose, onSave }: { open: boolean; onClose
   const [form, setForm] = useState({
     title: '', category: 'tax' as Category, frequency: 'annual' as Frequency,
     nextDueDate: '', owner: '', riskLevel: 'medium' as RiskLevel,
-    notes: '', jurisdiction: '', subcategory: '', amount: '',
+    notes: '', counterparty: '', jurisdiction: '', subcategory: '', amount: '',
   })
   const [usersList, setUsersList] = useState<{ id: string; name: string | null; email: string }[]>([])
+  const [counterpartyOptions, setCounterpartyOptions] = useState<string[]>([])
 
   useEffect(() => {
     if (open) {
       fetch('/api/users').then(r => r.ok ? r.json() : { users: [] }).then(d => setUsersList(d.users ?? [])).catch(() => {})
+      fetch('/api/counterparties')
+        .then(r => r.ok ? r.json() : { counterparties: [] })
+        .then(d => setCounterpartyOptions((d.counterparties ?? []).map((c: any) => c.name)))
+        .catch(() => {})
     }
   }, [open])
 
@@ -429,6 +440,7 @@ function AddObligationDialog({ open, onClose, onSave }: { open: boolean; onClose
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...form,
+          counterparty: form.counterparty.trim() || null,
           amount: form.amount ? parseFloat(form.amount) : null,
           alertDays: [],
           entity: 'Pi Squared Inc.',
@@ -514,6 +526,21 @@ function AddObligationDialog({ open, onClose, onSave }: { open: boolean; onClose
               </SelectContent>
             </Select>
           </div>
+          <div>
+            <Label className="text-xs text-slate-400">Counterparty</Label>
+            <Input
+              list="counterparty-options"
+              value={form.counterparty}
+              onChange={e => set('counterparty', e.target.value)}
+              placeholder="e.g. AWS, California FTB, Republic Registered Agent"
+              className="mt-1 bg-[#0a0e1a] border-[#1e2d47] text-slate-200 text-xs"
+            />
+            <datalist id="counterparty-options">
+              {counterpartyOptions.map(name => (
+                <option key={name} value={name} />
+              ))}
+            </datalist>
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label className="text-xs text-slate-400">Jurisdiction</Label>
@@ -550,6 +577,8 @@ function ObligationsPageContent() {
   const [category, setCategory] = useState(searchParams.get('category') || '')
   const [status, setStatus] = useState(searchParams.get('status') || '')
   const [riskLevel, setRiskLevel] = useState('')
+  const [counterparty, setCounterparty] = useState(searchParams.get('counterparty') || '')
+  const [counterpartyOptions, setCounterpartyOptions] = useState<string[]>([])
   const [sortBy, setSortBy] = useState<SortField>('next_due_date')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
   const [selectedId, setSelectedId] = useState<string | null>(searchParams.get('id'))
@@ -571,6 +600,7 @@ function ObligationsPageContent() {
     if (category) params.set('category', category)
     if (status) params.set('status', status)
     if (riskLevel) params.set('risk_level', riskLevel)
+    if (counterparty) params.set('counterparty', counterparty)
     if (search) params.set('search', search)
     params.set('sort_by', sortBy)
     params.set('sort_dir', sortDir)
@@ -581,7 +611,14 @@ function ObligationsPageContent() {
     } finally {
       setLoading(false)
     }
-  }, [category, status, riskLevel, search, sortBy, sortDir])
+  }, [category, status, riskLevel, counterparty, search, sortBy, sortDir])
+
+  useEffect(() => {
+    fetch('/api/counterparties')
+      .then(r => r.ok ? r.json() : { counterparties: [] })
+      .then(d => setCounterpartyOptions((d.counterparties ?? []).map((c: any) => c.name)))
+      .catch(() => {})
+  }, [])
 
   useEffect(() => { fetchItems() }, [fetchItems])
 
@@ -822,9 +859,20 @@ function ObligationsPageContent() {
                 ))}
               </SelectContent>
             </Select>
-            {(category || status || riskLevel || search) && (
+            <Select value={counterparty || 'all'} onValueChange={v => v && setCounterparty(v === 'all' ? '' : v)}>
+              <SelectTrigger className="w-44 bg-[#0f1629] border-[#1e2d47] text-slate-300 text-xs h-7">
+                <SelectValue placeholder="Counterparty" />
+              </SelectTrigger>
+              <SelectContent className="bg-[#0f1629] border-[#1e2d47] max-h-72 overflow-y-auto">
+                <SelectItem value="all" className="text-slate-300 text-xs">All Counterparties</SelectItem>
+                {counterpartyOptions.map(name => (
+                  <SelectItem key={name} value={name} className="text-slate-300 text-xs">{name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {(category || status || riskLevel || counterparty || search) && (
               <button
-                onClick={() => { setCategory(''); setStatus(''); setRiskLevel(''); setSearch('') }}
+                onClick={() => { setCategory(''); setStatus(''); setRiskLevel(''); setCounterparty(''); setSearch('') }}
                 className="text-xs text-slate-500 hover:text-slate-300 flex items-center gap-1"
               >
                 <X className="w-3 h-3" /> Clear
@@ -942,6 +990,9 @@ function ObligationsPageContent() {
                           {item.title}
                         </span>
                         {item.jurisdiction && <span className="text-slate-600 ml-1.5 text-[10px]">{item.jurisdiction}</span>}
+                        {item.counterparty && (
+                          <div className="text-[10px] text-slate-500 mt-0.5 truncate">→ {item.counterparty}</div>
+                        )}
                       </td>
                       <td className="px-3 py-2 text-slate-500">{getCategoryLabel(item.category)}</td>
                       <td className="px-3 py-2 text-slate-500 capitalize">{item.frequency}</td>

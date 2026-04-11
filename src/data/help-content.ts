@@ -116,6 +116,37 @@ Mention it to an admin or file an issue in the repository. When reporting, inclu
 The app is restricted to \`@fast.xyz\` and \`@pi2labs.org\` accounts. No one outside these domains can sign in. Evidence files uploaded with completions are stored in Vercel Blob storage and are only accessible via the app.`,
   },
   {
+    slug: 'counterparties',
+    title: 'Counterparties',
+    category: 'Using the App',
+    minRole: 'viewer',
+    tldr: 'Counterparty is the external party an obligation is owed to (AWS, California FTB, Republic Registered Agent). Set it on each obligation to filter and group by who you actually owe.',
+    details: `Counterparty is the **other party** to an obligation — the entity you pay, file with, report to, or renew with. It is distinct from \`entity\` (which is always Pi Squared Inc.) and from \`jurisdiction\` (which is the geographic scope, e.g., "California"). The same jurisdiction can have many counterparties (Franchise Tax Board, Secretary of State, EDD).
+
+**Examples:**
+
+- An AWS monthly invoice → counterparty: \`Amazon Web Services\`
+- Delaware Franchise Tax → counterparty: \`Delaware Division of Corporations\`
+- D&O insurance renewal → counterparty: \`Berkley Regional Insurance Co.\`
+- Annual stockholder consent → counterparty empty (internal only)
+
+**Why it's useful:**
+
+- **Filter by counterparty** on the Obligations page to see "everything we owe to AWS" or "everything filed with the SEC."
+- **By-counterparty panel** on the Categories page rolls up totals, overdue counts, and the next deadline per counterparty — useful for renewal-season planning and contract reviews.
+- **Audit trail** records every counterparty change with old → new in the diff, so you can answer "when did we move from Berkley to Hartford?"
+
+**Setting it:**
+
+- On create: pick from the autocomplete suggestions (existing counterparties in your DB) or type a new name. Free text — no canonical list.
+- On edit: editors and admins can change the counterparty via the API. The audit log will record the change.
+- Optional: leave blank for purely internal obligations (board consents, internal cleanups).
+
+**Naming conventions:**
+
+Use the canonical legal name when possible (\`Amazon Web Services\` not \`AWS\`, \`California Franchise Tax Board\` not \`CA FTB\`). The autocomplete will surface existing variants so you don't accidentally create \`AWS\` and \`Amazon Web Services\` as two separate counterparties.`,
+  },
+  {
     slug: 'creating-obligations',
     title: 'Creating an obligation',
     category: 'Using the App',
@@ -133,6 +164,7 @@ The app is restricted to \`@fast.xyz\` and \`@pi2labs.org\` accounts. No one out
 **Optional fields:**
 
 - **Description** — free text.
+- **Counterparty** — the external party the obligation is owed to (e.g. \`Amazon Web Services\`, \`California FTB\`). See the Counterparties topic for why this matters.
 - **Jurisdiction** — for legal/tax obligations, which state or country.
 - **Amount** — dollar amount if relevant (e.g., annual fee).
 - **Subcategory** — free text for finer grouping.

@@ -20,6 +20,7 @@ export const obligations = sqliteTable('obligations', {
   sourceDocument: text('source_document'),
   notes: text('notes'),
   entity: text('entity').default('Pi Squared Inc.'),
+  counterparty: text('counterparty'),
   jurisdiction: text('jurisdiction'),
   amount: real('amount'),
   autoRecur: integer('auto_recur', { mode: 'boolean' }).default(false),

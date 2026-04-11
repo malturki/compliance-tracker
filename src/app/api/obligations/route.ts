@@ -22,6 +22,7 @@ export async function GET(req: NextRequest) {
     const statusFilter = searchParams.get('status')
     const riskLevel = searchParams.get('risk_level')
     const owner = searchParams.get('owner')
+    const counterparty = searchParams.get('counterparty')
     const search = searchParams.get('search')
     const sortBy = searchParams.get('sort_by') || 'next_due_date'
     const sortDir = searchParams.get('sort_dir') || 'asc'
@@ -30,6 +31,7 @@ export async function GET(req: NextRequest) {
     if (category) conditions.push(eq(obligations.category, category))
     if (riskLevel) conditions.push(eq(obligations.riskLevel, riskLevel))
     if (owner) conditions.push(eq(obligations.owner, owner))
+    if (counterparty) conditions.push(eq(obligations.counterparty, counterparty))
     if (search) conditions.push(like(obligations.title, `%${search}%`))
 
     const rows = await db
@@ -113,6 +115,7 @@ export async function POST(req: NextRequest) {
       sourceDocument: data.sourceDocument ?? null,
       notes: data.notes ?? null,
       entity: data.entity,
+      counterparty: data.counterparty ?? null,
       jurisdiction: data.jurisdiction ?? null,
       amount: data.amount ?? null,
       autoRecur: data.autoRecur,

@@ -74,6 +74,7 @@ async function initInMemory() {
     source_document TEXT,
     notes TEXT,
     entity TEXT DEFAULT 'Pi Squared Inc.',
+    counterparty TEXT,
     jurisdiction TEXT,
     amount REAL,
     auto_recur INTEGER DEFAULT 0,
@@ -137,7 +138,7 @@ async function initInMemory() {
   for (const row of seedObligations) {
     const r = row as Record<string, unknown>
     await client.execute({
-      sql: `INSERT OR IGNORE INTO obligations (id, title, description, category, subcategory, frequency, next_due_date, last_completed_date, owner, owner_email, assignee, assignee_email, status, risk_level, alert_days, last_alert_sent, source_document, notes, entity, jurisdiction, amount, auto_recur, template_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      sql: `INSERT OR IGNORE INTO obligations (id, title, description, category, subcategory, frequency, next_due_date, last_completed_date, owner, owner_email, assignee, assignee_email, status, risk_level, alert_days, last_alert_sent, source_document, notes, entity, counterparty, jurisdiction, amount, auto_recur, template_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       args: [
         r.id as string, r.title as string, r.description as string | null, r.category as string,
         r.subcategory as string | null, r.frequency as string, r.next_due_date as string,
@@ -145,6 +146,7 @@ async function initInMemory() {
         r.assignee as string | null, r.assignee_email as string | null, r.status as string,
         r.risk_level as string, r.alert_days as string, r.last_alert_sent as string | null,
         r.source_document as string | null, r.notes as string | null, r.entity as string,
+        (r.counterparty as string | null) ?? null,
         r.jurisdiction as string | null, r.amount as number | null, r.auto_recur as number,
         r.template_id as string | null, r.created_at as string, r.updated_at as string,
       ],

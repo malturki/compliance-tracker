@@ -32,6 +32,14 @@ const CATEGORY_DESCRIPTIONS: Record<string, string> = {
   vendor: 'SaaS subscriptions, domains, and service renewals',
 }
 
+type CounterpartyStat = {
+  name: string
+  total: number
+  overdue: number
+  upcoming: number
+  nextDeadline: string | null
+}
+
 async function getData() {
   await dbReady
   const rows = await db.select().from(obligations)
@@ -88,11 +96,34 @@ async function getData() {
     return byCategory[b].total - byCategory[a].total
   })
 
-  return { byCategory, sortedCategories, totalObs: enriched.length }
+  // Counterparty rollup
+  const byCounterparty = new Map<string, CounterpartyStat>()
+  for (const row of enriched) {
+    const name = (row.counterparty ?? '').trim()
+    if (!name) continue
+    let stat = byCounterparty.get(name)
+    if (!stat) {
+      stat = { name, total: 0, overdue: 0, upcoming: 0, nextDeadline: null }
+      byCounterparty.set(name, stat)
+    }
+    stat.total++
+    if (row.computedStatus === 'overdue') stat.overdue++
+    if (row.computedStatus === 'upcoming') stat.upcoming++
+    if (!stat.nextDeadline || row.nextDueDate < stat.nextDeadline) {
+      stat.nextDeadline = row.nextDueDate
+    }
+  }
+  const sortedCounterparties = Array.from(byCounterparty.values()).sort((a, b) => {
+    if (a.overdue !== b.overdue) return b.overdue - a.overdue
+    if (a.total !== b.total) return b.total - a.total
+    return a.name.localeCompare(b.name)
+  })
+
+  return { byCategory, sortedCategories, totalObs: enriched.length, sortedCounterparties }
 }
 
 export default async function CategoriesPage() {
-  const { byCategory, sortedCategories, totalObs } = await getData()
+  const { byCategory, sortedCategories, totalObs, sortedCounterparties } = await getData()
 
   return (
     <div className="p-6 max-w-[1400px]">
@@ -216,6 +247,48 @@ export default async function CategoriesPage() {
           )
         })}
       </div>
+
+      {/* By counterparty */}
+      {sortedCounterparties.length > 0 && (
+        <div className="mt-10">
+          <div className="flex items-baseline justify-between mb-4 border-b border-[#1e2d47] pb-3">
+            <h2 className="text-base font-semibold text-slate-100">By counterparty</h2>
+            <p className="text-[10px] text-slate-500 font-mono uppercase tracking-wider">
+              {sortedCounterparties.length} counterparties
+            </p>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            {sortedCounterparties.map(cp => {
+              const hasProblems = cp.overdue > 0
+              return (
+                <Link
+                  key={cp.name}
+                  href={`/obligations?counterparty=${encodeURIComponent(cp.name)}`}
+                  className={`block border bg-[#0f1629] p-3 hover:bg-[#162035] transition-colors
+                    ${hasProblems ? 'border-red-900/40' : 'border-[#1e2d47]'}
+                  `}
+                >
+                  <div className="flex items-start justify-between gap-2 mb-1.5">
+                    <span className={`text-xs font-medium leading-tight truncate ${hasProblems ? 'text-red-300' : 'text-slate-200'}`}>
+                      {cp.name}
+                    </span>
+                    <span className="text-lg font-mono font-bold text-slate-300 flex-shrink-0 leading-none">
+                      {cp.total}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3 text-[10px] font-mono">
+                    {cp.overdue > 0 && <span className="text-red-400">{cp.overdue} overdue</span>}
+                    {cp.upcoming > 0 && <span className="text-amber-400">{cp.upcoming} upcoming</span>}
+                    {cp.nextDeadline && (
+                      <span className="text-slate-500">next: {formatDate(cp.nextDeadline)}</span>
+                    )}
+                  </div>
+                </Link>
+              )
+            })}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
