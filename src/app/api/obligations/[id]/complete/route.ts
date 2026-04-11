@@ -17,7 +17,7 @@ export async function POST(
   { params }: { params: { id: string } },
 ) {
   try {
-    const { error: authError } = await requireRole('editor')
+    const { error: authError } = await requireRole('editor', req)
     if (authError) return authError
 
     await dbReady

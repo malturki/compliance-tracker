@@ -24,7 +24,7 @@ interface BulkRequest {
 
 export async function POST(request: NextRequest) {
   try {
-    const { error: authError } = await requireRole('editor')
+    const { error: authError } = await requireRole('editor', request)
     if (authError) return authError
 
     await dbReady

@@ -14,7 +14,7 @@ export const dynamic = 'force-dynamic'
 
 export async function GET(req: NextRequest) {
   try {
-    const { error: authError } = await requireRole('viewer')
+    const { error: authError } = await requireRole('viewer', req)
     if (authError) return authError
     await dbReady
     const { searchParams } = req.nextUrl
@@ -77,7 +77,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { error: authError } = await requireRole('editor')
+    const { error: authError } = await requireRole('editor', req)
     if (authError) return authError
     await dbReady
     const body = await req.json()
@@ -139,7 +139,7 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
-    const { error: authError } = await requireRole('editor')
+    const { error: authError } = await requireRole('editor', req)
     if (authError) return authError
     await dbReady
     const body = await req.json()

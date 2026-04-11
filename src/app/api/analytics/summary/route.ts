@@ -10,7 +10,7 @@ const openai = process.env.OPENAI_API_KEY
 
 export async function POST(request: Request) {
   try {
-    const { error: authError } = await requireRole('viewer')
+    const { error: authError } = await requireRole('viewer', request)
     if (authError) return authError
 
     const analyticsData = await request.json()

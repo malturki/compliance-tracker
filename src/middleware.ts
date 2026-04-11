@@ -1,30 +1,29 @@
 import { auth } from '@/lib/auth'
-import { verifyAgentToken } from '@/lib/agent-auth'
 import { NextResponse } from 'next/server'
 
-export default auth(async (req) => {
+// Note: Agent token verification happens inside each API route handler via
+// `getActor()` + `requireRole()`, not here. The libsql client used by
+// verifyAgentToken() requires Node APIs and cannot run in Edge Runtime
+// (where middleware executes). So here we simply wave Bearer-authenticated
+// requests through to the route handler, which then verifies the token in
+// the Node serverless function.
+
+export default auth((req) => {
   const { pathname } = req.nextUrl
   const isAuthRoute = pathname.startsWith('/api/auth') || pathname.startsWith('/auth/')
   const isCronRoute = pathname.startsWith('/api/cron')
 
   if (isAuthRoute || isCronRoute) return NextResponse.next()
 
-  // Agent bearer token path (checked before session)
+  // If a Bearer token is present, let the request through and let the route
+  // handler's requireRole() verify it. Any invalid token will get 401 from
+  // the route handler, not from middleware.
   const authHeader = req.headers.get('authorization') ?? ''
   if (authHeader.startsWith('Bearer ')) {
-    const token = authHeader.slice('Bearer '.length)
-    const agent = await verifyAgentToken(token)
-    if (agent) {
-      if (agent.role === 'viewer' && pathname.startsWith('/api/') && req.method !== 'GET') {
-        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-      }
-      return NextResponse.next()
-    }
-    // Header present but invalid — reject immediately
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return NextResponse.next()
   }
 
-  // NextAuth session path
+  // No Bearer header — use NextAuth session path
   if (!req.auth) {
     if (pathname.startsWith('/api/')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

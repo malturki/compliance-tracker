@@ -13,7 +13,7 @@ export const dynamic = 'force-dynamic'
  */
 export async function POST(request: NextRequest) {
   try {
-    const { error: authError } = await requireRole('admin')
+    const { error: authError } = await requireRole('admin', request)
     if (authError) return authError
 
     await dbReady

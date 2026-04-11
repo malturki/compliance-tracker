@@ -42,7 +42,7 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const { session, error } = await requireRole('admin')
+  const { session, error } = await requireRole('admin', req)
   if (error) return error
 
   try {

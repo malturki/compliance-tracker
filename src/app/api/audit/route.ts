@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic'
 
 export async function GET(req: NextRequest) {
   try {
-    const { error: authError } = await requireRole('viewer')
+    const { error: authError } = await requireRole('viewer', req)
     if (authError) return authError
 
     await dbReady

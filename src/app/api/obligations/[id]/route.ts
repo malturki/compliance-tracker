@@ -16,7 +16,7 @@ export async function GET(
   { params }: { params: { id: string } },
 ) {
   try {
-    const { error: authError } = await requireRole('viewer')
+    const { error: authError } = await requireRole('viewer', _req)
     if (authError) return authError
     await dbReady
     const rows = await db.select().from(obligations).where(eq(obligations.id, params.id))
@@ -43,7 +43,7 @@ export async function PUT(
   { params }: { params: { id: string } },
 ) {
   try {
-    const { error: authError } = await requireRole('editor')
+    const { error: authError } = await requireRole('editor', req)
     if (authError) return authError
     await dbReady
     const body = await req.json()
@@ -89,7 +89,7 @@ export async function DELETE(
   { params }: { params: { id: string } },
 ) {
   try {
-    const { error: authError } = await requireRole('editor')
+    const { error: authError } = await requireRole('editor', req)
     if (authError) return authError
     await dbReady
     const existing = (await db.select().from(obligations).where(eq(obligations.id, params.id)))[0]
