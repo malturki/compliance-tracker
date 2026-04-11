@@ -35,3 +35,6 @@ compliance.db
 
 # git worktrees
 .worktrees/
+
+# test coverage reports
+coverage/
