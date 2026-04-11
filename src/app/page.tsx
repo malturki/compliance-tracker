@@ -60,9 +60,58 @@ export default async function OverviewPage() {
   const today = new Date()
   const session = await auth()
   const isViewer = session?.user?.role === 'viewer'
+  const canEdit = session?.user?.role === 'editor' || session?.user?.role === 'admin'
 
   const categoryKeys = Object.keys(data.byCategory).sort()
   const maxTotal = Math.max(...categoryKeys.map(k => data.byCategory[k].total), 1)
+
+  // First-run empty state: database has no obligations yet.
+  if (data.total === 0) {
+    return (
+      <div className="p-6 max-w-[1400px]">
+        <div className="flex items-baseline justify-between mb-6 border-b border-[#1e2d47] pb-4">
+          <div>
+            <h1 className="text-xl font-semibold text-slate-100">Overview</h1>
+            <p className="text-xs text-slate-500 mt-0.5 font-mono">Pi Squared Inc. — Compliance Dashboard</p>
+          </div>
+          <div className="text-xs font-mono text-slate-500">{format(today, 'EEE, MMM d yyyy')}</div>
+        </div>
+
+        <div className="max-w-2xl mx-auto mt-16 text-center">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded bg-amber-500/10 border border-amber-500/30 mb-5">
+            <TrendingUp className="w-6 h-6 text-amber-400" />
+          </div>
+          <h2 className="text-lg font-semibold text-slate-100 mb-2">
+            Welcome to the Compliance Tracker
+          </h2>
+          <p className="text-sm text-slate-400 mb-8 leading-relaxed">
+            No obligations are being tracked yet.
+            {canEdit
+              ? ' Get started by applying a template for common compliance requirements, or add your first obligation manually.'
+              : ' An editor or admin needs to add obligations before anything shows up here.'}
+          </p>
+
+          {canEdit && (
+            <div className="flex items-center justify-center gap-3">
+              <Link
+                href="/templates"
+                className="inline-flex items-center gap-2 px-4 py-2.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-medium rounded transition-colors"
+              >
+                <TrendingUp className="w-3.5 h-3.5" />
+                Apply a template
+              </Link>
+              <Link
+                href="/obligations"
+                className="inline-flex items-center gap-2 px-4 py-2.5 border border-[#1e2d47] hover:border-amber-500/50 text-slate-300 hover:text-amber-400 text-xs font-medium rounded transition-colors"
+              >
+                Add manually →
+              </Link>
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="p-6 max-w-[1400px]">

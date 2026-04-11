@@ -25,13 +25,21 @@ async function fetchEvents(params: SearchParams) {
 
 export default async function ActivityPage({ searchParams }: { searchParams: SearchParams }) {
   const rows = await fetchEvents(searchParams)
+  const hasMore = rows.length === 50
+  const oldestTs = rows.length > 0 ? rows[rows.length - 1].ts : null
+  const nextPageQuery = hasMore && oldestTs
+    ? `?before=${encodeURIComponent(oldestTs)}${searchParams.type ? `&type=${searchParams.type}` : ''}${searchParams.actor ? `&actor=${searchParams.actor}` : ''}${searchParams.entity ? `&entity=${searchParams.entity}` : ''}`
+    : null
+  const isPaged = !!searchParams.before
 
   return (
     <div className="p-6 max-w-[1400px]">
       <div className="flex items-baseline justify-between mb-6 border-b border-[#1e2d47] pb-4">
         <div>
           <h1 className="text-xl font-semibold text-slate-100">Activity</h1>
-          <p className="text-xs text-slate-500 mt-0.5 font-mono">Audit log — most recent first</p>
+          <p className="text-xs text-slate-500 mt-0.5 font-mono">
+            Audit log — most recent first{isPaged && ' — showing older events'}
+          </p>
         </div>
         <div className="text-xs font-mono text-slate-500">{rows.length} events</div>
       </div>
@@ -74,6 +82,24 @@ export default async function ActivityPage({ searchParams }: { searchParams: Sea
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {(nextPageQuery || isPaged) && (
+        <div className="mt-4 flex items-center justify-between text-xs">
+          {isPaged ? (
+            <Link href="/activity" className="text-slate-500 hover:text-amber-400 font-mono transition-colors">
+              ← Back to recent
+            </Link>
+          ) : <span />}
+          {nextPageQuery && (
+            <Link
+              href={`/activity${nextPageQuery}`}
+              className="px-3 py-1.5 border border-[#1e2d47] hover:border-amber-500/50 text-slate-400 hover:text-amber-400 rounded transition-colors font-mono"
+            >
+              Load older events →
+            </Link>
+          )}
         </div>
       )}
     </div>

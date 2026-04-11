@@ -833,7 +833,28 @@ function ObligationsPageContent() {
               {loading ? (
                 <tr><td colSpan={9} className="px-3 py-8 text-center text-slate-600">Loading...</td></tr>
               ) : items.length === 0 ? (
-                <tr><td colSpan={9} className="px-3 py-8 text-center text-slate-600">No obligations found</td></tr>
+                <tr>
+                  <td colSpan={9} className="px-3 py-12 text-center">
+                    {(category || status || riskLevel || search) ? (
+                      <div className="flex flex-col items-center gap-2">
+                        <div className="text-sm text-slate-400">No obligations match these filters</div>
+                        <button
+                          onClick={() => {
+                            setCategory('')
+                            setStatus('')
+                            setRiskLevel('')
+                            setSearch('')
+                          }}
+                          className="mt-1 px-3 py-1.5 text-xs text-amber-400 hover:text-amber-300 border border-amber-500/30 hover:border-amber-500/50 rounded transition-colors"
+                        >
+                          Clear filters
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="text-sm text-slate-500">No obligations found</div>
+                    )}
+                  </td>
+                </tr>
               ) : (
                 items.map((item, i) => {
                   const days = getDaysUntil(item.nextDueDate)
