@@ -161,11 +161,39 @@ describe('GET /api/obligations', () => {
   });
 });
 
+async function ensureSchema() {
+  const { __getClientForTests } = await import('@/db');
+  const client = __getClientForTests();
+  const ddl = [
+    `CREATE TABLE IF NOT EXISTS obligations (
+      id TEXT PRIMARY KEY, title TEXT NOT NULL, description TEXT,
+      category TEXT NOT NULL, subcategory TEXT, frequency TEXT NOT NULL,
+      next_due_date TEXT NOT NULL, last_completed_date TEXT,
+      owner TEXT NOT NULL, owner_email TEXT, assignee TEXT, assignee_email TEXT,
+      status TEXT NOT NULL DEFAULT 'current',
+      risk_level TEXT NOT NULL DEFAULT 'medium',
+      alert_days TEXT DEFAULT '[]', last_alert_sent TEXT,
+      source_document TEXT, notes TEXT,
+      entity TEXT DEFAULT 'Pi Squared Inc.', jurisdiction TEXT, amount REAL,
+      auto_recur INTEGER DEFAULT 0, template_id TEXT,
+      created_at TEXT NOT NULL, updated_at TEXT NOT NULL
+    )`,
+    `CREATE TABLE IF NOT EXISTS audit_log (
+      id TEXT PRIMARY KEY, ts TEXT NOT NULL, event_type TEXT NOT NULL,
+      actor TEXT NOT NULL, actor_source TEXT NOT NULL,
+      entity_type TEXT NOT NULL, entity_id TEXT,
+      summary TEXT NOT NULL, diff TEXT, metadata TEXT
+    )`,
+  ];
+  for (const sql of ddl) await client.execute(sql);
+}
+
 describe('audit: POST /api/obligations', () => {
   beforeEach(async () => {
     vi.resetModules();
     vi.doUnmock('@/db');
     vi.doUnmock('ulid');
+    await ensureSchema();
     const { db, dbReady } = await import('@/db');
     const { auditLog } = await import('@/db/schema');
     await dbReady;
@@ -221,6 +249,7 @@ describe('audit: PUT /api/obligations/[id]', () => {
     vi.resetModules();
     vi.doUnmock('@/db');
     vi.doUnmock('ulid');
+    await ensureSchema();
     const { PUT } = await import('../[id]/route');
     const { db, dbReady } = await import('@/db');
     const { auditLog, obligations } = await import('@/db/schema');

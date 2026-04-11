@@ -11,6 +11,12 @@ let _client: ReturnType<typeof createClient> | null = null
 let _db: ReturnType<typeof drizzle<typeof schema>> | null = null
 let _dbReadyPromise: Promise<void> | null = null
 
+// Exported so integration tests can execute raw DDL against the same
+// underlying libsql client the Proxy db wraps.
+export function __getClientForTests() {
+  return getClient()
+}
+
 function getClient() {
   if (_client) return _client
 
