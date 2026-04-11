@@ -151,6 +151,35 @@ export default function AgentsSettingsPage() {
 
       <SettingsTabs />
 
+      {/* Skill URL — visible at the page level so admins always have it on hand,
+          not just inside the create-token modal. */}
+      <div className="mt-4 mb-4 bg-[#0a0e1a] border border-[#1e2d47] p-3 flex items-center gap-3">
+        <div className="flex-shrink-0">
+          <div className="text-[10px] text-slate-500 uppercase tracking-wider mb-0.5">Agent skill URL</div>
+          <div className="text-[10px] text-slate-600">Public, no auth — share with any AI agent</div>
+        </div>
+        <code className="flex-1 font-mono text-[11px] text-slate-300 break-all bg-[#0f1629] border border-[#1e2d47] px-2 py-1.5 rounded">
+          {SKILL_URL}
+        </code>
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          <button
+            onClick={() => copyToClipboard('skill-url', SKILL_URL)}
+            className="inline-flex items-center gap-1 px-2 py-1.5 border border-[#1e2d47] hover:border-amber-500/50 text-slate-400 hover:text-amber-400 text-[10px] rounded transition-colors"
+          >
+            {copiedKey === 'skill-url' ? <><Check className="w-3 h-3" /> Copied</> : <><Copy className="w-3 h-3" /> Copy URL</>}
+          </button>
+          <a
+            href={SKILL_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 px-2 py-1.5 border border-[#1e2d47] hover:border-amber-500/50 text-slate-400 hover:text-amber-400 text-[10px] rounded transition-colors"
+          >
+            <ExternalLink className="w-3 h-3" />
+            Open
+          </a>
+        </div>
+      </div>
+
       {loading ? (
         <div className="text-xs text-slate-500 font-mono">Loading...</div>
       ) : agents.length === 0 ? (

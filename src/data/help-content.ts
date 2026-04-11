@@ -308,6 +308,12 @@ There's no "delete user" button today — if someone leaves the company, their G
     tldr: 'Go to Settings → Agents, click "New Agent", pick a name and role, and copy the token shown once. The token authenticates API requests. Give the token and the skill URL to an AI agent or automation bot and it can manage obligations programmatically.',
     details: `**What agents are:** Service accounts with their own bearer tokens, separate from human user sessions. Used to give AI agents (Claude Code, automation scripts, bots) programmatic access to the API without using a person's account.
 
+**The skill URL** (always visible at the top of Settings → Agents):
+
+\`https://compliance-tracker-alturki.vercel.app/.well-known/compliance-tracker-skill\`
+
+This is a public, no-auth markdown document that describes the API to AI agents. Every agent you create uses the same URL — only the bearer token is per-agent. The URL is shown in a copy-able bar at the top of the Settings → Agents page so you don't have to dig through a modal to find it.
+
 **Creating an agent:**
 
 1. Settings → Agents → New Agent.
