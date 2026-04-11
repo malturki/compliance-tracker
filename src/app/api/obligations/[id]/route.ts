@@ -3,7 +3,7 @@ import { db, dbReady } from '@/db'
 import { obligations, completions } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { computeStatus } from '@/lib/utils'
-import { updateObligationSchema } from '@/lib/validation'
+import { updateObligationSchema, formatZodError } from '@/lib/validation'
 import { getActor } from '@/lib/actor'
 import { auditedUpdate } from '@/lib/audit-helpers'
 import { logEvent } from '@/lib/audit'
@@ -51,7 +51,7 @@ export async function PUT(
     // Validate input
     const result = updateObligationSchema.safeParse(body)
     if (!result.success) {
-      return NextResponse.json({ error: result.error.issues }, { status: 400 })
+      return NextResponse.json(formatZodError(result.error), { status: 400 })
     }
     
     const data = result.data

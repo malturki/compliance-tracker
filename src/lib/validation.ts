@@ -1,5 +1,24 @@
 import { z } from 'zod'
 
+/**
+ * Format a Zod safeParse error as a single human-readable string. Joins all
+ * issue paths and messages, e.g. `category: Invalid enum value, owner: Required`.
+ *
+ * Used by API route handlers so the error response shape is always
+ * `{ error: string, issues?: ZodIssue[] }` rather than mixing string and
+ * array shapes across endpoints. The structured `issues` array is preserved
+ * for clients/tests that want to introspect.
+ */
+export function formatZodError(error: z.ZodError): { error: string; issues: z.ZodIssue[] } {
+  const message = error.issues
+    .map(i => {
+      const path = i.path.join('.')
+      return path ? `${path}: ${i.message}` : i.message
+    })
+    .join(', ')
+  return { error: message || 'Invalid request', issues: error.issues }
+}
+
 export const createObligationSchema = z.object({
   title: z.string().min(1).max(500),
   description: z.string().optional(),

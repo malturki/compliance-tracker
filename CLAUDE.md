@@ -32,7 +32,7 @@
 
 ## Testing
 
-- **235 tests across 21 files**, all passing. Integration tests hit a real file-based SQLite via `src/test/integration-helpers.ts` — no mocks for `@/db`. Overall coverage is ~84% lines / ~82% branches.
+- **279 tests across 24 files**, all passing. Integration tests hit a real file-based SQLite via `src/test/integration-helpers.ts` — no mocks for `@/db`. Overall coverage is ~86% lines / ~89% functions.
 - Test setup (`src/test-setup.ts`) creates a temp `file:$TMPDIR/compliance-tracker-test-*.db` per `process.pid` and runs the full schema in `beforeAll`. Existing pre-test DB files are unlinked on startup for isolation.
 - Integration tests live in `src/test/integration/` and cover: CRUD workflow, completion status semantics, completion-flow edge cases (multipart upload, recurrence advancement, validation errors), bulk operations (every action variant + validation), audit log events, role enforcement matrix, agent authentication, user management, agent management, and the counterparty field.
 - To test a specific role in an integration test, call `mockSession({email, role})` from `integration-helpers`. To test agent auth, call `mockSession(null)` and attach an `Authorization: Bearer ...` header via `mkReq`.

@@ -7,6 +7,15 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+/**
+ * Derive the display status of an obligation from its dates and frequency.
+ * Status is never persisted — it's computed on every read so it stays in sync
+ * as time passes without needing a background job.
+ *
+ * Pass `frequency` so one-time and event-triggered obligations can reach the
+ * terminal `'completed'` state once they have a `lastCompletedDate` — without
+ * it, they'd flip back to `'overdue'` after the original due date passes.
+ */
 export function computeStatus(
   nextDueDate: string,
   lastCompletedDate?: string | null,
@@ -80,6 +89,14 @@ export function getCategoryLabel(cat: string): string {
   return labels[cat] || cat
 }
 
+/**
+ * Advance a due date by one period of the given frequency. Used by the
+ * completion flow when an obligation has `autoRecur` enabled.
+ *
+ * Note: `one-time` and `event-triggered` should never be passed here — the
+ * caller is expected to gate on frequency before calling. The `default` arm
+ * advances by a year as a defensive fallback rather than throwing.
+ */
 export function computeNextDueDate(current: string, frequency: string): string {
   const d = new Date(current)
   switch (frequency) {

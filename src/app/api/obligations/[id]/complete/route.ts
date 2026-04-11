@@ -5,7 +5,7 @@ import { eq } from 'drizzle-orm'
 import { ulid } from 'ulid'
 import { computeNextDueDate } from '@/lib/utils'
 import { uploadToBlob, validateFile } from '@/lib/blob'
-import { completeObligationSchema } from '@/lib/validation'
+import { completeObligationSchema, formatZodError } from '@/lib/validation'
 import { getActor } from '@/lib/actor'
 import { logEvent } from '@/lib/audit'
 import { requireRole } from '@/lib/auth-helpers'
@@ -91,10 +91,7 @@ export async function POST(
     });
     
     if (!validationResult.success) {
-      return NextResponse.json(
-        { error: validationResult.error.issues },
-        { status: 400 }
-      );
+      return NextResponse.json(formatZodError(validationResult.error), { status: 400 });
     }
 
     const now = new Date().toISOString()

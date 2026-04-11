@@ -4,7 +4,7 @@ import { obligations, completions } from '@/db/schema'
 import { eq, and, like, asc, desc, or, inArray } from 'drizzle-orm'
 import { ulid } from 'ulid'
 import { computeStatus } from '@/lib/utils'
-import { createObligationSchema } from '@/lib/validation'
+import { createObligationSchema, formatZodError } from '@/lib/validation'
 import { getActor } from '@/lib/actor'
 import { logEvent } from '@/lib/audit'
 import { requireRole } from '@/lib/auth-helpers'
@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
     // Validate input
     const result = createObligationSchema.safeParse(body)
     if (!result.success) {
-      return NextResponse.json({ error: result.error.issues }, { status: 400 })
+      return NextResponse.json(formatZodError(result.error), { status: 400 })
     }
     
     const data = result.data

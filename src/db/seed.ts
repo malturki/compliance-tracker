@@ -72,7 +72,23 @@ function computeStatus(nextDueDate: string): string {
   return 'current'
 }
 
-const records = [
+type SeedRecord = {
+  title: string
+  category: string
+  subcategory?: string
+  frequency: string
+  next_due_date: string
+  owner: string
+  risk_level: string
+  alert_days?: number[]
+  auto_recur: boolean
+  jurisdiction?: string
+  amount?: number
+  notes?: string
+  counterparty?: string
+}
+
+const records: SeedRecord[] = [
   { title: 'Delaware Franchise Tax', category: 'state', subcategory: 'annual-filing', frequency: 'annual', next_due_date: '2027-03-01', owner: 'Ashbury Legal', risk_level: 'high', jurisdiction: 'Delaware', amount: 450, notes: 'Uses Assumed Par Value Capital Method. Filed through Jan 2026.', alert_days: [60, 30, 14, 7], auto_recur: true },
   { title: 'Illinois Annual Report', category: 'state', subcategory: 'annual-filing', frequency: 'annual', next_due_date: '2027-01-09', owner: 'Ashbury Legal', risk_level: 'medium', jurisdiction: 'Illinois', amount: 200, notes: 'BCA 14.30 form, File #74447627. Last filed 2025-01-09.', alert_days: [60, 30, 14], auto_recur: true },
   { title: 'Texas Annual Filing', category: 'state', subcategory: 'annual-filing', frequency: 'annual', next_due_date: '2027-02-20', owner: 'Northwest Registered Agent', risk_level: 'medium', jurisdiction: 'Texas', notes: 'Paid Feb 2026 via Northwest Registered Agent.', alert_days: [60, 30, 14], auto_recur: true },
@@ -258,11 +274,11 @@ for (const r of records) {
       JSON.stringify(r.alert_days ?? []),
       null, // last_alert_sent
       null, // source_document
-      (r as any).notes ?? null,
+      r.notes ?? null,
       'Pi Squared Inc.',
-      (r as any).counterparty ?? null,
-      (r as any).jurisdiction ?? null,
-      (r as any).amount ?? null,
+      r.counterparty ?? null,
+      r.jurisdiction ?? null,
+      r.amount ?? null,
       r.auto_recur ? 1 : 0,
       now,
       now,
