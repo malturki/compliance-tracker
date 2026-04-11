@@ -112,6 +112,21 @@ async function initInMemory() {
     updated_at TEXT NOT NULL
   )`)
 
+  await client.execute(`CREATE TABLE IF NOT EXISTS agents (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    description TEXT,
+    role TEXT NOT NULL,
+    token_hash TEXT NOT NULL,
+    token_prefix TEXT NOT NULL,
+    created_by TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    expires_at TEXT NOT NULL,
+    last_used_at TEXT,
+    revoked_at TEXT
+  )`)
+  await client.execute(`CREATE INDEX IF NOT EXISTS idx_agents_token_hash ON agents(token_hash)`)
+
   // Seed obligations from JSON
   for (const row of seedObligations) {
     const r = row as Record<string, unknown>
