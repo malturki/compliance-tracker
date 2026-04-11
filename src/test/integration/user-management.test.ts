@@ -118,4 +118,88 @@ describe('User management', () => {
     const rows = await db.select().from(users).where(eq(users.id, target.id))
     expect(rows[0].role).toBe('viewer')
   })
+
+  it('viewer PUT /api/users/[id] → 403', async () => {
+    mockSession({ email: 'admin@test.com', role: 'admin' })
+    const target = await insertUser('target@test.com', 'viewer')
+
+    mockSession({ email: 'viewer@test.com', role: 'viewer' })
+    const req = mkReq(`http://localhost/api/users/${target.id}`, {
+      method: 'PUT',
+      body: { role: 'editor' },
+    })
+    const res = await updateUserRole(req, { params: { id: target.id } })
+    expect(res.status).toBe(403)
+
+    const rows = await db.select().from(users).where(eq(users.id, target.id))
+    expect(rows[0].role).toBe('viewer')
+  })
+
+  it('unauthenticated PUT /api/users/[id] → 401', async () => {
+    mockSession({ email: 'admin@test.com', role: 'admin' })
+    const target = await insertUser('target@test.com', 'viewer')
+
+    mockSession(null)
+    const req = mkReq(`http://localhost/api/users/${target.id}`, {
+      method: 'PUT',
+      body: { role: 'editor' },
+    })
+    const res = await updateUserRole(req, { params: { id: target.id } })
+    expect(res.status).toBe(401)
+  })
+
+  it('admin PUT with invalid role → 400, role unchanged', async () => {
+    mockSession({ email: 'admin@test.com', role: 'admin' })
+    const target = await insertUser('target@test.com', 'viewer')
+
+    const req = mkReq(`http://localhost/api/users/${target.id}`, {
+      method: 'PUT',
+      body: { role: 'superadmin' },
+    })
+    const res = await updateUserRole(req, { params: { id: target.id } })
+    expect(res.status).toBe(400)
+
+    const rows = await db.select().from(users).where(eq(users.id, target.id))
+    expect(rows[0].role).toBe('viewer')
+  })
+
+  it('admin PUT with missing role → 400', async () => {
+    mockSession({ email: 'admin@test.com', role: 'admin' })
+    const target = await insertUser('target@test.com', 'viewer')
+
+    const req = mkReq(`http://localhost/api/users/${target.id}`, {
+      method: 'PUT',
+      body: {},
+    })
+    const res = await updateUserRole(req, { params: { id: target.id } })
+    expect(res.status).toBe(400)
+  })
+
+  it('admin PUT non-existent user → 404', async () => {
+    mockSession({ email: 'admin@test.com', role: 'admin' })
+    const req = mkReq('http://localhost/api/users/nonexistent', {
+      method: 'PUT',
+      body: { role: 'editor' },
+    })
+    const res = await updateUserRole(req, { params: { id: 'nonexistent' } })
+    expect(res.status).toBe(404)
+  })
+
+  it('admin PUT with same role is a no-op (200) and writes no audit event', async () => {
+    mockSession({ email: 'admin@test.com', role: 'admin' })
+    const target = await insertUser('target@test.com', 'editor')
+
+    const req = mkReq(`http://localhost/api/users/${target.id}`, {
+      method: 'PUT',
+      body: { role: 'editor' },
+    })
+    const res = await updateUserRole(req, { params: { id: target.id } })
+    expect(res.status).toBe(200)
+
+    const events = await db
+      .select()
+      .from(auditLog)
+      .where(eq(auditLog.eventType, 'user.role_changed'))
+    expect(events.filter(e => e.entityId === target.id)).toHaveLength(0)
+  })
 })
