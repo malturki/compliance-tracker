@@ -22,3 +22,20 @@ Get these by creating a free Turso account at https://turso.tech
 ## Deployment
 
 This app is designed for serverless deployment (Vercel, Netlify, etc.) and uses Turso as a hosted database.
+
+## AI Agent Access
+
+AI agents (Claude Code sessions, automation scripts, bots) can read and
+manage obligations via the REST API using bearer tokens.
+
+**Create a token:** Sign in as an admin, go to **Settings → Agents**, click
+**New Agent**, pick a role (viewer / editor / admin), and copy the token
+that's shown once.
+
+**Use the skill:** Copy `docs/skills/compliance-tracker/SKILL.md` into your
+Claude Code project at `.claude/skills/compliance-tracker/SKILL.md` and
+export the token as `COMPLIANCE_TRACKER_TOKEN`. Ask Claude to do
+compliance-related work and it will use the API.
+
+**Raw API:** See `docs/skills/compliance-tracker/SKILL.md` for the full
+endpoint reference.
