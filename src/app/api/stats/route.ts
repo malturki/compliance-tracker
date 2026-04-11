@@ -31,7 +31,7 @@ export async function GET() {
     }
 
     for (const row of rows) {
-      const status = computeStatus(row.nextDueDate, row.lastCompletedDate)
+      const status = computeStatus(row.nextDueDate, row.lastCompletedDate, row.frequency)
       const due = new Date(row.nextDueDate)
 
       if (status === 'overdue') stats.overdue++

@@ -37,7 +37,7 @@ async function getData() {
   const rows = await db.select().from(obligations)
   const enriched = rows.map(row => ({
     ...row,
-    computedStatus: computeStatus(row.nextDueDate, row.lastCompletedDate),
+    computedStatus: computeStatus(row.nextDueDate, row.lastCompletedDate, row.frequency),
   }))
 
   const byCategory: Record<string, {

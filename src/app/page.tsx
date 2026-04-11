@@ -16,7 +16,7 @@ async function getData() {
   const enriched = rows.map(row => ({
     ...row,
     alertDays: JSON.parse(row.alertDays || '[]') as number[],
-    computedStatus: computeStatus(row.nextDueDate, row.lastCompletedDate),
+    computedStatus: computeStatus(row.nextDueDate, row.lastCompletedDate, row.frequency),
   }))
 
   const overdue = enriched.filter(r => r.computedStatus === 'overdue')

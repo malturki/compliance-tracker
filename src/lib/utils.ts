@@ -7,7 +7,18 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function computeStatus(nextDueDate: string, lastCompletedDate?: string | null): Status {
+export function computeStatus(
+  nextDueDate: string,
+  lastCompletedDate?: string | null,
+  frequency?: string | null,
+): Status {
+  // Terminal completion: a one-time or event-triggered obligation that has
+  // been completed once is done forever — it should never flip back to
+  // current/upcoming/overdue as time marches on.
+  if (lastCompletedDate && (frequency === 'one-time' || frequency === 'event-triggered')) {
+    return 'completed'
+  }
+
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   const dueDate = new Date(nextDueDate)
@@ -24,10 +35,10 @@ export function computeStatus(nextDueDate: string, lastCompletedDate?: string | 
 
   if (dueDate < today) return 'overdue'
   if (dueDate.getTime() === today.getTime()) return 'upcoming'
-  
+
   const diffDays = Math.floor((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
   if (diffDays <= 7) return 'upcoming'
-  
+
   return 'current'
 }
 

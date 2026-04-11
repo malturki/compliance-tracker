@@ -60,9 +60,57 @@ describe('computeStatus', () => {
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
     const yesterdayStr = yesterday.toISOString().split('T')[0];
-    
+
     // Due yesterday, completed yesterday - should be overdue (not current because dueDate < today)
     expect(computeStatus(yesterdayStr, yesterdayStr)).toBe('overdue');
+  });
+
+  describe('one-time and event-triggered terminal completion', () => {
+    it('one-time obligation completed before due date is "completed" (not "current")', () => {
+      const nextMonth = new Date();
+      nextMonth.setDate(nextMonth.getDate() + 30);
+      const today = new Date();
+      const nextMonthStr = nextMonth.toISOString().split('T')[0];
+      const todayStr = today.toISOString().split('T')[0];
+
+      expect(computeStatus(nextMonthStr, todayStr, 'one-time')).toBe('completed');
+    });
+
+    it('one-time obligation completed after original due date stays "completed" (not "overdue")', () => {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const today = new Date();
+      const yesterdayStr = yesterday.toISOString().split('T')[0];
+      const todayStr = today.toISOString().split('T')[0];
+
+      // Originally due yesterday, completed today — one-time so it's done forever
+      expect(computeStatus(yesterdayStr, todayStr, 'one-time')).toBe('completed');
+    });
+
+    it('event-triggered obligation with lastCompletedDate is "completed"', () => {
+      const today = new Date().toISOString().split('T')[0];
+      expect(computeStatus(today, today, 'event-triggered')).toBe('completed');
+    });
+
+    it('one-time obligation without lastCompletedDate is NOT "completed"', () => {
+      const nextMonth = new Date();
+      nextMonth.setDate(nextMonth.getDate() + 30);
+      const nextMonthStr = nextMonth.toISOString().split('T')[0];
+
+      // Not yet completed — should not return "completed"
+      expect(computeStatus(nextMonthStr, null, 'one-time')).toBe('current');
+    });
+
+    it('recurring annual obligation completed before due stays "current" (recurring not done forever)', () => {
+      const nextMonth = new Date();
+      nextMonth.setDate(nextMonth.getDate() + 30);
+      const today = new Date();
+      const nextMonthStr = nextMonth.toISOString().split('T')[0];
+      const todayStr = today.toISOString().split('T')[0];
+
+      // Annual frequency — completion is for this period, next period still comes
+      expect(computeStatus(nextMonthStr, todayStr, 'annual')).toBe('current');
+    });
   });
 });
 

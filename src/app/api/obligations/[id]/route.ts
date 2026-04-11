@@ -25,7 +25,7 @@ export async function GET(
     const row = rows[0]
     const comps = await db.select().from(completions).where(eq(completions.obligationId, params.id))
 
-    const computed = computeStatus(row.nextDueDate, row.lastCompletedDate)
+    const computed = computeStatus(row.nextDueDate, row.lastCompletedDate, row.frequency)
     return NextResponse.json({
       ...row,
       alertDays: JSON.parse(row.alertDays || '[]'),

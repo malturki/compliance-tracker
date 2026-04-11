@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
       .where(conditions.length > 0 ? and(...conditions) : undefined)
 
     const result = rows.map(row => {
-      const computed = computeStatus(row.nextDueDate, row.lastCompletedDate)
+      const computed = computeStatus(row.nextDueDate, row.lastCompletedDate, row.frequency)
       return {
         ...row,
         alertDays: JSON.parse(row.alertDays || '[]'),
@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
     const now = new Date().toISOString()
     const id = ulid()
 
-    const status = computeStatus(data.nextDueDate, data.lastCompletedDate ?? null)
+    const status = computeStatus(data.nextDueDate, data.lastCompletedDate ?? null, data.frequency)
 
     await db.insert(obligations).values({
       id,
