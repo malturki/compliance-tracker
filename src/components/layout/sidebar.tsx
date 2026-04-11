@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
-import { LayoutDashboard, Calendar, FileText, Tag, Shield, Sparkles, TrendingUp, History, Settings, LogOut, Search } from 'lucide-react'
+import { LayoutDashboard, Calendar, FileText, Tag, Shield, Sparkles, TrendingUp, History, Settings, LogOut, Search, HelpCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const navItems = [
@@ -14,6 +14,7 @@ const navItems = [
   { href: '/templates', label: 'Templates', icon: Sparkles, minRole: 'editor' as const },
   { href: '/activity', label: 'Activity', icon: History, minRole: 'editor' as const },
   { href: '/categories', label: 'Categories', icon: Tag, minRole: 'editor' as const },
+  { href: '/help', label: 'Help', icon: HelpCircle, minRole: 'viewer' as const },
 ]
 
 const ROLE_LEVEL: Record<string, number> = { viewer: 0, editor: 1, admin: 2 }

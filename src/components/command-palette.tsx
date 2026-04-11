@@ -25,7 +25,9 @@ import {
   AlertTriangle,
   Clock,
   FileSearch,
+  HelpCircle,
 } from 'lucide-react'
+import { HELP_TOPICS, visibleTopicsForRole, type HelpRole } from '@/data/help-content'
 
 type Obligation = {
   id: string
@@ -46,6 +48,7 @@ const PAGES: { href: string; label: string; icon: typeof FileText; minRole: Role
   { href: '/templates', label: 'Templates', icon: Sparkles, minRole: 'editor' },
   { href: '/activity', label: 'Activity', icon: History, minRole: 'editor' },
   { href: '/categories', label: 'Categories', icon: Tag, minRole: 'editor' },
+  { href: '/help', label: 'Help', icon: HelpCircle, minRole: 'viewer' },
   { href: '/settings/users', label: 'Settings: Users', icon: Settings, minRole: 'admin' },
   { href: '/settings/agents', label: 'Settings: Agents', icon: Settings, minRole: 'admin' },
 ]
@@ -105,6 +108,11 @@ export function CommandPalette() {
         .slice(0, 10)
     : obligations.slice(0, 6)
 
+  const helpTopics = visibleTopicsForRole(role as HelpRole)
+  const matchingHelp = q
+    ? helpTopics.filter(t => t.title.toLowerCase().includes(q) || t.tldr.toLowerCase().includes(q)).slice(0, 6)
+    : []
+
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
       <Command shouldFilter={false} className="bg-[#0f1629] border-[#1e2d47]">
@@ -152,6 +160,25 @@ export function CommandPalette() {
               )
             })}
           </CommandGroup>
+
+          {matchingHelp.length > 0 && (
+            <>
+              <CommandSeparator />
+              <CommandGroup heading="Help">
+                {matchingHelp.map(t => (
+                  <CommandItem
+                    key={t.slug}
+                    value={`help-${t.slug}-${t.title}`}
+                    onSelect={() => go(`/help#${t.slug}`)}
+                  >
+                    <HelpCircle className="w-3.5 h-3.5" />
+                    <span className="flex-1 truncate">{t.title}</span>
+                    <span className="text-[10px] text-slate-500 font-mono">{t.category}</span>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </>
+          )}
 
           {visibleFilters.length > 0 && (
             <>
