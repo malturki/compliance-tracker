@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import { SettingsTabs } from '@/components/settings/settings-tabs'
 
 type User = {
   id: string
@@ -66,6 +67,8 @@ export default function UsersSettingsPage() {
         </div>
         <div className="text-xs font-mono text-slate-500">{users.length} users</div>
       </div>
+
+      <SettingsTabs />
 
       {loading ? (
         <div className="text-xs text-slate-500 font-mono">Loading...</div>
