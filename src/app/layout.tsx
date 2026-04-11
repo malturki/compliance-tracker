@@ -3,6 +3,8 @@ import { Plus_Jakarta_Sans, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 import { SessionProvider } from 'next-auth/react'
 import { AppShell } from '@/components/layout/app-shell'
+import { CommandPalette } from '@/components/command-palette'
+import { KeyboardShortcutsHelp } from '@/components/keyboard-shortcuts-help'
 import { Toaster } from 'sonner'
 
 const jakartaSans = Plus_Jakarta_Sans({
@@ -27,6 +29,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="bg-[#0a0e1a] text-slate-200 font-sans antialiased">
         <SessionProvider>
           <AppShell>{children}</AppShell>
+          <CommandPalette />
+          <KeyboardShortcutsHelp />
           <Toaster position="bottom-right" theme="dark" />
         </SessionProvider>
       </body>

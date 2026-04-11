@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
-import { LayoutDashboard, Calendar, FileText, Tag, Shield, Sparkles, TrendingUp, History, Settings, LogOut } from 'lucide-react'
+import { LayoutDashboard, Calendar, FileText, Tag, Shield, Sparkles, TrendingUp, History, Settings, LogOut, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const navItems = [
@@ -44,6 +44,21 @@ export function Sidebar() {
       </div>
 
       <nav className="flex-1 px-2 py-3 space-y-0.5">
+        {/* Command palette trigger */}
+        <button
+          onClick={() => {
+            // Dispatch a Cmd+K keydown to open the global command palette.
+            // Keeps the palette as the single source of truth for open/close.
+            const ev = new KeyboardEvent('keydown', { key: 'k', metaKey: true, bubbles: true })
+            document.dispatchEvent(ev)
+          }}
+          className="w-full flex items-center gap-2.5 px-3 py-2 rounded text-sm text-slate-500 hover:text-slate-200 hover:bg-[#0f1629] transition-colors"
+        >
+          <Search className="w-4 h-4 flex-shrink-0" />
+          <span className="flex-1 text-left">Search</span>
+          <kbd className="text-[9px] font-mono text-slate-600 border border-[#1e2d47] rounded px-1 py-0.5">⌘K</kbd>
+        </button>
+        <div className="h-px bg-[#1e2d47] my-1.5 mx-1" />
         {navItems.filter(item => (ROLE_LEVEL[role] ?? 0) >= (ROLE_LEVEL[item.minRole] ?? 0)).map(({ href, label, icon: Icon }) => {
           const active = pathname === href || (href !== '/' && pathname.startsWith(href))
           return (

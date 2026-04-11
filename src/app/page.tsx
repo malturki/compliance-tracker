@@ -129,28 +129,28 @@ export default async function OverviewPage() {
         <div className="bg-[#0f1629] border border-[#1e2d47] p-4">
           <div className="text-xs text-slate-500 uppercase tracking-wider mb-1">Total</div>
           <div className="text-3xl font-mono font-bold text-slate-100">{data.total}</div>
-          <div className="text-xs text-slate-600 mt-1">obligations tracked</div>
+          <div className="text-xs text-slate-500 mt-1">obligations tracked</div>
         </div>
         <div className="bg-[#0f1629] border border-red-900/40 p-4">
           <div className="text-xs text-red-400/70 uppercase tracking-wider mb-1 flex items-center gap-1.5">
             <AlertTriangle className="w-3 h-3" />Overdue
           </div>
           <div className="text-3xl font-mono font-bold text-red-400">{data.overdueCount}</div>
-          <div className="text-xs text-slate-600 mt-1">require immediate action</div>
+          <div className="text-xs text-slate-500 mt-1">require immediate action</div>
         </div>
         <div className="bg-[#0f1629] border border-amber-900/40 p-4">
           <div className="text-xs text-amber-400/70 uppercase tracking-wider mb-1 flex items-center gap-1.5">
             <Clock className="w-3 h-3" />Due Soon
           </div>
           <div className="text-3xl font-mono font-bold text-amber-400">{data.dueThisWeekCount}</div>
-          <div className="text-xs text-slate-600 mt-1">within 7 days</div>
+          <div className="text-xs text-slate-500 mt-1">within 7 days</div>
         </div>
         <div className="bg-[#0f1629] border border-[#1e2d47] p-4">
           <div className="text-xs text-slate-500 uppercase tracking-wider mb-1 flex items-center gap-1.5">
             <TrendingUp className="w-3 h-3" />This Month
           </div>
           <div className="text-3xl font-mono font-bold text-slate-300">{data.dueThisMonthCount}</div>
-          <div className="text-xs text-slate-600 mt-1">due in {format(today, 'MMMM')}</div>
+          <div className="text-xs text-slate-500 mt-1">due in {format(today, 'MMMM')}</div>
         </div>
       </div>
 

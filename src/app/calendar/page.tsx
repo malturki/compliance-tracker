@@ -207,7 +207,7 @@ export default function CalendarPage() {
               </div>
               <div className="p-3 space-y-2 max-h-[600px] overflow-y-auto">
                 {selectedItems.length === 0 ? (
-                  <div className="text-xs text-slate-600 text-center py-8">No obligations due</div>
+                  <div className="text-xs text-slate-500 text-center py-8">No obligations due</div>
                 ) : (
                   selectedItems.map(item => (
                     <Link
@@ -225,7 +225,7 @@ export default function CalendarPage() {
                         </span>
                       </div>
                       {item.owner && (
-                        <div className="text-[10px] text-slate-600 mt-1">{item.owner}</div>
+                        <div className="text-[10px] text-slate-500 mt-1">{item.owner}</div>
                       )}
                     </Link>
                   ))

@@ -181,7 +181,7 @@ export default async function CategoriesPage() {
                       <span className="text-[10px] font-mono text-red-400 flex-shrink-0">{formatDate(item.nextDueDate)}</span>
                     </div>
                     {item.owner && (
-                      <div className="text-[10px] text-slate-600 mt-0.5">{item.owner}</div>
+                      <div className="text-[10px] text-slate-500 mt-0.5">{item.owner}</div>
                     )}
                   </Link>
                 ))}
@@ -196,12 +196,12 @@ export default async function CategoriesPage() {
                       <span className="text-[10px] font-mono text-amber-400 flex-shrink-0">{formatDate(item.nextDueDate)}</span>
                     </div>
                     {item.owner && (
-                      <div className="text-[10px] text-slate-600 mt-0.5">{item.owner}</div>
+                      <div className="text-[10px] text-slate-500 mt-0.5">{item.owner}</div>
                     )}
                   </Link>
                 ))}
                 {data.total === 0 && (
-                  <div className="text-xs text-slate-600 text-center py-4">No obligations in this category</div>
+                  <div className="text-xs text-slate-500 text-center py-4">No obligations in this category</div>
                 )}
                 {data.total > 3 && (
                   <Link
