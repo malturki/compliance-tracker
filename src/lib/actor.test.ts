@@ -59,3 +59,38 @@ describe('getActor', () => {
     expect(actor).toEqual({ email: 'system', source: 'system' })
   })
 })
+
+vi.mock('./agent-auth', () => ({
+  verifyAgentToken: vi.fn(),
+}))
+
+describe('getActor agent path', () => {
+  beforeEach(() => {
+    vi.resetAllMocks()
+  })
+
+  it('returns agent actor when bearer token validates', async () => {
+    const { verifyAgentToken } = await import('./agent-auth')
+    vi.mocked(verifyAgentToken).mockResolvedValueOnce({
+      type: 'agent',
+      agentId: 'ag_1',
+      name: 'TestBot',
+      role: 'editor',
+    })
+    const req = mkReq({ auth: 'Bearer ct_live_abc' })
+    const actor = await getActor(req)
+    expect(actor).toEqual({ email: 'agent:TestBot', source: 'agent' })
+  })
+
+  it('falls through to session when bearer token is invalid', async () => {
+    const { verifyAgentToken } = await import('./agent-auth')
+    vi.mocked(verifyAgentToken).mockResolvedValueOnce(null)
+    vi.mocked(auth).mockResolvedValueOnce({
+      user: { id: '1', email: 'alice@acme.com', role: 'admin' },
+      expires: '',
+    } as any)
+    const req = mkReq({ auth: 'Bearer ct_live_wrong' })
+    const actor = await getActor(req)
+    expect(actor).toEqual({ email: 'alice@acme.com', source: 'sso' })
+  })
+})
