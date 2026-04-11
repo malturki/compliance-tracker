@@ -97,6 +97,47 @@ describe('Counterparty field', () => {
       expect(diff.counterparty).toEqual([null, 'California Franchise Tax Board'])
     })
 
+    it('clearing counterparty (set to null) records the diff', async () => {
+      const id = await insertObligation({ title: 'Clear CP', counterparty: 'AWS' })
+      const req = mkReq(`http://localhost/api/obligations/${id}`, {
+        method: 'PUT',
+        body: { counterparty: null },
+      })
+      const res = await updateObligation(req, { params: { id } })
+      expect(res.status).toBe(200)
+
+      const rows = await db.select().from(obligations).where(eq(obligations.id, id))
+      expect(rows[0].counterparty).toBeNull()
+
+      const events = await db
+        .select()
+        .from(auditLog)
+        .where(eq(auditLog.eventType, 'obligation.updated'))
+      const forThis = events.filter(e => e.entityId === id)
+      expect(forThis).toHaveLength(1)
+      const diff = JSON.parse(forThis[0].diff || '{}')
+      expect(diff.counterparty).toEqual(['AWS', null])
+    })
+
+    it('updating jurisdiction also records a diff (newly tracked field)', async () => {
+      const id = await insertObligation({ title: 'Track jurisdiction' })
+      const req = mkReq(`http://localhost/api/obligations/${id}`, {
+        method: 'PUT',
+        body: { jurisdiction: 'Delaware' },
+      })
+      const res = await updateObligation(req, { params: { id } })
+      expect(res.status).toBe(200)
+
+      const events = await db
+        .select()
+        .from(auditLog)
+        .where(eq(auditLog.eventType, 'obligation.updated'))
+      const forThis = events.filter(e => e.entityId === id)
+      expect(forThis).toHaveLength(1)
+      const diff = JSON.parse(forThis[0].diff || '{}')
+      expect(diff.jurisdiction).toEqual([null, 'Delaware'])
+    })
+
     it('changing counterparty from one value to another shows old and new in diff', async () => {
       const id = await insertObligation({ title: 'Switch CP', counterparty: 'AWS' })
       const req = mkReq(`http://localhost/api/obligations/${id}`, {

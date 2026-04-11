@@ -32,11 +32,12 @@
 
 ## Testing
 
-- **158 tests across 18 files**, all passing. Integration tests hit a real file-based SQLite via `src/test/integration-helpers.ts` — no mocks for `@/db`.
+- **235 tests across 21 files**, all passing. Integration tests hit a real file-based SQLite via `src/test/integration-helpers.ts` — no mocks for `@/db`. Overall coverage is ~84% lines / ~82% branches.
 - Test setup (`src/test-setup.ts`) creates a temp `file:$TMPDIR/compliance-tracker-test-*.db` per `process.pid` and runs the full schema in `beforeAll`. Existing pre-test DB files are unlinked on startup for isolation.
-- Integration tests live in `src/test/integration/` and cover: CRUD workflow, completion status semantics (one-time vs recurring), bulk operations, audit log events, role enforcement matrix, agent authentication, user management.
+- Integration tests live in `src/test/integration/` and cover: CRUD workflow, completion status semantics, completion-flow edge cases (multipart upload, recurrence advancement, validation errors), bulk operations (every action variant + validation), audit log events, role enforcement matrix, agent authentication, user management, agent management, and the counterparty field.
 - To test a specific role in an integration test, call `mockSession({email, role})` from `integration-helpers`. To test agent auth, call `mockSession(null)` and attach an `Authorization: Bearer ...` header via `mkReq`.
 - When adding a new API route or changing role enforcement, add a case to `src/test/integration/role-enforcement.test.ts`.
+- Tests that read multipart/form-data uploads must declare `// @vitest-environment node` at the top of the file. JSDOM (the default) ships its own `File` class that doesn't satisfy `value instanceof File` inside the route handler, so uploaded files would silently get dropped.
 
 ## Auth and access control
 
@@ -60,6 +61,14 @@
 - Agent tokens use `ct_live_` prefix. Hashed with SHA-256 via Web Crypto (`src/lib/token-utils.ts`) so the same code works in Edge middleware and Node runtime.
 - The hosted skill URL (`/.well-known/compliance-tracker-skill`) is in the middleware's bypass list so agents can fetch it without auth.
 - Schema changes need updates in **5 places**: `src/db/schema.ts`, `src/db/index.ts` (in-memory init DDL + the seed INSERT), `src/db/seed.ts` (DDL + INSERT), `src/test-setup.ts`, and `src/test/integration-helpers.ts`. Plus a Turso `ALTER TABLE` for prod, and any `__tests__/*.test.ts` legacy files that build their own DDL.
+
+## Obligations data model
+
+- **`entity`** is the *internal* party — always `Pi Squared Inc.`. Defaults set in schema, validation, and UI. Don't repurpose this field.
+- **`counterparty`** is the *external* party an obligation is owed to (AWS, IRS, Venture Partners LP, Republic Registered Agent LLC). Free-text, nullable, max 200 chars. Used for filtering, the "By counterparty" rollup on `/categories`, and grouping in the obligations list. Tracked in audit diffs.
+- **`jurisdiction`** is the *geographic scope* (Delaware, California, Federal). One jurisdiction can have many counterparties (e.g. CA Franchise Tax Board vs CA EDD vs CA Secretary of State). Also tracked in audit diffs.
+- Counterparty edits happen via inline-edit in the detail panel (`CounterpartyEditor` in `src/app/obligations/page.tsx`). The autocomplete data source is `GET /api/counterparties`, which returns distinct names with counts and is viewer-readable.
+- When backfilling counterparty for new bulk-imported data, leave truly internal obligations (board meetings, internal audits, policy reviews) as `NULL` — only populate when there's a real external party.
 
 ## Workflow
 

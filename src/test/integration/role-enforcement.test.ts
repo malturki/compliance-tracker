@@ -15,6 +15,7 @@ import { POST as completeObligation } from '@/app/api/obligations/[id]/complete/
 import { POST as bulkAction } from '@/app/api/obligations/bulk/route'
 import { GET as listUsers } from '@/app/api/users/route'
 import { GET as listAgents } from '@/app/api/agents/route'
+import { GET as listCounterparties } from '@/app/api/counterparties/route'
 
 describe('Role enforcement', () => {
   beforeEach(async () => {
@@ -110,6 +111,11 @@ describe('Role enforcement', () => {
     it('cannot GET /api/agents (admin only, 403)', async () => {
       const res = await listAgents()
       expect(res.status).toBe(403)
+    })
+
+    it('CAN GET /api/counterparties (viewer-readable)', async () => {
+      const res = await listCounterparties()
+      expect(res.status).toBe(200)
     })
   })
 
@@ -226,6 +232,11 @@ describe('Role enforcement', () => {
 
     it('GET /api/agents → 401', async () => {
       const res = await listAgents()
+      expect(res.status).toBe(401)
+    })
+
+    it('GET /api/counterparties → 401', async () => {
+      const res = await listCounterparties()
       expect(res.status).toBe(401)
     })
   })

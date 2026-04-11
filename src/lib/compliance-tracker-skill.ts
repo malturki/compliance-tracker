@@ -53,10 +53,25 @@ a higher-privileged token.
 
 \`\`\`
 GET /api/obligations?category=tax&status=overdue
+GET /api/obligations?counterparty=IRS
 \`\`\`
 
 Returns: array of obligations with id, title, category, frequency,
-nextDueDate, owner, riskLevel, status.
+nextDueDate, owner, riskLevel, status, counterparty, jurisdiction, entity.
+
+Filters: \`category\`, \`status\`, \`risk_level\`, \`owner\`, \`counterparty\`, \`search\`.
+
+### List counterparties
+
+\`\`\`
+GET /api/counterparties
+\`\`\`
+
+Returns: \`{ counterparties: [{ name, count }, ...] }\` — distinct counterparty
+values currently in use, with the number of obligations attached to each.
+Use this to discover the canonical name for a counterparty before filtering
+or before setting one on a new/existing obligation (avoids creating
+"AWS" and "Amazon Web Services" as duplicates).
 
 ### Get a single obligation
 
@@ -70,7 +85,12 @@ Returns: full obligation plus completions[] history.
 
 \`\`\`
 POST /api/obligations
-Body: { title, category, frequency, nextDueDate, owner, riskLevel, ... }
+Body: {
+  title, category, frequency, nextDueDate, owner, riskLevel,
+  counterparty?,  // external party — see "Counterparty" below
+  jurisdiction?,  // geographic scope (e.g. "Delaware", "California")
+  description?, subcategory?, notes?, amount?, alertDays?, autoRecur?
+}
 \`\`\`
 
 Returns: \`{ id }\`
@@ -133,6 +153,36 @@ GET /api/analytics    — trends, compliance score, risk exposure
 - **Frequencies**: annual, quarterly, monthly, weekly, one-time, event-triggered
 - **Risk levels**: critical, high, medium, low
 - **Roles** (for users/agents): viewer, editor, admin
+
+## Counterparty, jurisdiction, and entity
+
+Three related fields describe the parties to an obligation. Don't conflate them:
+
+- **\`entity\`** — the *internal* party. Always \`Pi Squared Inc.\` Don't change it.
+- **\`counterparty\`** — the *external* party the obligation is owed to. Examples:
+  - Tax/regulatory: \`IRS\`, \`SEC\`, \`FinCEN\`, \`California Franchise Tax Board\`,
+    \`Delaware Division of Corporations\`, \`Texas Workforce Commission\`
+  - Vendors: \`Amazon Web Services\`, \`Cloudflare\`, \`GitHub\`, \`Slack\`
+  - Investors/banks: \`Venture Partners LP\`, \`Silicon Valley Bank\`
+  - Insurance: \`Berkley Regional Insurance Co.\`
+  - Truly internal obligations (board meetings, internal audits, policy
+    reviews) should leave counterparty as \`null\`.
+- **\`jurisdiction\`** — the *geographic scope* (\`Delaware\`, \`California\`,
+  \`Federal\`). The same jurisdiction can have many counterparties.
+
+**Before setting counterparty on a new or existing obligation**, call
+\`GET /api/counterparties\` to see the canonical names already in use. Use
+the existing name verbatim (don't invent variants like "AWS" if "Amazon Web
+Services" already exists).
+
+To set or change counterparty on an existing obligation, use the standard PUT:
+
+\`\`\`
+PUT /api/obligations/{id}
+Body: { "counterparty": "Amazon Web Services" }   // or null to clear
+\`\`\`
+
+Counterparty changes are recorded in the audit log diff (old → new).
 
 ## Safety
 
