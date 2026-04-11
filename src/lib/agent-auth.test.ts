@@ -12,6 +12,7 @@ async function seedAgent(overrides: Partial<{
   revokedAt: string | null
 }> = {}) {
   const token = overrides.token ?? generateToken()
+  const tokenHash = await hashToken(token)
   const now = new Date().toISOString()
   const expiresAt = overrides.expiresAt ?? new Date(Date.now() + 86_400_000).toISOString()
   const id = ulid()
@@ -20,7 +21,7 @@ async function seedAgent(overrides: Partial<{
     name: 'TestAgent',
     description: null,
     role: overrides.role ?? 'editor',
-    tokenHash: hashToken(token),
+    tokenHash,
     tokenPrefix: token.slice(0, 15),
     createdBy: 'admin@test',
     createdAt: now,

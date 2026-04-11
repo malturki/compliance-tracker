@@ -65,6 +65,7 @@ export async function POST(req: NextRequest) {
     const now = new Date()
     const expiresAt = new Date(now.getTime() + days * 86_400_000).toISOString()
     const rawToken = generateToken()
+    const tokenHash = await hashToken(rawToken)
     const id = ulid()
 
     await db.insert(agents).values({
@@ -72,7 +73,7 @@ export async function POST(req: NextRequest) {
       name: name.trim(),
       description: description?.trim() || null,
       role,
-      tokenHash: hashToken(rawToken),
+      tokenHash,
       tokenPrefix: rawToken.slice(0, 15),
       createdBy: session!.user.email,
       createdAt: now.toISOString(),

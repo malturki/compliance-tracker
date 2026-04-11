@@ -29,12 +29,13 @@ export async function PUT(
     }
 
     const rawToken = generateToken()
+    const tokenHash = await hashToken(rawToken)
     const now = new Date().toISOString()
 
     await db
       .update(agents)
       .set({
-        tokenHash: hashToken(rawToken),
+        tokenHash,
         tokenPrefix: rawToken.slice(0, 15),
       })
       .where(eq(agents.id, params.id))

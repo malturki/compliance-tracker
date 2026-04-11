@@ -13,7 +13,7 @@ export type AgentActor = {
 export async function verifyAgentToken(token: string): Promise<AgentActor | null> {
   if (!token.startsWith(TOKEN_PREFIX)) return null
 
-  const hash = hashToken(token)
+  const hash = await hashToken(token)
   const nowIso = new Date().toISOString()
 
   const rows = await db

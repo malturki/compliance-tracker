@@ -31,18 +31,18 @@ describe('generateToken', () => {
 })
 
 describe('hashToken', () => {
-  it('is deterministic', () => {
-    const h1 = hashToken('ct_live_abcdef')
-    const h2 = hashToken('ct_live_abcdef')
+  it('is deterministic', async () => {
+    const h1 = await hashToken('ct_live_abcdef')
+    const h2 = await hashToken('ct_live_abcdef')
     expect(h1).toBe(h2)
   })
 
-  it('produces different hashes for different inputs', () => {
-    expect(hashToken('ct_live_a')).not.toBe(hashToken('ct_live_b'))
+  it('produces different hashes for different inputs', async () => {
+    expect(await hashToken('ct_live_a')).not.toBe(await hashToken('ct_live_b'))
   })
 
-  it('returns a hex string of 64 chars (sha256)', () => {
-    const h = hashToken('ct_live_test')
+  it('returns a hex string of 64 chars (sha256)', async () => {
+    const h = await hashToken('ct_live_test')
     expect(h).toMatch(/^[0-9a-f]{64}$/)
   })
 })
