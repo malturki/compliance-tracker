@@ -12,8 +12,9 @@ export default auth((req) => {
   const { pathname } = req.nextUrl
   const isAuthRoute = pathname.startsWith('/api/auth') || pathname.startsWith('/auth/')
   const isCronRoute = pathname.startsWith('/api/cron')
+  const isWellKnownRoute = pathname.startsWith('/.well-known/')
 
-  if (isAuthRoute || isCronRoute) return NextResponse.next()
+  if (isAuthRoute || isCronRoute || isWellKnownRoute) return NextResponse.next()
 
   // If a Bearer token is present, let the request through and let the route
   // handler's requireRole() verify it. Any invalid token will get 401 from

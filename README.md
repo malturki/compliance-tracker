@@ -32,10 +32,21 @@ manage obligations via the REST API using bearer tokens.
 **New Agent**, pick a role (viewer / editor / admin), and copy the token
 that's shown once.
 
-**Use the skill:** Copy `docs/skills/compliance-tracker/SKILL.md` into your
-Claude Code project at `.claude/skills/compliance-tracker/SKILL.md` and
-export the token as `COMPLIANCE_TRACKER_TOKEN`. Ask Claude to do
-compliance-related work and it will use the API.
+**Hosted skill:** The skill file is served at a public, agent-discoverable URL
+so you don't have to copy any files. Point your agent at:
 
-**Raw API:** See `docs/skills/compliance-tracker/SKILL.md` for the full
-endpoint reference.
+```
+https://compliance-tracker-alturki.vercel.app/.well-known/compliance-tracker-skill
+```
+
+Export the token as `COMPLIANCE_TRACKER_TOKEN` and tell your agent to read
+the URL above. It will fetch the latest skill content and start managing
+obligations.
+
+**Local copy:** If you prefer to ship the skill with your project, copy
+`docs/skills/compliance-tracker/SKILL.md` into your Claude Code project at
+`.claude/skills/compliance-tracker/SKILL.md`. The canonical source of truth
+is `src/lib/compliance-tracker-skill.ts` — keep the two in sync when
+editing.
+
+**Raw API:** See the skill file for the full endpoint reference.

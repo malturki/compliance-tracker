@@ -1,4 +1,13 @@
----
+// Canonical source for the Compliance Tracker agent skill.
+//
+// Served publicly at /.well-known/compliance-tracker-skill so agents can fetch
+// the latest version by URL instead of copying the markdown into their config.
+//
+// A copy of this content is also committed at
+// docs/skills/compliance-tracker/SKILL.md for source-of-truth visibility —
+// keep the two in sync when editing.
+
+export const COMPLIANCE_TRACKER_SKILL = `---
 name: compliance-tracker
 description: Use this skill when the user asks to read, list, create, update, complete, or delete compliance obligations in the company's compliance tracker, or to query audit history, categories, templates, or analytics. Requires a COMPLIANCE_TRACKER_TOKEN environment variable to be set.
 ---
@@ -22,10 +31,10 @@ API token. An admin can create one at Settings → Agents."
 
 Example:
 
-```bash
-curl -H "Authorization: Bearer $COMPLIANCE_TRACKER_TOKEN" \
+\`\`\`bash
+curl -H "Authorization: Bearer $COMPLIANCE_TRACKER_TOKEN" \\
   https://compliance-tracker-alturki.vercel.app/api/obligations
-```
+\`\`\`
 
 ## What you can do
 
@@ -42,79 +51,79 @@ a higher-privileged token.
 
 ### List obligations
 
-```
+\`\`\`
 GET /api/obligations?category=tax&status=overdue
-```
+\`\`\`
 
 Returns: array of obligations with id, title, category, frequency,
 nextDueDate, owner, riskLevel, status.
 
 ### Get a single obligation
 
-```
+\`\`\`
 GET /api/obligations/{id}
-```
+\`\`\`
 
 Returns: full obligation plus completions[] history.
 
 ### Create an obligation (editor)
 
-```
+\`\`\`
 POST /api/obligations
 Body: { title, category, frequency, nextDueDate, owner, riskLevel, ... }
-```
+\`\`\`
 
-Returns: `{ id }`
+Returns: \`{ id }\`
 
 ### Update an obligation (editor)
 
-```
+\`\`\`
 PUT /api/obligations/{id}
 Body: any subset of the fields above.
-```
+\`\`\`
 
-Returns: `{ success: true }`
+Returns: \`{ success: true }\`
 
 ### Mark obligation complete (editor)
 
-```
+\`\`\`
 POST /api/obligations/{id}/complete
 Body: { completedBy, completedDate, notes?, evidenceUrls? }
-```
+\`\`\`
 
-Returns: `{ id, success: true, evidenceUrls }`. If `autoRecur` is true
-on the obligation, its `nextDueDate` automatically advances to the next
+Returns: \`{ id, success: true, evidenceUrls }\`. If \`autoRecur\` is true
+on the obligation, its \`nextDueDate\` automatically advances to the next
 period.
 
 ### Delete an obligation (editor)
 
-```
+\`\`\`
 DELETE /api/obligations/{id}
-```
+\`\`\`
 
-Returns: `{ success: true }`
+Returns: \`{ success: true }\`
 
 ### Bulk operations (editor)
 
-```
+\`\`\`
 POST /api/obligations/bulk   — update-owner, update-risk, mark-complete
 DELETE /api/obligations      — Body: { ids: [...] } (max 100)
-```
+\`\`\`
 
 ### Query the audit log (editor)
 
-```
+\`\`\`
 GET /api/audit?entity={id}&type=obligation.updated&limit=50
-```
+\`\`\`
 
-Returns: `{ events: [...], nextCursor }`
+Returns: \`{ events: [...], nextCursor }\`
 
 ### Analytics (viewer)
 
-```
+\`\`\`
 GET /api/stats        — counts by status, category, risk
 GET /api/analytics    — trends, compliance score, risk exposure
-```
+\`\`\`
 
 ## Conventions
 
@@ -130,6 +139,7 @@ GET /api/analytics    — trends, compliance score, risk exposure
 - **Never call DELETE without confirming with the user first.**
 - **Never call bulk operations** (update-all, delete-all) without showing
   the user which obligations will be affected and getting explicit confirmation.
-- When completing an obligation, always ask for the `completedBy` field —
+- When completing an obligation, always ask for the \`completedBy\` field —
   do not invent it. If the user didn't specify, ask them.
 - When in doubt, list first (GET) then mutate. Don't assume state.
+`
