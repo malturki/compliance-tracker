@@ -194,20 +194,20 @@ export default function AgentsSettingsPage() {
                     </td>
                     <td className="px-3 py-2 text-right">
                       {!revoked && (
-                        <div className="flex items-center justify-end gap-1.5">
+                        <div className="flex items-center justify-end gap-2">
                           <button
                             onClick={() => handleRegenerate(agent.id)}
-                            className="text-slate-500 hover:text-amber-400 transition-colors"
-                            title="Regenerate token"
+                            className="inline-flex items-center gap-1 px-2 py-1 border border-[#1e2d47] hover:border-amber-500/50 text-slate-400 hover:text-amber-400 text-[10px] rounded transition-colors"
                           >
-                            <RotateCw className="w-3.5 h-3.5" />
+                            <RotateCw className="w-3 h-3" />
+                            Regenerate
                           </button>
                           <button
                             onClick={() => handleRevoke(agent.id, agent.name)}
-                            className="text-slate-500 hover:text-red-400 transition-colors"
-                            title="Revoke agent"
+                            className="inline-flex items-center gap-1 px-2 py-1 border border-[#1e2d47] hover:border-red-500/50 text-slate-400 hover:text-red-400 text-[10px] rounded transition-colors"
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
+                            <Trash2 className="w-3 h-3" />
+                            Revoke
                           </button>
                         </div>
                       )}

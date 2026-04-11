@@ -16,6 +16,7 @@ type User = {
 }
 
 const ROLES = ['viewer', 'editor', 'admin'] as const
+const ROLE_LEVEL: Record<string, number> = { viewer: 0, editor: 1, admin: 2 }
 
 export default function UsersSettingsPage() {
   const { data: session } = useSession()
@@ -39,6 +40,20 @@ export default function UsersSettingsPage() {
   }, [session, router])
 
   const handleRoleChange = async (userId: string, newRole: string) => {
+    const user = users.find(u => u.id === userId)
+    if (!user) return
+
+    // Confirm demotions (lowering privilege level)
+    const oldLevel = ROLE_LEVEL[user.role] ?? 0
+    const newLevel = ROLE_LEVEL[newRole] ?? 0
+    if (newLevel < oldLevel) {
+      const who = user.name ?? user.email
+      const confirmed = confirm(
+        `Demote ${who} from ${user.role} to ${newRole}? They will lose ${user.role}-level access immediately.`,
+      )
+      if (!confirmed) return
+    }
+
     try {
       const res = await fetch(`/api/users/${userId}`, {
         method: 'PUT',

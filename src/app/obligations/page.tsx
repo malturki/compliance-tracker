@@ -135,66 +135,111 @@ function DetailPanel({
       </SheetHeader>
 
       <ScrollArea className="flex-1">
-        <div className="px-5 py-4 space-y-4 text-xs">
-          {/* Key dates */}
-          <div className="bg-[#0a0e1a] border border-[#1e2d47] p-3 space-y-2">
-            <div className="flex justify-between">
-              <span className="text-slate-500">Next Due</span>
-              <span className={`font-mono font-semibold ${item.computedStatus === 'overdue' ? 'text-red-400' : item.computedStatus === 'upcoming' ? 'text-amber-400' : 'text-slate-300'}`}>
-                {formatDate(item.nextDueDate)}
-                {' '}
-                <span className="text-slate-500">
-                  ({days === 0 ? 'today' : days > 0 ? `in ${days}d` : `${Math.abs(days)}d ago`})
-                </span>
-              </span>
+        <div className="px-5 py-4 space-y-5 text-xs">
+          {/* Hero: Next due date — most important info, largest text */}
+          <div className={`border p-4 ${
+            item.computedStatus === 'overdue' ? 'bg-red-950/20 border-red-900/40'
+            : item.computedStatus === 'upcoming' ? 'bg-amber-950/20 border-amber-900/40'
+            : item.computedStatus === 'completed' ? 'bg-emerald-950/20 border-emerald-900/40'
+            : 'bg-[#0a0e1a] border-[#1e2d47]'
+          }`}>
+            <div className="text-[10px] uppercase tracking-wider text-slate-500 mb-1">Next Due</div>
+            <div className={`text-lg font-mono font-semibold ${
+              item.computedStatus === 'overdue' ? 'text-red-400'
+              : item.computedStatus === 'upcoming' ? 'text-amber-400'
+              : item.computedStatus === 'completed' ? 'text-emerald-400'
+              : 'text-slate-200'
+            }`}>
+              {formatDate(item.nextDueDate)}
             </div>
-            {item.lastCompletedDate && (
-              <div className="flex justify-between">
-                <span className="text-slate-500">Last Completed</span>
-                <span className="font-mono text-emerald-400">{formatDate(item.lastCompletedDate)}</span>
-              </div>
-            )}
-            <div className="flex justify-between">
-              <span className="text-slate-500">Frequency</span>
-              <span className="font-mono text-slate-300">{item.frequency}</span>
+            <div className="text-[11px] text-slate-500 font-mono mt-0.5">
+              {item.computedStatus === 'completed' ? 'Completed — no recurrence' : days === 0 ? 'today' : days > 0 ? `in ${days} day${days === 1 ? '' : 's'}` : `${Math.abs(days)} day${Math.abs(days) === 1 ? '' : 's'} ago`}
             </div>
           </div>
 
-          {/* Metadata */}
-          <div className="space-y-2">
-            {([
-              ['Owner', item.owner],
-              item.assignee ? ['Assignee', item.assignee] : null,
-              item.jurisdiction ? ['Jurisdiction', item.jurisdiction] : null,
-              item.entity ? ['Entity', item.entity] : null,
-              item.amount != null ? ['Amount', `$${item.amount.toLocaleString()}`] : null,
-              item.subcategory ? ['Subcategory', item.subcategory] : null,
-            ].filter(Boolean) as [string, string][]).map(([label, value]) => (
-              <div key={label} className="flex justify-between">
-                <span className="text-slate-500">{label}</span>
-                <span className="font-mono text-slate-300 text-right">{value}</span>
+          {/* Schedule */}
+          <div>
+            <div className="text-[10px] text-slate-500 uppercase tracking-wider mb-2">Schedule</div>
+            <div className="bg-[#0a0e1a] border border-[#1e2d47] divide-y divide-[#1e2d47]">
+              <div className="flex justify-between px-3 py-2">
+                <span className="text-slate-500">Frequency</span>
+                <span className="font-mono text-slate-300">{item.frequency}</span>
               </div>
-            ))}
+              {item.lastCompletedDate && (
+                <div className="flex justify-between px-3 py-2">
+                  <span className="text-slate-500">Last Completed</span>
+                  <span className="font-mono text-emerald-400">{formatDate(item.lastCompletedDate)}</span>
+                </div>
+              )}
+              {item.alertDays && item.alertDays.length > 0 && (
+                <div className="flex justify-between items-center px-3 py-2">
+                  <span className="text-slate-500">Alerts</span>
+                  <div className="flex flex-wrap gap-1 justify-end">
+                    {item.alertDays.map(d => (
+                      <span key={d} className="px-1.5 py-0.5 text-[10px] font-mono bg-[#1e2d47] text-slate-400 rounded">{d}d</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Notes */}
-          {item.notes && (
+          {/* Assignment */}
+          <div>
+            <div className="text-[10px] text-slate-500 uppercase tracking-wider mb-2">Assignment</div>
+            <div className="bg-[#0a0e1a] border border-[#1e2d47] divide-y divide-[#1e2d47]">
+              <div className="flex justify-between px-3 py-2">
+                <span className="text-slate-500">Owner</span>
+                <span className="font-mono text-slate-300 text-right">{item.owner}</span>
+              </div>
+              {item.assignee && (
+                <div className="flex justify-between px-3 py-2">
+                  <span className="text-slate-500">Assignee</span>
+                  <span className="font-mono text-slate-300 text-right">{item.assignee}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Details — only render if any field is present */}
+          {(item.jurisdiction || item.entity || item.amount != null || item.subcategory) && (
             <div>
-              <div className="text-slate-500 mb-1 uppercase tracking-wider text-[10px]">Notes</div>
-              <div className="text-slate-400 bg-[#0a0e1a] border border-[#1e2d47] p-2.5 leading-relaxed">
-                {item.notes}
+              <div className="text-[10px] text-slate-500 uppercase tracking-wider mb-2">Details</div>
+              <div className="bg-[#0a0e1a] border border-[#1e2d47] divide-y divide-[#1e2d47]">
+                {item.jurisdiction && (
+                  <div className="flex justify-between px-3 py-2">
+                    <span className="text-slate-500">Jurisdiction</span>
+                    <span className="font-mono text-slate-300 text-right">{item.jurisdiction}</span>
+                  </div>
+                )}
+                {item.entity && (
+                  <div className="flex justify-between px-3 py-2">
+                    <span className="text-slate-500">Entity</span>
+                    <span className="font-mono text-slate-300 text-right">{item.entity}</span>
+                  </div>
+                )}
+                {item.amount != null && (
+                  <div className="flex justify-between px-3 py-2">
+                    <span className="text-slate-500">Amount</span>
+                    <span className="font-mono text-slate-300 text-right">${item.amount.toLocaleString()}</span>
+                  </div>
+                )}
+                {item.subcategory && (
+                  <div className="flex justify-between px-3 py-2">
+                    <span className="text-slate-500">Subcategory</span>
+                    <span className="font-mono text-slate-300 text-right">{item.subcategory}</span>
+                  </div>
+                )}
               </div>
             </div>
           )}
 
-          {/* Alert days */}
-          {item.alertDays && item.alertDays.length > 0 && (
+          {/* Notes */}
+          {item.notes && (
             <div>
-              <div className="text-slate-500 mb-1 uppercase tracking-wider text-[10px]">Alert Schedule</div>
-              <div className="flex flex-wrap gap-1">
-                {item.alertDays.map(d => (
-                  <span key={d} className="px-1.5 py-0.5 text-[10px] font-mono bg-[#1e2d47] text-slate-400">{d}d before</span>
-                ))}
+              <div className="text-[10px] text-slate-500 uppercase tracking-wider mb-2">Notes</div>
+              <div className="text-slate-300 bg-[#0a0e1a] border border-[#1e2d47] p-3 leading-relaxed">
+                {item.notes}
               </div>
             </div>
           )}
@@ -831,7 +876,19 @@ function ObligationsPageContent() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={9} className="px-3 py-8 text-center text-slate-600">Loading...</td></tr>
+                Array.from({ length: 8 }).map((_, idx) => (
+                  <tr key={`skeleton-${idx}`} className="border-b border-[#1e2d47]/50 animate-pulse">
+                    <td className="px-3 py-3"><div className="h-3 w-4 bg-[#1e2d47]/60 rounded" /></td>
+                    <td className="px-3 py-3"><div className="h-3 w-48 bg-[#1e2d47]/60 rounded" /></td>
+                    <td className="px-3 py-3"><div className="h-3 w-16 bg-[#1e2d47]/60 rounded" /></td>
+                    <td className="px-3 py-3"><div className="h-3 w-16 bg-[#1e2d47]/60 rounded" /></td>
+                    <td className="px-3 py-3"><div className="h-3 w-14 bg-[#1e2d47]/60 rounded" /></td>
+                    <td className="px-3 py-3"><div className="h-3 w-20 bg-[#1e2d47]/60 rounded" /></td>
+                    <td className="px-3 py-3"><div className="h-3 w-20 bg-[#1e2d47]/60 rounded" /></td>
+                    <td className="px-3 py-3"><div className="h-3 w-12 bg-[#1e2d47]/60 rounded" /></td>
+                    <td className="px-3 py-3"><div className="h-3 w-10 bg-[#1e2d47]/60 rounded" /></td>
+                  </tr>
+                ))
               ) : items.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="px-3 py-12 text-center">

@@ -93,7 +93,13 @@ export default function CalendarPage() {
       <div className="grid grid-cols-7 gap-3">
         {/* Calendar grid */}
         <div className="col-span-5">
-          <div className="border border-[#1e2d47] bg-[#0f1629] overflow-hidden">
+          <div className={`border border-[#1e2d47] bg-[#0f1629] overflow-hidden relative transition-opacity ${loading ? 'opacity-60' : ''}`}>
+            {loading && (
+              <div className="absolute top-2 right-2 z-10 text-[10px] font-mono text-slate-500 flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-amber-500/60 animate-pulse" />
+                loading
+              </div>
+            )}
             {/* Day headers */}
             <div className="grid grid-cols-7 border-b border-[#1e2d47] bg-[#0a0e1a]">
               {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
@@ -149,8 +155,8 @@ export default function CalendarPage() {
                           )
                         })}
                         {dayItems.length > 3 && (
-                          <div className="text-[9px] text-slate-600 font-mono">
-                            +{dayItems.length - 3} more
+                          <div className="text-[9px] text-amber-500/80 font-mono hover:text-amber-400 transition-colors">
+                            +{dayItems.length - 3} more →
                           </div>
                         )}
                       </div>
