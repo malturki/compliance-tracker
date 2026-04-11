@@ -52,15 +52,148 @@ function RiskBadge({ risk }: { risk: RiskLevel }) {
   )
 }
 
+// Inline editor for the counterparty field. Click "Edit" or the placeholder
+// to switch into an input with autocomplete from existing counterparties; blur,
+// Enter, or Save commits via PUT, Esc cancels. Viewers see a read-only row.
+function CounterpartyEditor({
+  obligationId,
+  value,
+  canEdit,
+  onSaved,
+}: {
+  obligationId: string
+  value: string | null | undefined
+  canEdit: boolean
+  onSaved: () => void
+}) {
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(value ?? '')
+  const [saving, setSaving] = useState(false)
+  const [options, setOptions] = useState<string[]>([])
+
+  useEffect(() => {
+    setDraft(value ?? '')
+  }, [value])
+
+  useEffect(() => {
+    if (!editing) return
+    fetch('/api/counterparties')
+      .then(r => (r.ok ? r.json() : { counterparties: [] }))
+      .then(d => setOptions((d.counterparties ?? []).map((c: any) => c.name)))
+      .catch(() => {})
+  }, [editing])
+
+  const save = async () => {
+    const next = draft.trim() || null
+    if (next === (value ?? null)) {
+      setEditing(false)
+      return
+    }
+    setSaving(true)
+    try {
+      const res = await fetch(`/api/obligations/${obligationId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ counterparty: next }),
+      })
+      if (!res.ok) throw new Error('Failed to save')
+      toast.success('Counterparty updated')
+      setEditing(false)
+      onSaved()
+    } catch {
+      toast.error('Failed to update counterparty')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const cancel = () => {
+    setDraft(value ?? '')
+    setEditing(false)
+  }
+
+  if (!canEdit) {
+    return (
+      <div className="flex justify-between px-3 py-2">
+        <span className="text-slate-500">Counterparty</span>
+        <span className={`font-mono text-right ${value ? 'text-slate-300' : 'text-slate-600'}`}>
+          {value || '—'}
+        </span>
+      </div>
+    )
+  }
+
+  if (!editing) {
+    return (
+      <div className="flex justify-between items-center px-3 py-2">
+        <span className="text-slate-500">Counterparty</span>
+        <button
+          type="button"
+          onClick={() => setEditing(true)}
+          className={`font-mono text-right text-xs hover:text-amber-400 transition-colors ${value ? 'text-slate-300' : 'text-slate-600 italic'}`}
+          title="Click to edit"
+        >
+          {value || '— click to set'}
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="px-3 py-2 flex flex-col gap-2">
+      <span className="text-slate-500">Counterparty</span>
+      <div className="flex gap-1.5">
+        <input
+          type="text"
+          list="counterparty-edit-options"
+          value={draft}
+          onChange={e => setDraft(e.target.value)}
+          onKeyDown={e => {
+            if (e.key === 'Enter') save()
+            if (e.key === 'Escape') cancel()
+          }}
+          autoFocus
+          disabled={saving}
+          placeholder="e.g. AWS, California FTB"
+          className="flex-1 bg-[#0a0e1a] border border-[#1e2d47] text-slate-200 text-xs px-2 py-1 font-mono focus:outline-none focus:border-amber-500/50"
+        />
+        <datalist id="counterparty-edit-options">
+          {options.map(o => (
+            <option key={o} value={o} />
+          ))}
+        </datalist>
+        <button
+          type="button"
+          onClick={save}
+          disabled={saving}
+          className="text-[10px] font-mono text-amber-400 hover:text-amber-300 px-2 py-1 border border-amber-500/30 disabled:opacity-50"
+        >
+          {saving ? '…' : 'save'}
+        </button>
+        <button
+          type="button"
+          onClick={cancel}
+          disabled={saving}
+          className="text-[10px] font-mono text-slate-500 hover:text-slate-300 px-2 py-1 border border-[#1e2d47] disabled:opacity-50"
+        >
+          esc
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function DetailPanel({
   item,
   onClose,
   onComplete,
+  onUpdate,
   canEdit,
 }: {
   item: Obligation & { computedStatus: Status; completions?: Completion[] }
   onClose: () => void
   onComplete: () => void
+  onUpdate: () => void
   canEdit: boolean
 }) {
   const [completing, setCompleting] = useState(false)
@@ -201,44 +334,42 @@ function DetailPanel({
             </div>
           </div>
 
-          {/* Details — only render if any field is present */}
-          {(item.counterparty || item.jurisdiction || item.entity || item.amount != null || item.subcategory) && (
-            <div>
-              <div className="text-[10px] text-slate-500 uppercase tracking-wider mb-2">Details</div>
-              <div className="bg-[#0a0e1a] border border-[#1e2d47] divide-y divide-[#1e2d47]">
-                {item.counterparty && (
-                  <div className="flex justify-between px-3 py-2">
-                    <span className="text-slate-500">Counterparty</span>
-                    <span className="font-mono text-slate-300 text-right">{item.counterparty}</span>
-                  </div>
-                )}
-                {item.jurisdiction && (
-                  <div className="flex justify-between px-3 py-2">
-                    <span className="text-slate-500">Jurisdiction</span>
-                    <span className="font-mono text-slate-300 text-right">{item.jurisdiction}</span>
-                  </div>
-                )}
-                {item.entity && (
-                  <div className="flex justify-between px-3 py-2">
-                    <span className="text-slate-500">Entity</span>
-                    <span className="font-mono text-slate-300 text-right">{item.entity}</span>
-                  </div>
-                )}
-                {item.amount != null && (
-                  <div className="flex justify-between px-3 py-2">
-                    <span className="text-slate-500">Amount</span>
-                    <span className="font-mono text-slate-300 text-right">${item.amount.toLocaleString()}</span>
-                  </div>
-                )}
-                {item.subcategory && (
-                  <div className="flex justify-between px-3 py-2">
-                    <span className="text-slate-500">Subcategory</span>
-                    <span className="font-mono text-slate-300 text-right">{item.subcategory}</span>
-                  </div>
-                )}
-              </div>
+          {/* Details — counterparty always shown (editable for editors+); other fields only when present */}
+          <div>
+            <div className="text-[10px] text-slate-500 uppercase tracking-wider mb-2">Details</div>
+            <div className="bg-[#0a0e1a] border border-[#1e2d47] divide-y divide-[#1e2d47]">
+              <CounterpartyEditor
+                obligationId={item.id}
+                value={item.counterparty}
+                canEdit={canEdit}
+                onSaved={onUpdate}
+              />
+              {item.jurisdiction && (
+                <div className="flex justify-between px-3 py-2">
+                  <span className="text-slate-500">Jurisdiction</span>
+                  <span className="font-mono text-slate-300 text-right">{item.jurisdiction}</span>
+                </div>
+              )}
+              {item.entity && (
+                <div className="flex justify-between px-3 py-2">
+                  <span className="text-slate-500">Entity</span>
+                  <span className="font-mono text-slate-300 text-right">{item.entity}</span>
+                </div>
+              )}
+              {item.amount != null && (
+                <div className="flex justify-between px-3 py-2">
+                  <span className="text-slate-500">Amount</span>
+                  <span className="font-mono text-slate-300 text-right">${item.amount.toLocaleString()}</span>
+                </div>
+              )}
+              {item.subcategory && (
+                <div className="flex justify-between px-3 py-2">
+                  <span className="text-slate-500">Subcategory</span>
+                  <span className="font-mono text-slate-300 text-right">{item.subcategory}</span>
+                </div>
+              )}
             </div>
-          )}
+          </div>
 
           {/* Notes */}
           {item.notes && (
@@ -1028,6 +1159,7 @@ function ObligationsPageContent() {
               item={selectedItem}
               onClose={() => setSelectedId(null)}
               onComplete={() => { fetchItems(); if (selectedId) { fetch(`/api/obligations/${selectedId}`).then(r => { if (!r.ok) throw new Error('fetch failed'); return r.json() }).then(d => setSelectedItem({ ...d, alertDays: d.alertDays || [], computedStatus: d.status })).catch(() => setSelectedId(null)) } }}
+              onUpdate={() => { fetchItems(); if (selectedId) { fetch(`/api/obligations/${selectedId}`).then(r => { if (!r.ok) throw new Error('fetch failed'); return r.json() }).then(d => setSelectedItem({ ...d, alertDays: d.alertDays || [], computedStatus: d.status })).catch(() => {}) } }}
               canEdit={canEdit}
             />
           )}
