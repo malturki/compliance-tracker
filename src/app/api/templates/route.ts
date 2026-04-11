@@ -82,6 +82,7 @@ export async function POST(request: NextRequest) {
         sourceDocument: null,
         notes: tpl.notes || null,
         entity,
+        counterparty: tpl.counterparty || null,
         jurisdiction: tpl.jurisdiction || null,
         amount: tpl.amount || null,
         autoRecur: tpl.autoRecur || false,

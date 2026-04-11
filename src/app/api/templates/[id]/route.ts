@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { templates, calculateDueDate, formatDueDateForDb } from '@/data/templates'
+import { requireRole } from '@/lib/auth-helpers'
+
+export const dynamic = 'force-dynamic'
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    const { error: authError } = await requireRole('viewer', request)
+    if (authError) return authError
+
     const template = templates.find(t => t.id === params.id)
     if (!template) {
       return NextResponse.json({ error: 'Template not found' }, { status: 404 })
@@ -21,6 +27,7 @@ export async function GET(
         frequency: obl.frequency,
         owner: obl.owner,
         riskLevel: obl.riskLevel,
+        counterparty: obl.counterparty,
         jurisdiction: obl.jurisdiction,
         amount: obl.amount,
         notes: obl.notes,
