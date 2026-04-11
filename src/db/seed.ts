@@ -35,7 +35,7 @@ async function seed() {
     last_alert_sent TEXT,
     source_document TEXT,
     notes TEXT,
-    entity TEXT DEFAULT 'Acme Corp',
+    entity TEXT DEFAULT 'Pi Squared Inc.',
     jurisdiction TEXT,
     amount REAL,
     auto_recur INTEGER DEFAULT 0,
@@ -101,7 +101,7 @@ const records = [
   { title: 'SIMPLE IRA Employer Match', category: 'benefits', subcategory: 'retirement', frequency: 'annual', next_due_date: '2026-10-15', owner: 'Internal', risk_level: 'medium', notes: '3% employer match mandatory. Custodian: Ascensus.', alert_days: [60, 30, 14], auto_recur: true },
   { title: 'SIMPLE IRA Form 5500', category: 'benefits', subcategory: 'retirement', frequency: 'annual', next_due_date: '2026-07-31', owner: 'Ascensus / Anderson', risk_level: 'medium', notes: 'Required if plan assets exceed $250K.', alert_days: [60, 30, 14], auto_recur: true },
   { title: 'RxDC Prescription Drug Reporting', category: 'benefits', subcategory: 'health', frequency: 'annual', next_due_date: '2026-06-01', owner: 'Dimond Bros / Internal', risk_level: 'high', notes: 'CMS requirement under Consolidated Appropriations Act 2021.', alert_days: [60, 30, 14, 7], auto_recur: true },
-  { title: 'ACA Reporting (1095-C / 1094-C)', category: 'benefits', subcategory: 'health', frequency: 'annual', next_due_date: '2027-03-31', owner: 'Dimond Bros / Internal', risk_level: 'medium', notes: 'Required for applicable large employers (>50 FTEs). Acme has 8 employees - may not apply.', alert_days: [60, 30, 14], auto_recur: true },
+  { title: 'ACA Reporting (1095-C / 1094-C)', category: 'benefits', subcategory: 'health', frequency: 'annual', next_due_date: '2027-03-31', owner: 'Dimond Bros / Internal', risk_level: 'medium', notes: 'Required for applicable large employers (>50 FTEs). Pi Squared Inc. has 8 employees - may not apply.', alert_days: [60, 30, 14], auto_recur: true },
   { title: 'Health Insurance Annual Renewal', category: 'benefits', subcategory: 'health', frequency: 'annual', next_due_date: '2027-01-01', owner: 'Dimond Bros', risk_level: 'medium', notes: 'BCBS/Mutual of Omaha through Dimond Bros. Open enrollment Nov-Dec.', alert_days: [90, 60, 30], auto_recur: true },
   { title: 'Venture Partners LP - FY2025 Annual Financials', category: 'investor', subcategory: 'venture-partners', frequency: 'annual', next_due_date: '2026-04-30', owner: 'Internal / Anderson', risk_level: 'critical', notes: 'Unaudited annual financials due within 120 days of fiscal year end. Venture Partners LP ($7.5M investor).', alert_days: [30, 14, 7, 3, 1], auto_recur: true },
   { title: 'Venture Partners LP - Q1 2026 Quarterly Financials', category: 'investor', subcategory: 'venture-partners', frequency: 'quarterly', next_due_date: '2026-05-15', owner: 'Internal / Anderson', risk_level: 'critical', notes: 'Due within 45 days of quarter end (Mar 31).', alert_days: [30, 14, 7, 3, 1], auto_recur: true },
@@ -177,7 +177,7 @@ const records = [
   { title: 'Annual Benefits Summary (SBC)', category: 'benefits', subcategory: 'health', frequency: 'annual', next_due_date: '2026-10-01', owner: 'Dimond Bros', risk_level: 'medium', notes: 'Summary of Benefits and Coverage. Required ACA disclosure. Provide to all participants.', alert_days: [30, 14], auto_recur: true },
   
   // Legal & IP
-  { title: 'Trademark Renewal - Acme Logo', category: 'contract', subcategory: 'intellectual-property', frequency: 'annual', next_due_date: '2026-09-15', owner: 'Ashbury Legal', risk_level: 'high', jurisdiction: 'Federal', amount: 525, notes: 'USPTO trademark registration. Renew between 5th-6th year, then every 10 years.', alert_days: [90, 60, 30], auto_recur: true },
+  { title: 'Trademark Renewal - Pi Squared Logo', category: 'contract', subcategory: 'intellectual-property', frequency: 'annual', next_due_date: '2026-09-15', owner: 'Ashbury Legal', risk_level: 'high', jurisdiction: 'Federal', amount: 525, notes: 'USPTO trademark registration. Renew between 5th-6th year, then every 10 years.', alert_days: [90, 60, 30], auto_recur: true },
   { title: 'Patent Maintenance Fee - US12345678', category: 'contract', subcategory: 'intellectual-property', frequency: 'event-triggered', next_due_date: '2027-01-20', owner: 'Ashbury Legal', risk_level: 'high', jurisdiction: 'Federal', amount: 1600, notes: '3.5-year maintenance fee due. Failure to pay abandons patent.', alert_days: [90, 60, 30, 14], auto_recur: false },
   { title: 'NDA Renewal - BlockChain Inc', category: 'contract', subcategory: 'client', frequency: 'annual', next_due_date: '2027-01-29', owner: 'Internal', risk_level: 'medium', notes: '2-year mutual NDA. Review and renew if relationship continues.', alert_days: [60, 30], auto_recur: true },
   { title: 'NDA Tracking Audit', category: 'contract', subcategory: 'client', frequency: 'quarterly', next_due_date: '2026-06-30', owner: 'Internal', risk_level: 'low', notes: 'Review all active NDAs. Flag expiring agreements. Ensure confidentiality still required.', alert_days: [30], auto_recur: true },
@@ -258,7 +258,7 @@ for (const r of records) {
       null, // last_alert_sent
       null, // source_document
       (r as any).notes ?? null,
-      'Acme Corp',
+      'Pi Squared Inc.',
       (r as any).jurisdiction ?? null,
       (r as any).amount ?? null,
       r.auto_recur ? 1 : 0,

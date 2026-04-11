@@ -386,7 +386,7 @@ function AddObligationDialog({ open, onClose, onSave }: { open: boolean; onClose
           ...form,
           amount: form.amount ? parseFloat(form.amount) : null,
           alertDays: [],
-          entity: 'Acme Corp',
+          entity: 'Pi Squared Inc.',
         }),
       })
       if (!res.ok) throw new Error()

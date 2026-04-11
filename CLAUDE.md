@@ -48,9 +48,9 @@
 
 ## Data and privacy
 
-- Keep this repo anonymized.
-- Do not reintroduce private company names, investor names, emails, addresses, or other sensitive data into committed code, seed data, screenshots, or docs unless explicitly asked.
-- Default example entity should remain generic (`Acme Corp`) unless explicitly asked otherwise.
+- The canonical entity name is `Pi Squared Inc.` — use it consistently for the default `entity` field, UI labels, seed data, and any new fixtures.
+- Do not reintroduce private investor names, personal emails, home addresses, or other sensitive PII into committed code, seed data, screenshots, or docs unless explicitly asked.
+- When anonymization is needed (e.g., a generic example in documentation unrelated to the real app), use `Acme Corp` as the placeholder.
 
 ## UI direction
 

@@ -70,7 +70,7 @@ export default async function OverviewPage() {
       <div className="flex items-baseline justify-between mb-6 border-b border-[#1e2d47] pb-4">
         <div>
           <h1 className="text-xl font-semibold text-slate-100">Overview</h1>
-          <p className="text-xs text-slate-500 mt-0.5 font-mono">Acme Corp — Compliance Dashboard</p>
+          <p className="text-xs text-slate-500 mt-0.5 font-mono">Pi Squared Inc. — Compliance Dashboard</p>
         </div>
         <div className="text-xs font-mono text-slate-500">{format(today, 'EEE, MMM d yyyy')}</div>
       </div>

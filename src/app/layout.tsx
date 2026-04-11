@@ -17,7 +17,7 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'Compliance Tracker — Acme Corp',
+  title: 'Compliance Tracker — Pi Squared Inc.',
   description: 'Track compliance obligations, deadlines, and completions.',
 }
 

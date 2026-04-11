@@ -37,7 +37,7 @@ export function Sidebar() {
             <Shield className="w-4 h-4 text-amber-400" />
           </div>
           <div>
-            <div className="text-sm font-semibold text-slate-100 leading-tight">Acme Corp</div>
+            <div className="text-sm font-semibold text-slate-100 leading-tight">Pi Squared Inc.</div>
             <div className="text-[10px] text-amber-500/80 font-mono uppercase tracking-widest">Compliance</div>
           </div>
         </div>
