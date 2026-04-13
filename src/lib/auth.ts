@@ -65,7 +65,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           const isFirstUser = countResult.length === 0
           const now = new Date().toISOString()
           const newId = ulid()
-          const assignedRole = isFirstUser ? 'admin' : 'viewer'
+          const autoAdmins = (process.env.AUTO_ADMIN_EMAILS ?? '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean)
+          const assignedRole = isFirstUser || autoAdmins.includes(user.email.toLowerCase()) ? 'admin' : 'viewer'
 
           try {
             await db.insert(users).values({
