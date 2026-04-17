@@ -38,3 +38,7 @@ compliance.db
 
 # test coverage reports
 coverage/
+
+# external design kit (local-only, never committed)
+fast-demo-kit*.zip
+fast-fonts*.zip
