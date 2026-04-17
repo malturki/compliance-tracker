@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Plus_Jakarta_Sans, JetBrains_Mono } from 'next/font/google'
+import localFont from 'next/font/local'
 import './globals.css'
 import { SessionProvider } from 'next-auth/react'
 import { AppShell } from '@/components/layout/app-shell'
@@ -7,31 +7,30 @@ import { CommandPalette } from '@/components/command-palette'
 import { KeyboardShortcutsHelp } from '@/components/keyboard-shortcuts-help'
 import { Toaster } from 'sonner'
 
-const jakartaSans = Plus_Jakarta_Sans({
-  subsets: ['latin'],
+const generalSans = localFont({
+  src: [
+    { path: '../../public/fonts/GeneralSans-Variable.woff2', weight: '200 700', style: 'normal' },
+    { path: '../../public/fonts/GeneralSans-VariableItalic.woff2', weight: '200 700', style: 'italic' },
+  ],
   variable: '--font-sans',
-  display: 'swap',
-})
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ['latin'],
-  variable: '--font-mono',
   display: 'swap',
 })
 
 export const metadata: Metadata = {
-  title: 'Compliance Tracker — Pi Squared Inc.',
+  title: 'FAST Compliance Tracker',
   description: 'Track compliance obligations, deadlines, and completions.',
+  icons: { icon: '/icon.png' },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${jakartaSans.variable} ${jetbrainsMono.variable} dark`}>
-      <body className="bg-[#0a0e1a] text-slate-200 font-sans antialiased">
+    <html lang="en" className={generalSans.variable}>
+      <body className="bg-[#F6F8FA] text-[#2B2C2F] font-sans antialiased">
         <SessionProvider>
           <AppShell>{children}</AppShell>
           <CommandPalette />
           <KeyboardShortcutsHelp />
-          <Toaster position="bottom-right" theme="dark" />
+          <Toaster position="bottom-right" theme="light" />
         </SessionProvider>
       </body>
     </html>

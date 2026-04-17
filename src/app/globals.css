@@ -4,45 +4,84 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'General Sans';
+  src: url('/fonts/GeneralSans-Variable.woff2') format('woff2');
+  font-weight: 200 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'General Sans';
+  src: url('/fonts/GeneralSans-VariableItalic.woff2') format('woff2');
+  font-weight: 200 700;
+  font-style: italic;
+  font-display: swap;
+}
+
 :root {
-  --font-sans: 'Plus Jakarta Sans', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
-  --background: #0a0e1a;
-  --foreground: #e2e8f0;
-  --card: #0f1629;
-  --card-foreground: #e2e8f0;
-  --popover: #0f1629;
-  --popover-foreground: #e2e8f0;
-  --primary: #f59e0b;
-  --primary-foreground: #0a0e1a;
-  --secondary: #1e2d47;
-  --secondary-foreground: #e2e8f0;
-  --muted: #162035;
-  --muted-foreground: #64748b;
-  --accent: #1e2d47;
-  --accent-foreground: #f59e0b;
-  --destructive: #ef4444;
-  --border: #1e2d47;
-  --input: #1e2d47;
-  --ring: #f59e0b;
-  --radius: 0.25rem;
+  --font-sans: 'General Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* FAST official palette */
+  --fast-platinum: #F6F8FA;
+  --fast-silicon: #C8CFD8;
+  --fast-light-steel: #A1B0CF;
+  --fast-steel: #5F6672;
+  --fast-graphite: #2B2C2F;
+
+  /* Semantic tokens */
+  --background: #F6F8FA;
+  --foreground: #2B2C2F;
+  --card: #FFFFFF;
+  --card-foreground: #2B2C2F;
+  --popover: #FFFFFF;
+  --popover-foreground: #2B2C2F;
+  --primary: #2B2C2F;
+  --primary-foreground: #F6F8FA;
+  --secondary: rgba(200, 207, 216, 0.18);
+  --secondary-foreground: #2B2C2F;
+  --muted: rgba(200, 207, 216, 0.18);
+  --muted-foreground: #5F6672;
+  --accent: #A1B0CF;
+  --accent-foreground: #2B2C2F;
+  --destructive: #B45555;
+  --border: rgba(95, 102, 114, 0.16);
+  --input: rgba(95, 102, 114, 0.16);
+  --ring: rgba(161, 176, 207, 0.32);
+  --radius: 0.875rem;
 }
 
 * {
-  border-color: #1e2d47;
+  border-color: rgba(95, 102, 114, 0.16);
 }
 
 body {
-  background: #0a0e1a;
-  color: #e2e8f0;
+  background: #F6F8FA;
+  color: #2B2C2F;
+  font-family: var(--font-sans);
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-.font-mono {
-  font-family: var(--font-mono);
+/* Section headings use General Sans Medium per kit */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  letter-spacing: -0.015em;
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar { width: 6px; height: 6px; }
+/* Custom scrollbar — Silicon-tinted */
+::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #1e2d47; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #2d3f5a; }
+::-webkit-scrollbar-thumb { background: rgba(200, 207, 216, 0.6); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(95, 102, 114, 0.4); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
