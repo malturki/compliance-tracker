@@ -29,7 +29,7 @@ const SHORTCUTS: { group: string; items: Shortcut[] }[] = [
 
 function Kbd({ children }: { children: React.ReactNode }) {
   return (
-    <kbd className="inline-flex items-center justify-center min-w-[22px] h-[22px] px-1.5 text-[10px] font-mono font-medium text-slate-300 bg-[#1e2d47] border border-[#2d3f5c] rounded">
+    <kbd className="inline-flex items-center justify-center min-w-[22px] h-[22px] px-1.5 text-[10px] font-mono font-medium text-graphite bg-silicon/[0.18] border border-black/10 rounded">
       {children}
     </kbd>
   )
@@ -68,14 +68,14 @@ export function KeyboardShortcutsHelp() {
       onClick={() => setOpen(false)}
     >
       <div
-        className="bg-[#0f1629] border border-[#1e2d47] max-w-md w-full p-5"
+        className="bg-white border border-black/5 max-w-md w-full p-5"
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-baseline justify-between mb-4">
-          <h2 className="text-sm font-semibold text-slate-100">Keyboard Shortcuts</h2>
+          <h2 className="text-sm font-semibold text-graphite">Keyboard Shortcuts</h2>
           <button
             onClick={() => setOpen(false)}
-            className="text-slate-500 hover:text-slate-300 transition-colors"
+            className="text-steel hover:text-graphite transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -84,13 +84,13 @@ export function KeyboardShortcutsHelp() {
         <div className="space-y-5">
           {SHORTCUTS.map(group => (
             <div key={group.group}>
-              <div className="text-[10px] text-slate-500 uppercase tracking-wider mb-2 font-mono">
+              <div className="text-[10px] text-steel uppercase tracking-wider mb-2 font-mono">
                 {group.group}
               </div>
               <div className="space-y-1.5">
                 {group.items.map((s, i) => (
                   <div key={i} className="flex items-center justify-between text-xs">
-                    <span className="text-slate-400">{s.description}</span>
+                    <span className="text-steel">{s.description}</span>
                     <div className="flex items-center gap-1">
                       {s.keys.map((k, ki) => (
                         <Kbd key={ki}>{k}</Kbd>
@@ -103,7 +103,7 @@ export function KeyboardShortcutsHelp() {
           ))}
         </div>
 
-        <div className="mt-5 pt-4 border-t border-[#1e2d47] text-[10px] text-slate-600 text-center font-mono">
+        <div className="mt-5 pt-4 border-t border-black/5 text-[10px] text-steel/70 text-center font-mono">
           Press <Kbd>?</Kbd> anywhere to reopen this help
         </div>
       </div>

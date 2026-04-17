@@ -24,46 +24,46 @@ export function CategoryPerformanceChart({ categories }: Props) {
   }))
   
   return (
-    <div className="border border-[#1e2d47] bg-[#0f1629] p-4">
-      <h3 className="text-sm font-semibold text-slate-300 mb-3 uppercase tracking-wider">Category Performance</h3>
+    <div className="border border-black/5 bg-white p-4">
+      <h3 className="text-sm font-semibold text-graphite mb-3 uppercase tracking-wider">Category Performance</h3>
       <ResponsiveContainer width="100%" height={280}>
         <BarChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#1e2d47" />
-          <XAxis 
-            dataKey="category" 
-            stroke="#64748b"
-            style={{ fontSize: '11px', fill: '#64748b' }}
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(95, 102, 114, 0.12)" />
+          <XAxis
+            dataKey="category"
+            stroke="#5F6672"
+            style={{ fontSize: '11px', fill: '#5F6672' }}
             angle={-45}
             textAnchor="end"
             height={80}
           />
-          <YAxis 
-            stroke="#64748b"
-            style={{ fontSize: '11px', fill: '#64748b' }}
+          <YAxis
+            stroke="#5F6672"
+            style={{ fontSize: '11px', fill: '#5F6672' }}
           />
-          <Tooltip 
+          <Tooltip
             contentStyle={{
-              backgroundColor: '#0a0e1a',
-              border: '1px solid #1e2d47',
+              backgroundColor: '#FFFFFF',
+              border: '1px solid rgba(0, 0, 0, 0.05)',
               borderRadius: '4px',
-              color: '#e2e8f0',
+              color: '#2B2C2F',
               fontSize: '11px'
             }}
           />
-          <Legend wrapperStyle={{ fontSize: '11px', color: '#94a3b8' }} />
-          <Bar 
-            dataKey="completionRate" 
-            fill="#10b981" 
+          <Legend wrapperStyle={{ fontSize: '11px', color: '#5F6672' }} />
+          <Bar
+            dataKey="completionRate"
+            fill="#2B2C2F"
             name="Completion Rate (%)"
           />
-          <Bar 
-            dataKey="overdue" 
-            fill="#ef4444" 
+          <Bar
+            dataKey="overdue"
+            fill="#B45555"
             name="Overdue"
           />
-          <Bar 
-            dataKey="upcoming" 
-            fill="#f59e0b" 
+          <Bar
+            dataKey="upcoming"
+            fill="#A1B0CF"
             name="Upcoming"
           />
         </BarChart>

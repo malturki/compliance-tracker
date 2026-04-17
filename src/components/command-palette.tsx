@@ -115,7 +115,7 @@ export function CommandPalette() {
 
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
-      <Command shouldFilter={false} className="bg-[#0f1629] border-[#1e2d47]">
+      <Command shouldFilter={false} className="bg-white border-black/5">
         <CommandInput
           value={query}
           onValueChange={setQuery}
@@ -137,7 +137,7 @@ export function CommandPalette() {
                   >
                     <FileSearch className="w-3.5 h-3.5" />
                     <span className="flex-1 truncate">{o.title}</span>
-                    <span className="text-[10px] text-slate-500 font-mono">{o.category}</span>
+                    <span className="text-[10px] text-steel font-mono">{o.category}</span>
                   </CommandItem>
                 ))}
               </CommandGroup>
@@ -173,7 +173,7 @@ export function CommandPalette() {
                   >
                     <HelpCircle className="w-3.5 h-3.5" />
                     <span className="flex-1 truncate">{t.title}</span>
-                    <span className="text-[10px] text-slate-500 font-mono">{t.category}</span>
+                    <span className="text-[10px] text-steel font-mono">{t.category}</span>
                   </CommandItem>
                 ))}
               </CommandGroup>

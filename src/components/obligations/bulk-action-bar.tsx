@@ -19,16 +19,16 @@ export function BulkActionBar({
   onDelete,
 }: BulkActionBarProps) {
   return (
-    <div className="px-6 py-3 border-b border-[#1e2d47] bg-amber-950/20 flex items-center justify-between">
+    <div className="px-6 py-3 border-b border-black/5 bg-light-steel/[0.18] flex items-center justify-between">
       <div className="flex items-center gap-3">
-        <span className="text-xs font-mono text-slate-300">
+        <span className="text-xs font-mono text-graphite">
           {selectedCount} selected
         </span>
         <Button
           size="sm"
           variant="ghost"
           onClick={onClear}
-          className="h-7 text-xs text-slate-500 hover:text-slate-300"
+          className="h-7 text-xs text-steel hover:text-graphite"
         >
           <X className="w-3 h-3 mr-1" />
           Clear
@@ -37,18 +37,16 @@ export function BulkActionBar({
       <div className="flex items-center gap-2">
         <Button
           size="sm"
-          variant="outline"
           onClick={onMarkComplete}
-          className="h-7 text-xs border-emerald-700/50 text-emerald-300 hover:bg-emerald-950/30"
+          className="h-7 text-xs bg-graphite text-platinum hover:bg-graphite/90"
         >
           <CheckCircle className="w-3 h-3 mr-1" />
           Mark Complete
         </Button>
         <Button
           size="sm"
-          variant="outline"
           onClick={onEdit}
-          className="h-7 text-xs border-[#1e2d47] text-slate-300 hover:bg-[#1e2d47]"
+          className="h-7 text-xs bg-graphite text-platinum hover:bg-graphite/90"
         >
           <Edit className="w-3 h-3 mr-1" />
           Edit
@@ -57,7 +55,7 @@ export function BulkActionBar({
           size="sm"
           variant="outline"
           onClick={onDelete}
-          className="h-7 text-xs border-red-700/50 text-red-300 hover:bg-red-950/30"
+          className="h-7 text-xs bg-[#B45555]/10 text-[#B45555] border border-[#B45555]/30 hover:bg-[#B45555]/20"
         >
           <Trash2 className="w-3 h-3 mr-1" />
           Delete

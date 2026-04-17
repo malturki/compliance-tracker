@@ -31,32 +31,32 @@ export function ObligationHistory({ obligationId }: { obligationId: string }) {
       <button
         type="button"
         onClick={() => setExpanded(v => !v)}
-        className="text-slate-500 mb-2 uppercase tracking-wider text-[10px] flex items-center gap-1.5 hover:text-amber-400 transition-colors"
+        className="text-steel mb-2 uppercase tracking-wider text-[10px] flex items-center gap-1.5 hover:text-graphite transition-colors"
       >
         History {count !== null ? `(${count} events)` : ''} {expanded ? '▲' : '▼'}
       </button>
       {expanded && (
         <div className="space-y-1.5">
           {events === null ? (
-            <div className="text-xs text-slate-500 font-mono">loading…</div>
+            <div className="text-xs text-steel font-mono">loading…</div>
           ) : events.length === 0 ? (
-            <div className="text-xs text-slate-500 font-mono">no events</div>
+            <div className="text-xs text-steel font-mono">no events</div>
           ) : (
             events.map(ev => (
-              <div key={ev.id} className="bg-[#0a0e1a] border border-[#1e2d47] p-2 text-xs">
+              <div key={ev.id} className="bg-canvas border border-black/5 p-2 text-xs">
                 <div className="flex items-baseline gap-2 flex-wrap">
-                  <span className="font-mono text-slate-500" title={ev.ts}>
+                  <span className="font-mono text-steel" title={ev.ts}>
                     {formatDistanceToNow(new Date(ev.ts), { addSuffix: true })}
                   </span>
-                  <span className="text-slate-300">{ev.actor}</span>
-                  <span className="font-mono text-amber-400">{ev.eventType}</span>
+                  <span className="text-graphite">{ev.actor}</span>
+                  <span className="font-mono text-graphite">{ev.eventType}</span>
                 </div>
-                <div className="text-slate-400 mt-0.5">{ev.summary}</div>
+                <div className="text-steel mt-0.5">{ev.summary}</div>
                 {ev.diff && (
-                  <div className="text-slate-500 font-mono mt-1 space-y-0.5">
+                  <div className="text-steel font-mono mt-1 space-y-0.5">
                     {Object.entries(ev.diff).map(([k, [b, a]]) => (
                       <div key={k}>
-                        {k}: <span className="text-slate-400">{String(b)}</span> → <span className="text-slate-200">{String(a)}</span>
+                        {k}: <span className="text-steel">{String(b)}</span> → <span className="text-graphite">{String(a)}</span>
                       </div>
                     ))}
                   </div>

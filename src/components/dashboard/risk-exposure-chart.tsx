@@ -15,10 +15,10 @@ interface Props {
 }
 
 const COLORS: Record<string, string> = {
-  critical: '#dc2626',
-  high: '#f97316',
-  medium: '#f59e0b',
-  low: '#10b981'
+  critical: '#B45555',
+  high: '#2B2C2F',
+  medium: '#A1B0CF',
+  low: '#C8CFD8'
 }
 
 export function RiskExposureChart({ risks }: Props) {
@@ -30,8 +30,8 @@ export function RiskExposureChart({ risks }: Props) {
   }))
   
   return (
-    <div className="border border-[#1e2d47] bg-[#0f1629] p-4">
-      <h3 className="text-sm font-semibold text-slate-300 mb-3 uppercase tracking-wider">Risk Exposure</h3>
+    <div className="border border-black/5 bg-white p-4">
+      <h3 className="text-sm font-semibold text-graphite mb-3 uppercase tracking-wider">Risk Exposure</h3>
       <ResponsiveContainer width="100%" height={280}>
         <PieChart>
           <Pie
@@ -41,23 +41,23 @@ export function RiskExposureChart({ risks }: Props) {
             labelLine={false}
             label={({ name, percentage }) => `${name}: ${percentage}%`}
             outerRadius={100}
-            fill="#8884d8"
+            fill="#A1B0CF"
             dataKey="value"
-            style={{ fontSize: '11px', fill: '#94a3b8' }}
+            style={{ fontSize: '11px', fill: '#5F6672' }}
           >
             {data.map((entry, index) => (
-              <Cell 
-                key={`cell-${index}`} 
-                fill={COLORS[entry.name.toLowerCase()] || '#64748b'} 
+              <Cell
+                key={`cell-${index}`}
+                fill={COLORS[entry.name.toLowerCase()] || '#5F6672'}
               />
             ))}
           </Pie>
-          <Tooltip 
+          <Tooltip
             contentStyle={{
-              backgroundColor: '#0a0e1a',
-              border: '1px solid #1e2d47',
+              backgroundColor: '#FFFFFF',
+              border: '1px solid rgba(0, 0, 0, 0.05)',
               borderRadius: '4px',
-              color: '#e2e8f0',
+              color: '#2B2C2F',
               fontSize: '11px'
             }}
             formatter={(value: number, name: string, props: any) => [
@@ -65,7 +65,7 @@ export function RiskExposureChart({ risks }: Props) {
               name
             ]}
           />
-          <Legend wrapperStyle={{ fontSize: '11px', color: '#94a3b8' }} />
+          <Legend wrapperStyle={{ fontSize: '11px', color: '#5F6672' }} />
         </PieChart>
       </ResponsiveContainer>
     </div>

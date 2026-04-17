@@ -49,19 +49,19 @@ export function AISummaryWidget({ analyticsData }: Props) {
   
   if (loading) {
     return (
-      <div className="border border-[#1e2d47] bg-gradient-to-br from-[#1a2332] to-[#1e2741] p-4 mb-6">
+      <div className="border border-light-steel/[0.24] bg-light-steel/[0.08] p-4 mb-6">
         <div className="flex items-start gap-3">
-          <div className="bg-amber-950/40 border border-amber-900/40 p-2">
-            <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
+          <div className="bg-light-steel/[0.18] border border-light-steel/40 p-2">
+            <Sparkles className="w-4 h-4 text-graphite animate-pulse" />
           </div>
           <div className="flex-1">
-            <h3 className="text-sm font-semibold text-slate-300 mb-2 uppercase tracking-wider">
+            <h3 className="text-sm font-semibold text-graphite mb-2 uppercase tracking-wider">
               AI Insights
             </h3>
             <div className="space-y-1.5">
-              <div className="h-3 bg-[#1e2d47] rounded animate-pulse"></div>
-              <div className="h-3 bg-[#1e2d47] rounded animate-pulse w-5/6"></div>
-              <div className="h-3 bg-[#1e2d47] rounded animate-pulse w-4/6"></div>
+              <div className="h-3 bg-silicon/[0.18] rounded animate-pulse"></div>
+              <div className="h-3 bg-silicon/[0.18] rounded animate-pulse w-5/6"></div>
+              <div className="h-3 bg-silicon/[0.18] rounded animate-pulse w-4/6"></div>
             </div>
           </div>
         </div>
@@ -71,16 +71,16 @@ export function AISummaryWidget({ analyticsData }: Props) {
   
   if (error) {
     return (
-      <div className="border border-red-900/40 bg-red-950/20 p-4 mb-6">
+      <div className="border border-[#B45555]/40 bg-[#B45555]/10 p-4 mb-6">
         <div className="flex items-start gap-3">
-          <div className="bg-red-950/40 border border-red-900/40 p-2">
-            <AlertCircle className="w-4 h-4 text-red-400" />
+          <div className="bg-[#B45555]/20 border border-[#B45555]/40 p-2">
+            <AlertCircle className="w-4 h-4 text-[#B45555]" />
           </div>
           <div className="flex-1">
-            <h3 className="text-sm font-semibold text-red-400 mb-1 uppercase tracking-wider">
+            <h3 className="text-sm font-semibold text-[#B45555] mb-1 uppercase tracking-wider">
               Summary Unavailable
             </h3>
-            <p className="text-xs text-slate-500">{error}</p>
+            <p className="text-xs text-steel">{error}</p>
           </div>
         </div>
       </div>
@@ -88,23 +88,23 @@ export function AISummaryWidget({ analyticsData }: Props) {
   }
   
   return (
-    <div className="border border-[#1e2d47] bg-gradient-to-br from-[#1a2332] to-[#1e2741] p-4 mb-6">
+    <div className="border border-light-steel/[0.24] bg-light-steel/[0.08] p-4 mb-6">
       <div className="flex items-start gap-3">
-        <div className="bg-amber-950/40 border border-amber-900/40 p-2 flex-shrink-0">
-          <Sparkles className="w-4 h-4 text-amber-400" />
+        <div className="bg-light-steel/[0.18] border border-light-steel/40 p-2 flex-shrink-0">
+          <Sparkles className="w-4 h-4 text-graphite" />
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-2">
-            <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">
+            <h3 className="text-sm font-semibold text-graphite uppercase tracking-wider">
               {isAI ? 'AI Insights' : 'Compliance Summary'}
             </h3>
             {!isAI && (
-              <span className="text-[10px] font-mono text-slate-600 bg-[#1e2d47] px-1.5 py-0.5 uppercase">
+              <span className="text-[10px] font-mono text-steel/70 bg-silicon/[0.18] px-1.5 py-0.5 uppercase">
                 Basic
               </span>
             )}
           </div>
-          <p className="text-xs text-slate-400 leading-relaxed">
+          <p className="text-xs text-steel leading-relaxed">
             {summary}
           </p>
         </div>

@@ -40,48 +40,48 @@ export function CompletionTrendChart({ trends }: Props) {
   ]
   
   return (
-    <div className="border border-[#1e2d47] bg-[#0f1629] p-4">
-      <h3 className="text-sm font-semibold text-slate-300 mb-3 uppercase tracking-wider">Completion Trend</h3>
+    <div className="border border-black/5 bg-white p-4">
+      <h3 className="text-sm font-semibold text-graphite mb-3 uppercase tracking-wider">Completion Trend</h3>
       <ResponsiveContainer width="100%" height={280}>
         <LineChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#1e2d47" />
-          <XAxis 
-            dataKey="period" 
-            stroke="#64748b"
-            style={{ fontSize: '11px', fill: '#64748b' }}
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(95, 102, 114, 0.12)" />
+          <XAxis
+            dataKey="period"
+            stroke="#5F6672"
+            style={{ fontSize: '11px', fill: '#5F6672' }}
           />
-          <YAxis 
-            stroke="#64748b"
-            style={{ fontSize: '11px', fill: '#64748b' }}
+          <YAxis
+            stroke="#5F6672"
+            style={{ fontSize: '11px', fill: '#5F6672' }}
           />
-          <Tooltip 
+          <Tooltip
             contentStyle={{
-              backgroundColor: '#0a0e1a',
-              border: '1px solid #1e2d47',
+              backgroundColor: '#FFFFFF',
+              border: '1px solid rgba(0, 0, 0, 0.05)',
               borderRadius: '4px',
-              color: '#e2e8f0',
+              color: '#2B2C2F',
               fontSize: '11px'
             }}
           />
-          <Legend wrapperStyle={{ fontSize: '11px', color: '#94a3b8' }} />
-          <Line 
-            type="monotone" 
-            dataKey="completionRate" 
-            stroke="#10b981" 
+          <Legend wrapperStyle={{ fontSize: '11px', color: '#5F6672' }} />
+          <Line
+            type="monotone"
+            dataKey="completionRate"
+            stroke="#2B2C2F"
             strokeWidth={2}
             name="Completion Rate (%)"
           />
-          <Line 
-            type="monotone" 
-            dataKey="completed" 
-            stroke="#3b82f6" 
+          <Line
+            type="monotone"
+            dataKey="completed"
+            stroke="#A1B0CF"
             strokeWidth={2}
             name="Completed On-Time"
           />
-          <Line 
-            type="monotone" 
-            dataKey="overdue" 
-            stroke="#ef4444" 
+          <Line
+            type="monotone"
+            dataKey="overdue"
+            stroke="#B45555"
             strokeWidth={2}
             name="Completed Late"
           />

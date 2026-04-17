@@ -71,51 +71,51 @@ export function BulkEditDialog({
 
   return (
     <Dialog open={open} onOpenChange={v => !v && onClose()}>
-      <DialogContent className="bg-[#0f1629] border-[#1e2d47] text-slate-200 max-w-md">
+      <DialogContent className="bg-white border-black/5 text-graphite max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-slate-100">Bulk Edit</DialogTitle>
+          <DialogTitle className="text-graphite">Bulk Edit</DialogTitle>
         </DialogHeader>
         <div className="space-y-3 text-sm">
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-steel">
             Update {selectedCount} obligation{selectedCount > 1 ? 's' : ''}.
           </p>
           <div>
-            <Label className="text-xs text-slate-400">Field to update</Label>
+            <Label className="text-xs text-steel">Field to update</Label>
             <Select value={field} onValueChange={v => v && setField(v as EditField)}>
-              <SelectTrigger className="mt-1 bg-[#0a0e1a] border-[#1e2d47] text-slate-200 text-xs h-9">
+              <SelectTrigger className="mt-1 bg-canvas border-black/5 text-graphite text-xs h-9">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-[#0f1629] border-[#1e2d47]">
-                <SelectItem value="owner" className="text-slate-200 text-xs">Owner</SelectItem>
-                <SelectItem value="risk" className="text-slate-200 text-xs">Risk Level</SelectItem>
+              <SelectContent className="bg-white border-black/5">
+                <SelectItem value="owner" className="text-graphite text-xs">Owner</SelectItem>
+                <SelectItem value="risk" className="text-graphite text-xs">Risk Level</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           {field === 'owner' ? (
             <div>
-              <Label className="text-xs text-slate-400">Owner *</Label>
+              <Label className="text-xs text-steel">Owner *</Label>
               <Select value={owner} onValueChange={handleOwnerSelect}>
-                <SelectTrigger className="mt-1 bg-[#0a0e1a] border-[#1e2d47] text-slate-200 text-xs h-9">
+                <SelectTrigger className="mt-1 bg-canvas border-black/5 text-graphite text-xs h-9">
                   <SelectValue placeholder="Select owner" />
                 </SelectTrigger>
-                <SelectContent className="bg-[#0f1629] border-[#1e2d47]">
+                <SelectContent className="bg-white border-black/5">
                   {usersList.map(u => (
-                    <SelectItem key={u.id} value={u.name ?? u.email} className="text-slate-200 text-xs">{u.name ?? u.email}</SelectItem>
+                    <SelectItem key={u.id} value={u.name ?? u.email} className="text-graphite text-xs">{u.name ?? u.email}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
           ) : (
             <div>
-              <Label className="text-xs text-slate-400">Risk Level</Label>
+              <Label className="text-xs text-steel">Risk Level</Label>
               <Select value={riskLevel} onValueChange={v => v && setRiskLevel(v as RiskLevel)}>
-                <SelectTrigger className="mt-1 bg-[#0a0e1a] border-[#1e2d47] text-slate-200 text-xs h-9">
+                <SelectTrigger className="mt-1 bg-canvas border-black/5 text-graphite text-xs h-9">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-[#0f1629] border-[#1e2d47]">
+                <SelectContent className="bg-white border-black/5">
                   {RISK_LEVELS.map(r => (
-                    <SelectItem key={r} value={r} className="text-slate-200 text-xs capitalize">
+                    <SelectItem key={r} value={r} className="text-graphite text-xs capitalize">
                       {r}
                     </SelectItem>
                   ))}
@@ -129,14 +129,14 @@ export function BulkEditDialog({
             variant="outline"
             onClick={onClose}
             disabled={submitting}
-            className="border-[#1e2d47] text-slate-400 text-xs"
+            className="border-black/5 text-steel text-xs"
           >
             Cancel
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={submitting}
-            className="bg-amber-600 hover:bg-amber-500 text-white text-xs"
+            className="bg-graphite hover:bg-graphite/90 text-platinum text-xs"
           >
             {submitting ? 'Updating...' : 'Update'}
           </Button>

@@ -45,31 +45,31 @@ export function BulkCompleteDialog({
 
   return (
     <Dialog open={open} onOpenChange={v => !v && onClose()}>
-      <DialogContent className="bg-[#0f1629] border-[#1e2d47] text-slate-200 max-w-md">
+      <DialogContent className="bg-white border-black/5 text-graphite max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-slate-100">Mark Complete</DialogTitle>
+          <DialogTitle className="text-graphite">Mark Complete</DialogTitle>
         </DialogHeader>
         <div className="space-y-3 text-sm">
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-steel">
             Mark {selectedCount} obligation{selectedCount > 1 ? 's' : ''} as complete.
           </p>
           <div>
-            <Label className="text-xs text-slate-400">Completed by *</Label>
+            <Label className="text-xs text-steel">Completed by *</Label>
             <Input
               value={completedBy}
               onChange={e => setCompletedBy(e.target.value)}
               placeholder="Your name"
-              className="mt-1 bg-[#0a0e1a] border-[#1e2d47] text-slate-200 text-xs"
+              className="mt-1 bg-canvas border-black/5 text-graphite text-xs"
             />
           </div>
           <div>
-            <Label className="text-xs text-slate-400">Notes (optional)</Label>
+            <Label className="text-xs text-steel">Notes (optional)</Label>
             <textarea
               value={notes}
               onChange={e => setNotes(e.target.value)}
               placeholder="Evidence, references..."
               rows={3}
-              className="mt-1 w-full bg-[#0a0e1a] border border-[#1e2d47] text-slate-200 text-xs p-2 resize-none focus:outline-none focus:border-amber-500/50"
+              className="mt-1 w-full bg-canvas border border-black/5 text-graphite text-xs p-2 resize-none focus:outline-none focus:border-light-steel"
             />
           </div>
         </div>
@@ -78,14 +78,14 @@ export function BulkCompleteDialog({
             variant="outline"
             onClick={onClose}
             disabled={submitting}
-            className="border-[#1e2d47] text-slate-400 text-xs"
+            className="border-black/5 text-steel text-xs"
           >
             Cancel
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={submitting}
-            className="bg-emerald-700 hover:bg-emerald-600 text-white text-xs"
+            className="bg-[#3A6B4F] hover:bg-[#3A6B4F]/90 text-white text-xs"
           >
             {submitting ? 'Completing...' : 'Confirm'}
           </Button>
