@@ -4,18 +4,13 @@ import { useEffect, useMemo, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { ChevronDown, HelpCircle } from 'lucide-react'
 import { HELP_TOPICS, visibleTopicsForRole, type HelpRole, type HelpTopic } from '@/data/help-content'
+import { ROLE_BADGE_CLASSES } from '@/lib/role-colors'
 
 const CATEGORY_ORDER: HelpTopic['category'][] = [
   'Getting Started',
   'Using the App',
   'Administration',
 ]
-
-const ROLE_BADGE: Record<HelpRole, string> = {
-  admin: 'text-graphite bg-light-steel/[0.28] border-light-steel',
-  editor: 'text-graphite bg-silicon/50 border-silicon',
-  viewer: 'text-steel bg-silicon/30 border-silicon',
-}
 
 export default function HelpPage() {
   const { data: session, status } = useSession()
@@ -152,7 +147,7 @@ export default function HelpPage() {
                             <div className="flex items-center gap-2 mb-1">
                               <h3 className="text-sm font-semibold text-graphite">{topic.title}</h3>
                               <span
-                                className={`inline-flex px-1.5 py-0.5 text-[9px] font-mono font-semibold border rounded ${ROLE_BADGE[topic.minRole]}`}
+                                className={`inline-flex px-1.5 py-0.5 text-[9px] font-mono font-semibold border rounded ${ROLE_BADGE_CLASSES[topic.minRole]}`}
                               >
                                 {topic.minRole.toUpperCase()}+
                               </span>

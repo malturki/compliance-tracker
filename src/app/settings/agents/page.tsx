@@ -7,6 +7,7 @@ import { toast } from 'sonner'
 import { SettingsTabs } from '@/components/settings/settings-tabs'
 import { Trash2, RotateCw, Copy, Plus, Check, ExternalLink } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
+import { ROLE_BADGE_CLASSES, type Role } from '@/lib/role-colors'
 
 type Agent = {
   id: string
@@ -28,12 +29,6 @@ const EXPIRY_OPTIONS = [
   { label: '180 days', value: 180 },
   { label: '365 days', value: 365 },
 ]
-
-const roleBadgeColors: Record<string, string> = {
-  admin: 'text-graphite bg-light-steel/[0.28] border-light-steel',
-  editor: 'text-graphite bg-silicon/50 border-silicon',
-  viewer: 'text-steel bg-silicon/30 border-silicon',
-}
 
 export default function AgentsSettingsPage() {
   const { data: session } = useSession()
@@ -210,7 +205,7 @@ export default function AgentsSettingsPage() {
                       {agent.description && <div className="text-[10px] text-steel/70 mt-0.5">{agent.description}</div>}
                     </td>
                     <td className="px-3 py-2">
-                      <span className={`inline-flex px-1.5 py-0.5 text-[10px] font-mono font-semibold border rounded ${roleBadgeColors[agent.role] ?? roleBadgeColors.viewer}`}>
+                      <span className={`inline-flex px-1.5 py-0.5 text-[10px] font-mono font-semibold border rounded ${ROLE_BADGE_CLASSES[agent.role as Role] ?? ROLE_BADGE_CLASSES.viewer}`}>
                         {agent.role.toUpperCase()}
                       </span>
                     </td>
@@ -250,7 +245,7 @@ export default function AgentsSettingsPage() {
       )}
 
       {showCreate && !createdToken && (
-        <div className="fixed inset-0 bg-graphite/40 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-graphite/60 flex items-center justify-center z-50 p-4">
           <div className="bg-white border border-black/5 rounded-card shadow-card max-w-md w-full p-5">
             <h2 className="text-sm font-semibold text-graphite mb-4">Create Agent</h2>
             <div className="space-y-3">
@@ -314,10 +309,10 @@ export default function AgentsSettingsPage() {
       )}
 
       {createdToken && (
-        <div className="fixed inset-0 bg-graphite/40 flex items-center justify-center z-50 p-4 overflow-y-auto">
+        <div className="fixed inset-0 bg-graphite/60 flex items-center justify-center z-50 p-4 overflow-y-auto">
           <div className="bg-white border border-black/5 rounded-card shadow-card max-w-lg w-full p-5 my-8">
             <h2 className="text-sm font-semibold text-graphite mb-2">Agent Token</h2>
-            <p className="text-warning text-xs mb-3">
+            <p className="text-danger font-semibold text-xs mb-3">
               Copy this token now. It will never be shown again.
             </p>
             <div className="bg-canvas border border-black/5 rounded-inner p-3 font-mono text-[11px] text-graphite break-all mb-2">

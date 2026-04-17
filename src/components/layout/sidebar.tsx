@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import { LayoutDashboard, Calendar, FileText, Tag, Sparkles, TrendingUp, History, Settings, LogOut, Search, HelpCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { ROLE_BADGE_CLASSES } from '@/lib/role-colors'
 
 const navItems = [
   { href: '/', label: 'Overview', icon: LayoutDashboard, minRole: 'viewer' as const },
@@ -18,12 +19,6 @@ const navItems = [
 ]
 
 const ROLE_LEVEL: Record<string, number> = { viewer: 0, editor: 1, admin: 2 }
-
-const roleBadgeColors: Record<string, string> = {
-  admin: 'text-[#2B2C2F] bg-light-steel/[0.28] border-light-steel',
-  editor: 'text-[#2B2C2F] bg-silicon/[0.5] border-silicon',
-  viewer: 'text-[#5F6672] bg-silicon/[0.3] border-silicon',
-}
 
 export function Sidebar() {
   const pathname = usePathname()
@@ -107,7 +102,7 @@ export function Sidebar() {
             )}
             <div className="flex-1 min-w-0">
               <div className="text-xs text-[#2B2C2F] truncate">{session.user.name ?? session.user.email}</div>
-              <span className={cn('inline-flex px-1.5 py-0.5 text-[10px] font-mono font-semibold border rounded', roleBadgeColors[role] ?? roleBadgeColors.viewer)}>
+              <span className={cn('inline-flex px-1.5 py-0.5 text-[10px] font-mono font-semibold border rounded', ROLE_BADGE_CLASSES[role as 'admin' | 'editor' | 'viewer'] ?? ROLE_BADGE_CLASSES.viewer)}>
                 {role.toUpperCase()}
               </span>
             </div>
