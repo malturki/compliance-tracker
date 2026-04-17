@@ -34,25 +34,25 @@ export default async function ActivityPage({ searchParams }: { searchParams: Sea
 
   return (
     <div className="p-6 max-w-[1400px]">
-      <div className="flex items-baseline justify-between mb-6 border-b border-[#1e2d47] pb-4">
+      <div className="flex items-baseline justify-between mb-6 border-b border-black/5 pb-4">
         <div>
-          <h1 className="text-xl font-semibold text-slate-100">Activity</h1>
-          <p className="text-xs text-slate-500 mt-0.5 font-mono">
+          <h1 className="text-2xl font-medium tracking-[-0.02em] text-graphite">Activity</h1>
+          <p className="text-xs text-steel mt-0.5 font-mono">
             Audit log — most recent first{isPaged && ' — showing older events'}
           </p>
         </div>
-        <div className="text-xs font-mono text-slate-500">{rows.length} events</div>
+        <div className="text-xs font-mono text-steel">{rows.length} events</div>
       </div>
 
       {rows.length === 0 ? (
-        <div className="text-xs text-slate-500 border border-[#1e2d47] bg-[#0f1629] p-6 text-center">
+        <div className="text-xs text-steel border border-black/5 bg-white p-6 text-center rounded-card shadow-card">
           No activity yet. History begins when events are recorded.
         </div>
       ) : (
-        <div className="border border-[#1e2d47] bg-[#0f1629] overflow-hidden">
+        <div className="bg-white border border-black/5 rounded-card shadow-card overflow-hidden">
           <table className="w-full text-xs">
             <thead>
-              <tr className="border-b border-[#1e2d47] text-slate-500">
+              <tr className="text-[10px] uppercase tracking-[0.18em] text-steel border-b border-black/5">
                 <th className="text-left px-3 py-2 font-medium font-mono">When</th>
                 <th className="text-left px-3 py-2 font-medium">Actor</th>
                 <th className="text-left px-3 py-2 font-medium">Event</th>
@@ -61,21 +61,21 @@ export default async function ActivityPage({ searchParams }: { searchParams: Sea
               </tr>
             </thead>
             <tbody>
-              {rows.map((r, i) => (
-                <tr key={r.id} className={`border-b border-[#1e2d47]/50 ${i % 2 === 0 ? '' : 'bg-[#0a0e1a]/30'}`}>
-                  <td className="px-3 py-2 font-mono text-slate-500" title={r.ts}>
+              {rows.map((r) => (
+                <tr key={r.id} className="border-b border-silicon/40 last:border-b-0 hover:bg-silicon/[0.18]">
+                  <td className="px-3 py-2 font-mono text-steel" title={r.ts}>
                     {formatDistanceToNow(new Date(r.ts), { addSuffix: true })}
                   </td>
-                  <td className="px-3 py-2 text-slate-300">{r.actor}</td>
-                  <td className="px-3 py-2 font-mono text-amber-400">{r.eventType}</td>
-                  <td className="px-3 py-2 text-slate-400">{r.summary}</td>
+                  <td className="px-3 py-2 text-graphite">{r.actor}</td>
+                  <td className="px-3 py-2 font-mono text-steel text-[11px]">{r.eventType}</td>
+                  <td className="px-3 py-2 text-steel">{r.summary}</td>
                   <td className="px-3 py-2 text-right">
                     {r.entityType === 'obligation' && r.entityId ? (
-                      <Link href={`/obligations?id=${r.entityId}`} className="text-amber-400 hover:underline font-mono">
+                      <Link href={`/obligations?id=${r.entityId}`} className="text-graphite hover:underline font-mono">
                         open →
                       </Link>
                     ) : (
-                      <span className="text-slate-700">—</span>
+                      <span className="text-steel/60">—</span>
                     )}
                   </td>
                 </tr>
@@ -88,14 +88,14 @@ export default async function ActivityPage({ searchParams }: { searchParams: Sea
       {(nextPageQuery || isPaged) && (
         <div className="mt-4 flex items-center justify-between text-xs">
           {isPaged ? (
-            <Link href="/activity" className="text-slate-500 hover:text-amber-400 font-mono transition-colors">
+            <Link href="/activity" className="text-steel hover:text-graphite font-mono transition-colors">
               ← Back to recent
             </Link>
           ) : <span />}
           {nextPageQuery && (
             <Link
               href={`/activity${nextPageQuery}`}
-              className="px-3 py-1.5 border border-[#1e2d47] hover:border-amber-500/50 text-slate-400 hover:text-amber-400 rounded transition-colors font-mono"
+              className="text-graphite hover:underline font-mono"
             >
               Load older events →
             </Link>

@@ -60,30 +60,30 @@ export default function CalendarPage() {
   return (
     <div className="p-6 max-w-[1400px]">
       {/* Header */}
-      <div className="flex items-baseline justify-between mb-6 border-b border-[#1e2d47] pb-4">
+      <div className="flex items-baseline justify-between mb-6 border-b border-black/5 pb-4">
         <div>
-          <h1 className="text-xl font-semibold text-slate-100">Calendar View</h1>
-          <p className="text-xs text-slate-500 mt-0.5 font-mono">Obligations by due date</p>
+          <h1 className="text-2xl font-medium tracking-[-0.02em] text-graphite">Calendar View</h1>
+          <p className="text-xs text-steel mt-0.5 font-mono">Obligations by due date</p>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-            className="p-1.5 hover:bg-[#1e2d47] text-slate-400 hover:text-slate-200 transition-colors rounded"
+            className="p-1.5 hover:bg-silicon/[0.18] text-graphite transition-colors rounded"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <span className="text-sm font-semibold text-slate-200 w-36 text-center">
+          <span className="text-sm font-semibold text-graphite w-36 text-center">
             {format(currentMonth, 'MMMM yyyy')}
           </span>
           <button
             onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-            className="p-1.5 hover:bg-[#1e2d47] text-slate-400 hover:text-slate-200 transition-colors rounded"
+            className="p-1.5 hover:bg-silicon/[0.18] text-graphite transition-colors rounded"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
           <button
             onClick={() => { setCurrentMonth(new Date()); setSelectedDate(null) }}
-            className="text-xs text-amber-400 hover:text-amber-300 ml-2"
+            className="text-xs text-graphite hover:underline ml-2"
           >
             Today
           </button>
@@ -93,76 +93,74 @@ export default function CalendarPage() {
       <div className="grid grid-cols-7 gap-3">
         {/* Calendar grid */}
         <div className="col-span-5">
-          <div className={`border border-[#1e2d47] bg-[#0f1629] overflow-hidden relative transition-opacity ${loading ? 'opacity-60' : ''}`}>
+          <div className={`bg-white border border-black/5 rounded-card shadow-card overflow-hidden relative transition-opacity ${loading ? 'opacity-60' : ''}`}>
             {loading && (
-              <div className="absolute top-2 right-2 z-10 text-[10px] font-mono text-slate-500 flex items-center gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-amber-500/60 animate-pulse" />
+              <div className="absolute top-2 right-2 z-10 text-[10px] font-mono text-steel flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-light-steel animate-pulse" />
                 loading
               </div>
             )}
             {/* Day headers */}
-            <div className="grid grid-cols-7 border-b border-[#1e2d47] bg-[#0a0e1a]">
+            <div className="grid grid-cols-7 text-[10px] uppercase tracking-[0.18em] text-steel border-b border-black/5">
               {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                <div key={day} className="px-2 py-2 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                <div key={day} className="px-2 py-2 text-center font-semibold">
                   {day}
                 </div>
               ))}
             </div>
             {/* Weeks */}
             {weeks.map((week, wi) => (
-              <div key={wi} className="grid grid-cols-7 border-b border-[#1e2d47] last:border-b-0">
+              <div key={wi} className="grid grid-cols-7">
                 {week.map((day, di) => {
                   if (!day) {
-                    return <div key={di} className="border-r border-[#1e2d47] last:border-r-0 bg-[#0a0e1a]/50" />
+                    return <div key={di} className="border-t border-l border-silicon/40 bg-canvas text-steel/60" />
                   }
                   const dateKey = format(day, 'yyyy-MM-dd')
                   const dayItems = obligationsByDate.get(dateKey) || []
                   const isToday = isSameDay(day, today)
                   const isSelected = selectedDate && isSameDay(day, selectedDate)
-                  const hasOverdue = dayItems.some(i => i.computedStatus === 'overdue')
-                  const hasUpcoming = dayItems.some(i => i.computedStatus === 'upcoming')
+                  const inMonth = isSameMonth(day, currentMonth)
 
                   return (
                     <div
                       key={di}
                       onClick={() => setSelectedDate(day)}
-                      className={`border-r border-[#1e2d47] last:border-r-0 p-2 min-h-[100px] cursor-pointer transition-colors relative
-                        ${isSelected ? 'bg-amber-950/30 border-2 border-amber-500/50' : 'hover:bg-[#162035]'}
-                        ${!isSameMonth(day, currentMonth) ? 'opacity-40' : ''}
+                      className={`border-t border-l border-silicon/40 p-2 min-h-[100px] cursor-pointer transition-colors relative
+                        ${isSelected ? 'bg-light-steel/[0.28] border-light-steel' : isToday ? 'bg-light-steel/[0.18] border-light-steel' : 'bg-white hover:bg-silicon/[0.18]'}
+                        ${!inMonth ? 'bg-canvas text-steel/60' : ''}
                       `}
                     >
-                      <div className={`text-xs font-mono mb-1 ${isToday ? 'text-amber-400 font-semibold' : 'text-slate-400'}`}>
+                      <div className={`text-xs font-mono mb-1 ${isToday ? 'text-graphite font-semibold' : 'text-steel'}`}>
                         {format(day, 'd')}
                       </div>
                       <div className="space-y-0.5">
                         {dayItems.slice(0, 3).map(item => {
-                          const riskColors = {
-                            critical: 'bg-red-500',
-                            high: 'bg-orange-500',
-                            medium: 'bg-amber-500',
-                            low: 'bg-emerald-500',
-                          }
-                          const bgColor = riskColors[item.riskLevel as keyof typeof riskColors] || 'bg-slate-500'
+                          const isOverdue = item.computedStatus === 'overdue'
+                          const isUpcoming = item.computedStatus === 'upcoming'
+                          const chipClasses = isOverdue
+                            ? 'bg-danger/10 text-danger border border-danger/30'
+                            : isUpcoming
+                              ? 'bg-warning/10 text-warning border border-warning/30'
+                              : 'bg-white text-graphite border border-black/10'
                           return (
                             <div
                               key={item.id}
-                              className="text-[10px] leading-tight text-slate-300 truncate"
+                              className={`text-[10px] leading-tight truncate px-1.5 py-0.5 rounded ${chipClasses}`}
                               title={item.title}
                             >
-                              <span className={`inline-block w-1.5 h-1.5 rounded-full mr-1 ${bgColor}`} />
                               {item.title}
                             </div>
                           )
                         })}
                         {dayItems.length > 3 && (
-                          <div className="text-[9px] text-amber-500/80 font-mono hover:text-amber-400 transition-colors">
+                          <div className="text-[9px] text-graphite font-mono hover:underline transition-colors">
                             +{dayItems.length - 3} more →
                           </div>
                         )}
                       </div>
                       {isToday && (
                         <div className="absolute top-1 right-1">
-                          <div className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />
+                          <div className="w-1.5 h-1.5 bg-graphite rounded-full animate-pulse" />
                         </div>
                       )}
                     </div>
@@ -173,22 +171,22 @@ export default function CalendarPage() {
           </div>
           {/* Legend */}
           <div className="flex items-center gap-4 mt-3 text-xs">
-            <div className="text-slate-500">Risk levels:</div>
+            <div className="text-steel">Risk levels:</div>
             <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-red-500" />
-              <span className="text-slate-400">Critical</span>
+              <span className="w-2 h-2 rounded-full bg-danger" />
+              <span className="text-steel">Critical</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-orange-500" />
-              <span className="text-slate-400">High</span>
+              <span className="w-2 h-2 rounded-full bg-warning" />
+              <span className="text-steel">High</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-amber-500" />
-              <span className="text-slate-400">Medium</span>
+              <span className="w-2 h-2 rounded-full bg-light-steel" />
+              <span className="text-steel">Medium</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              <span className="text-slate-400">Low</span>
+              <span className="w-2 h-2 rounded-full bg-success" />
+              <span className="text-steel">Low</span>
             </div>
           </div>
         </div>
@@ -196,36 +194,36 @@ export default function CalendarPage() {
         {/* Detail panel */}
         <div className="col-span-2">
           {selectedDate ? (
-            <div className="border border-[#1e2d47] bg-[#0f1629] overflow-hidden">
-              <div className="px-4 py-3 border-b border-[#1e2d47] bg-[#0a0e1a]">
-                <div className="text-sm font-semibold text-slate-100">
+            <div className="bg-white border border-black/5 rounded-card shadow-card overflow-hidden">
+              <div className="px-4 py-3 border-b border-black/5 bg-canvas">
+                <div className="text-sm font-semibold text-graphite">
                   {format(selectedDate, 'EEEE, MMM d')}
                 </div>
-                <div className="text-xs text-slate-500 mt-0.5 font-mono">
+                <div className="text-xs text-steel mt-0.5 font-mono">
                   {selectedItems.length} obligation{selectedItems.length !== 1 ? 's' : ''}
                 </div>
               </div>
               <div className="p-3 space-y-2 max-h-[600px] overflow-y-auto">
                 {selectedItems.length === 0 ? (
-                  <div className="text-xs text-slate-500 text-center py-8">No obligations due</div>
+                  <div className="text-xs text-steel text-center py-8">No obligations due</div>
                 ) : (
                   selectedItems.map(item => (
                     <Link
                       key={item.id}
                       href={`/obligations?id=${item.id}`}
-                      className="block border border-[#1e2d47] bg-[#0a0e1a] p-2.5 hover:bg-[#162035] transition-colors"
+                      className="block border border-black/5 bg-white p-2.5 hover:bg-silicon/[0.18] transition-colors rounded"
                     >
-                      <div className="text-xs font-medium text-slate-200 leading-tight mb-1">
+                      <div className="text-xs font-medium text-graphite leading-tight mb-1">
                         {item.title}
                       </div>
                       <div className="flex items-center justify-between text-[10px]">
-                        <span className="text-slate-500">{getCategoryLabel(item.category)}</span>
+                        <span className="text-steel">{getCategoryLabel(item.category)}</span>
                         <span className={`inline-flex px-1.5 py-0.5 font-mono font-semibold border ${getRiskColor(item.riskLevel as any)}`}>
                           {item.riskLevel}
                         </span>
                       </div>
                       {item.owner && (
-                        <div className="text-[10px] text-slate-500 mt-1">{item.owner}</div>
+                        <div className="text-[10px] text-steel mt-1">{item.owner}</div>
                       )}
                     </Link>
                   ))
@@ -233,8 +231,8 @@ export default function CalendarPage() {
               </div>
             </div>
           ) : (
-            <div className="border border-[#1e2d47] bg-[#0f1629] p-8 text-center">
-              <div className="text-sm text-slate-500">Select a date to view obligations</div>
+            <div className="bg-white border border-black/5 rounded-card shadow-card p-8 text-center">
+              <div className="text-sm text-steel">Select a date to view obligations</div>
             </div>
           )}
         </div>

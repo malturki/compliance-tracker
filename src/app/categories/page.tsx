@@ -128,10 +128,10 @@ export default async function CategoriesPage() {
   return (
     <div className="p-6 max-w-[1400px]">
       {/* Header */}
-      <div className="flex items-baseline justify-between mb-6 border-b border-[#1e2d47] pb-4">
+      <div className="flex items-baseline justify-between mb-6 border-b border-black/5 pb-4">
         <div>
-          <h1 className="text-xl font-semibold text-slate-100">Categories</h1>
-          <p className="text-xs text-slate-500 mt-0.5 font-mono">
+          <h1 className="text-2xl font-medium tracking-[-0.02em] text-graphite">Categories</h1>
+          <p className="text-xs text-steel mt-0.5 font-mono">
             {sortedCategories.length} categories • {totalObs} total obligations
           </p>
         </div>
@@ -147,72 +147,72 @@ export default async function CategoriesPage() {
           return (
             <div
               key={cat}
-              className={`border bg-[#0f1629] overflow-hidden transition-all
-                ${hasProblems ? 'border-red-900/40' : 'border-[#1e2d47]'}
+              className={`bg-white border rounded-card shadow-card overflow-hidden transition-all p-5
+                ${hasProblems ? 'border-danger/30' : 'border-black/5'}
               `}
             >
               {/* Header */}
-              <div className={`px-4 py-3 border-b flex items-center justify-between
-                ${hasProblems ? 'bg-red-950/20 border-red-900/40' : 'bg-[#0a0e1a] border-[#1e2d47]'}
+              <div className={`pb-3 border-b flex items-center justify-between
+                ${hasProblems ? 'border-danger/30' : 'border-black/5'}
               `}>
                 <div className="flex items-center gap-2.5">
-                  <Icon className={`w-4 h-4 ${hasProblems ? 'text-red-400' : 'text-amber-500'}`} />
+                  <Icon className={`w-4 h-4 ${hasProblems ? 'text-danger' : 'text-steel'}`} />
                   <div>
                     <Link
                       href={`/obligations?category=${cat}`}
-                      className={`text-sm font-semibold hover:text-amber-400 transition-colors
-                        ${hasProblems ? 'text-red-300' : 'text-slate-100'}
+                      className={`text-sm font-semibold hover:underline transition-colors
+                        ${hasProblems ? 'text-danger' : 'text-graphite'}
                       `}
                     >
                       {getCategoryLabel(cat)}
                     </Link>
-                    <div className="text-[10px] text-slate-500 mt-0.5">
+                    <div className="text-[10px] text-steel mt-0.5">
                       {CATEGORY_DESCRIPTIONS[cat] || 'Compliance obligations'}
                     </div>
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-2xl font-mono font-bold text-slate-200">{data.total}</div>
-                  <div className="text-[9px] text-slate-600 uppercase tracking-wider">total</div>
+                  <div className="text-2xl font-mono font-bold text-graphite">{data.total}</div>
+                  <div className="text-[9px] text-steel/70 uppercase tracking-wider">total</div>
                 </div>
               </div>
 
               {/* Stats row */}
-              <div className="px-4 py-2.5 border-b border-[#1e2d47] bg-[#0a0e1a]/50 grid grid-cols-3 gap-3">
+              <div className="py-3 border-b border-black/5 grid grid-cols-3 gap-3">
                 <div>
-                  <div className="text-[9px] text-slate-600 uppercase tracking-wider mb-0.5">Overdue</div>
-                  <div className={`text-lg font-mono font-semibold ${data.overdue > 0 ? 'text-red-400' : 'text-slate-700'}`}>
+                  <div className="text-[9px] text-steel/70 uppercase tracking-wider mb-0.5">Overdue</div>
+                  <div className={`text-lg font-mono font-semibold ${data.overdue > 0 ? 'text-danger' : 'text-steel/60'}`}>
                     {data.overdue}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[9px] text-slate-600 uppercase tracking-wider mb-0.5">Upcoming</div>
-                  <div className={`text-lg font-mono font-semibold ${data.upcoming > 0 ? 'text-amber-400' : 'text-slate-700'}`}>
+                  <div className="text-[9px] text-steel/70 uppercase tracking-wider mb-0.5">Upcoming</div>
+                  <div className={`text-lg font-mono font-semibold ${data.upcoming > 0 ? 'text-warning' : 'text-steel/60'}`}>
                     {data.upcoming}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[9px] text-slate-600 uppercase tracking-wider mb-0.5">Next Due</div>
-                  <div className="text-xs font-mono text-slate-400">
+                  <div className="text-[9px] text-steel/70 uppercase tracking-wider mb-0.5">Next Due</div>
+                  <div className="text-xs font-mono text-steel">
                     {data.nextDeadline ? formatDate(data.nextDeadline) : '—'}
                   </div>
                 </div>
               </div>
 
               {/* Items preview */}
-              <div className="p-3 space-y-1.5 max-h-[200px] overflow-y-auto">
+              <div className="pt-3 space-y-1.5 max-h-[200px] overflow-y-auto">
                 {data.overdueItems.slice(0, 3).map(item => (
                   <Link
                     key={item.id}
                     href={`/obligations?id=${item.id}`}
-                    className="block text-xs bg-red-950/20 border border-red-900/30 p-2 hover:bg-red-950/30 transition-colors"
+                    className="block text-xs bg-danger/10 border border-danger/30 p-2 hover:bg-danger/20 transition-colors rounded"
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <span className="text-red-300 font-medium leading-tight flex-1">{item.title}</span>
-                      <span className="text-[10px] font-mono text-red-400 flex-shrink-0">{formatDate(item.nextDueDate)}</span>
+                      <span className="text-danger font-medium leading-tight flex-1">{item.title}</span>
+                      <span className="text-[10px] font-mono text-danger flex-shrink-0">{formatDate(item.nextDueDate)}</span>
                     </div>
                     {item.owner && (
-                      <div className="text-[10px] text-slate-500 mt-0.5">{item.owner}</div>
+                      <div className="text-[10px] text-steel mt-0.5">{item.owner}</div>
                     )}
                   </Link>
                 ))}
@@ -220,24 +220,24 @@ export default async function CategoriesPage() {
                   <Link
                     key={item.id}
                     href={`/obligations?id=${item.id}`}
-                    className="block text-xs bg-[#0a0e1a] border border-[#1e2d47] p-2 hover:bg-[#162035] transition-colors"
+                    className="block text-xs bg-white border border-black/5 p-2 hover:bg-silicon/[0.18] transition-colors rounded"
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <span className="text-slate-200 leading-tight flex-1">{item.title}</span>
-                      <span className="text-[10px] font-mono text-amber-400 flex-shrink-0">{formatDate(item.nextDueDate)}</span>
+                      <span className="text-graphite leading-tight flex-1">{item.title}</span>
+                      <span className="text-[10px] font-mono text-warning flex-shrink-0">{formatDate(item.nextDueDate)}</span>
                     </div>
                     {item.owner && (
-                      <div className="text-[10px] text-slate-500 mt-0.5">{item.owner}</div>
+                      <div className="text-[10px] text-steel mt-0.5">{item.owner}</div>
                     )}
                   </Link>
                 ))}
                 {data.total === 0 && (
-                  <div className="text-xs text-slate-500 text-center py-4">No obligations in this category</div>
+                  <div className="text-xs text-steel text-center py-4">No obligations in this category</div>
                 )}
                 {data.total > 3 && (
                   <Link
                     href={`/obligations?category=${cat}`}
-                    className="block text-xs text-center text-amber-400 hover:text-amber-300 pt-1"
+                    className="block text-xs text-center text-graphite hover:underline pt-1"
                   >
                     View all {data.total} →
                   </Link>
@@ -251,9 +251,9 @@ export default async function CategoriesPage() {
       {/* By counterparty */}
       {sortedCounterparties.length > 0 && (
         <div className="mt-10">
-          <div className="flex items-baseline justify-between mb-4 border-b border-[#1e2d47] pb-3">
-            <h2 className="text-base font-semibold text-slate-100">By counterparty</h2>
-            <p className="text-[10px] text-slate-500 font-mono uppercase tracking-wider">
+          <div className="flex items-baseline justify-between mb-4 border-b border-black/5 pb-3">
+            <h2 className="text-base font-semibold text-graphite">By counterparty</h2>
+            <p className="text-[10px] text-steel font-mono uppercase tracking-wider">
               {sortedCounterparties.length} counterparties
             </p>
           </div>
@@ -264,23 +264,23 @@ export default async function CategoriesPage() {
                 <Link
                   key={cp.name}
                   href={`/obligations?counterparty=${encodeURIComponent(cp.name)}`}
-                  className={`block border bg-[#0f1629] p-3 hover:bg-[#162035] transition-colors
-                    ${hasProblems ? 'border-red-900/40' : 'border-[#1e2d47]'}
+                  className={`block bg-white border rounded-card p-3 hover:shadow-card transition-shadow
+                    ${hasProblems ? 'border-danger/30' : 'border-black/5'}
                   `}
                 >
                   <div className="flex items-start justify-between gap-2 mb-1.5">
-                    <span className={`text-xs font-medium leading-tight truncate ${hasProblems ? 'text-red-300' : 'text-slate-200'}`}>
+                    <span className={`text-xs font-medium leading-tight truncate ${hasProblems ? 'text-danger' : 'text-graphite'}`}>
                       {cp.name}
                     </span>
-                    <span className="text-lg font-mono font-bold text-slate-300 flex-shrink-0 leading-none">
+                    <span className="text-lg font-mono font-bold text-graphite flex-shrink-0 leading-none">
                       {cp.total}
                     </span>
                   </div>
                   <div className="flex items-center gap-3 text-[10px] font-mono">
-                    {cp.overdue > 0 && <span className="text-red-400">{cp.overdue} overdue</span>}
-                    {cp.upcoming > 0 && <span className="text-amber-400">{cp.upcoming} upcoming</span>}
+                    {cp.overdue > 0 && <span className="text-danger">{cp.overdue} overdue</span>}
+                    {cp.upcoming > 0 && <span className="text-warning">{cp.upcoming} upcoming</span>}
                     {cp.nextDeadline && (
-                      <span className="text-slate-500">next: {formatDate(cp.nextDeadline)}</span>
+                      <span className="text-steel">next: {formatDate(cp.nextDeadline)}</span>
                     )}
                   </div>
                 </Link>

@@ -8,12 +8,12 @@ import { RiskExposureChart } from '@/components/dashboard/risk-exposure-chart'
 import { OwnerPerformanceTable } from '@/components/dashboard/owner-performance-table'
 import { AISummaryWidget } from '@/components/dashboard/ai-summary-widget'
 import { useSession } from 'next-auth/react'
-import { 
-  TrendingUp, 
-  AlertCircle, 
-  CheckCircle2, 
+import {
+  TrendingUp,
+  AlertCircle,
+  CheckCircle2,
   Clock,
-  Loader2 
+  Loader2
 } from 'lucide-react'
 
 interface AnalyticsData {
@@ -37,18 +37,18 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const today = new Date()
-  
+
   useEffect(() => {
     const fetchAnalytics = async () => {
       try {
         setLoading(true)
         setError(null)
-        
+
         const response = await fetch('/api/analytics')
         if (!response.ok) {
           throw new Error('Failed to fetch analytics')
         }
-        
+
         const data = await response.json()
         setAnalytics(data)
       } catch (err) {
@@ -58,33 +58,33 @@ export default function DashboardPage() {
         setLoading(false)
       }
     }
-    
+
     fetchAnalytics()
   }, [])
-  
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-950">
+      <div className="min-h-screen flex items-center justify-center bg-canvas">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 text-amber-400 animate-spin mx-auto mb-4" />
-          <p className="text-slate-500">Loading analytics...</p>
+          <Loader2 className="w-8 h-8 text-graphite animate-spin mx-auto mb-4" />
+          <p className="text-steel">Loading analytics...</p>
         </div>
       </div>
     )
   }
-  
+
   if (error || !analytics) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-950">
+      <div className="min-h-screen flex items-center justify-center bg-canvas">
         <div className="text-center">
-          <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-slate-100 mb-2">
+          <AlertCircle className="w-12 h-12 text-danger mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-graphite mb-2">
             Failed to Load Dashboard
           </h2>
-          <p className="text-slate-500">{error || 'Unknown error'}</p>
+          <p className="text-steel">{error || 'Unknown error'}</p>
           <button
             onClick={() => window.location.reload()}
-            className="mt-4 px-4 py-2 bg-amber-600 text-white hover:bg-amber-500 transition-colors"
+            className="mt-4 px-4 py-2 bg-graphite text-platinum hover:bg-graphite/90 transition-colors"
           >
             Retry
           </button>
@@ -92,23 +92,23 @@ export default function DashboardPage() {
       </div>
     )
   }
-  
+
   const { overview } = analytics
-  
+
   return (
     <div className="p-6 max-w-[1400px]">
       {/* Header */}
-      <div className="flex items-baseline justify-between mb-6 border-b border-[#1e2d47] pb-4">
+      <div className="flex items-baseline justify-between mb-6 border-b border-black/5 pb-4">
         <div>
-          <h1 className="text-xl font-semibold text-slate-100">Analytics Dashboard</h1>
-          <p className="text-xs text-slate-500 mt-0.5 font-mono">AI-powered compliance insights</p>
+          <h1 className="text-2xl font-medium tracking-[-0.02em] text-graphite">Analytics Dashboard</h1>
+          <p className="text-xs text-steel mt-0.5 font-mono">AI-powered compliance insights</p>
         </div>
-        <div className="text-xs font-mono text-slate-500">{format(today, 'EEE, MMM d yyyy')}</div>
+        <div className="text-xs font-mono text-steel">{format(today, 'EEE, MMM d yyyy')}</div>
       </div>
-      
+
       {/* AI Summary */}
       <AISummaryWidget analyticsData={analytics} />
-      
+
       {/* Metric Cards */}
       <div className="grid grid-cols-4 gap-3 mb-6">
         <MetricCard
@@ -118,7 +118,7 @@ export default function DashboardPage() {
           color={overview.complianceScore >= 90 ? 'green' : overview.complianceScore >= 70 ? 'amber' : 'red'}
           subtitle={`${overview.completionRate}% on-time completion`}
         />
-        
+
         <MetricCard
           title="Overdue Items"
           value={overview.overdueCount}
@@ -126,7 +126,7 @@ export default function DashboardPage() {
           color={overview.overdueCount === 0 ? 'green' : overview.overdueCount <= 3 ? 'amber' : 'red'}
           subtitle="require immediate action"
         />
-        
+
         <MetricCard
           title="Due This Week"
           value={overview.dueThisWeek}
@@ -134,7 +134,7 @@ export default function DashboardPage() {
           color="amber"
           subtitle="within 7 days"
         />
-        
+
         <MetricCard
           title="Total Obligations"
           value={overview.totalObligations}
@@ -143,59 +143,59 @@ export default function DashboardPage() {
           subtitle="being tracked"
         />
       </div>
-      
+
       {/* Charts Row 1 */}
       <div className="grid grid-cols-2 gap-4 mb-4">
         <CompletionTrendChart trends={analytics.trends} />
         <CategoryPerformanceChart categories={analytics.categoryPerformance} />
       </div>
-      
+
       {/* Charts Row 2 */}
       <div className="grid grid-cols-2 gap-4 mb-4">
         <RiskExposureChart risks={analytics.riskExposure} />
-        <div className="border border-[#1e2d47] bg-[#0f1629] p-4">
-          <h3 className="text-sm font-semibold text-slate-300 mb-3 uppercase tracking-wider">Key Metrics</h3>
+        <div className="bg-white border border-black/5 rounded-card shadow-card p-6">
+          <h3 className="text-[10px] uppercase tracking-[0.18em] text-steel mb-3">Key Metrics</h3>
           <div className="space-y-3">
             <div>
               <div className="flex justify-between items-center mb-1.5">
-                <span className="text-xs text-slate-500">30-Day Completion Rate</span>
-                <span className="text-xs font-mono font-semibold text-slate-300">
+                <span className="text-xs text-steel">30-Day Completion Rate</span>
+                <span className="text-xs font-mono font-semibold text-graphite">
                   {analytics.trends.last30Days.completionRate}%
                 </span>
               </div>
-              <div className="w-full bg-[#1e2d47] h-1.5">
-                <div 
-                  className="bg-emerald-500 h-1.5"
+              <div className="w-full bg-silicon/40 h-1.5">
+                <div
+                  className="bg-success h-1.5"
                   style={{ width: `${analytics.trends.last30Days.completionRate}%` }}
                 />
               </div>
             </div>
-            
+
             <div>
               <div className="flex justify-between items-center mb-1.5">
-                <span className="text-xs text-slate-500">60-Day Completion Rate</span>
-                <span className="text-xs font-mono font-semibold text-slate-300">
+                <span className="text-xs text-steel">60-Day Completion Rate</span>
+                <span className="text-xs font-mono font-semibold text-graphite">
                   {analytics.trends.last60Days.completionRate}%
                 </span>
               </div>
-              <div className="w-full bg-[#1e2d47] h-1.5">
-                <div 
-                  className="bg-emerald-500 h-1.5"
+              <div className="w-full bg-silicon/40 h-1.5">
+                <div
+                  className="bg-success h-1.5"
                   style={{ width: `${analytics.trends.last60Days.completionRate}%` }}
                 />
               </div>
             </div>
-            
+
             <div>
               <div className="flex justify-between items-center mb-1.5">
-                <span className="text-xs text-slate-500">90-Day Completion Rate</span>
-                <span className="text-xs font-mono font-semibold text-slate-300">
+                <span className="text-xs text-steel">90-Day Completion Rate</span>
+                <span className="text-xs font-mono font-semibold text-graphite">
                   {analytics.trends.last90Days.completionRate}%
                 </span>
               </div>
-              <div className="w-full bg-[#1e2d47] h-1.5">
-                <div 
-                  className="bg-emerald-500 h-1.5"
+              <div className="w-full bg-silicon/40 h-1.5">
+                <div
+                  className="bg-success h-1.5"
                   style={{ width: `${analytics.trends.last90Days.completionRate}%` }}
                 />
               </div>
@@ -203,7 +203,7 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
-      
+
       {/* Owner Performance Table (hidden for viewers) */}
       {!isViewer && <OwnerPerformanceTable owners={analytics.ownerPerformance} />}
     </div>
@@ -220,27 +220,27 @@ interface MetricCardProps {
 
 function MetricCard({ title, value, icon, color, subtitle }: MetricCardProps) {
   const colorClasses = {
-    green: 'border-emerald-900/40 text-emerald-400/70',
-    amber: 'border-amber-900/40 text-amber-400/70',
-    red: 'border-red-900/40 text-red-400/70',
-    slate: 'border-[#1e2d47] text-slate-500'
+    green: 'border-success/30 text-success/70',
+    amber: 'border-warning/30 text-warning/70',
+    red: 'border-danger/30 text-danger/70',
+    slate: 'border-black/5 text-steel'
   }
-  
+
   const valueColorClasses = {
-    green: 'text-emerald-400',
-    amber: 'text-amber-400',
-    red: 'text-red-400',
-    slate: 'text-slate-300'
+    green: 'text-success',
+    amber: 'text-warning',
+    red: 'text-danger',
+    slate: 'text-graphite'
   }
-  
+
   return (
-    <div className={`bg-[#0f1629] border ${colorClasses[color]} p-4`}>
+    <div className={`bg-white border ${colorClasses[color]} rounded-card shadow-card p-4`}>
       <div className="text-xs uppercase tracking-wider mb-1 flex items-center gap-1.5">
         {icon}{title}
       </div>
       <div className={`text-3xl font-mono font-bold ${valueColorClasses[color]}`}>{value}</div>
       {subtitle && (
-        <div className="text-xs text-slate-600 mt-1">{subtitle}</div>
+        <div className="text-xs text-steel/70 mt-1">{subtitle}</div>
       )}
     </div>
   )
