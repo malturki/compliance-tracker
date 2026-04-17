@@ -12,9 +12,9 @@ const CATEGORY_ORDER: HelpTopic['category'][] = [
 ]
 
 const ROLE_BADGE: Record<HelpRole, string> = {
-  viewer: 'text-slate-400 border-slate-700/50 bg-slate-800/40',
-  editor: 'text-amber-400 border-amber-800/50 bg-amber-950/40',
-  admin: 'text-red-400 border-red-800/50 bg-red-950/40',
+  admin: 'text-graphite bg-light-steel/[0.28] border-light-steel',
+  editor: 'text-graphite bg-silicon/50 border-silicon',
+  viewer: 'text-steel bg-silicon/30 border-silicon',
 }
 
 export default function HelpPage() {
@@ -82,26 +82,26 @@ export default function HelpPage() {
 
   return (
     <div className="p-6 max-w-[1100px]">
-      <div className="flex items-baseline justify-between mb-6 border-b border-[#1e2d47] pb-4">
+      <div className="flex items-baseline justify-between mb-6 border-b border-black/5 pb-4">
         <div>
-          <h1 className="text-xl font-semibold text-slate-100 flex items-center gap-2">
-            <HelpCircle className="w-5 h-5 text-amber-400" />
+          <h1 className="text-2xl font-medium tracking-[-0.02em] text-graphite flex items-center gap-2">
+            <HelpCircle className="w-5 h-5 text-graphite" />
             Help
           </h1>
-          <p className="text-xs text-slate-500 mt-0.5 font-mono">
+          <p className="text-xs text-steel mt-0.5 font-mono">
             In-app documentation — scoped to your role ({role.toUpperCase()})
           </p>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={expandAll}
-            className="text-[11px] font-mono text-slate-500 hover:text-slate-300 border border-[#1e2d47] rounded px-2 py-1"
+            className="text-[11px] font-mono text-steel hover:text-graphite border border-black/5 rounded px-2 py-1"
           >
             expand all
           </button>
           <button
             onClick={collapseAll}
-            className="text-[11px] font-mono text-slate-500 hover:text-slate-300 border border-[#1e2d47] rounded px-2 py-1"
+            className="text-[11px] font-mono text-steel hover:text-graphite border border-black/5 rounded px-2 py-1"
           >
             collapse all
           </button>
@@ -114,12 +114,12 @@ export default function HelpPage() {
           value={query}
           onChange={e => setQuery(e.target.value)}
           placeholder="Search help topics..."
-          className="w-full bg-[#0f1629] border border-[#1e2d47] rounded px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-amber-500/40"
+          className="w-full bg-white border border-black/5 rounded px-3 py-2 text-sm text-graphite placeholder:text-steel/70 focus:outline-none focus:border-light-steel"
         />
       </div>
 
       {topics.length === 0 ? (
-        <div className="text-xs text-slate-500 border border-[#1e2d47] bg-[#0f1629] p-6 text-center">
+        <div className="text-xs text-steel border border-black/5 bg-white p-6 text-center">
           No topics match your search.
         </div>
       ) : (
@@ -129,7 +129,7 @@ export default function HelpPage() {
             if (items.length === 0) return null
             return (
               <section key={category}>
-                <h2 className="text-[11px] font-mono uppercase tracking-widest text-amber-500/80 mb-3">
+                <h2 className="text-[11px] font-mono uppercase tracking-widest text-steel mb-3">
                   {category}
                 </h2>
                 <div className="space-y-2">
@@ -139,29 +139,29 @@ export default function HelpPage() {
                       <div
                         key={topic.slug}
                         id={topic.slug}
-                        className="border border-[#1e2d47] bg-[#0f1629] rounded overflow-hidden"
+                        className="bg-white border border-black/5 rounded-card shadow-card overflow-hidden"
                       >
                         <button
                           onClick={() => toggle(topic.slug)}
-                          className="w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-[#0a0e1a]/60 transition-colors"
+                          className="w-full flex items-start gap-3 px-5 py-4 text-left hover:bg-silicon/[0.18] transition-colors"
                         >
                           <ChevronDown
-                            className={`w-4 h-4 mt-0.5 text-slate-500 flex-shrink-0 transition-transform ${isOpen ? '' : '-rotate-90'}`}
+                            className={`w-4 h-4 mt-0.5 text-steel flex-shrink-0 transition-transform ${isOpen ? '' : '-rotate-90'}`}
                           />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
-                              <h3 className="text-sm font-semibold text-slate-100">{topic.title}</h3>
+                              <h3 className="text-sm font-semibold text-graphite">{topic.title}</h3>
                               <span
                                 className={`inline-flex px-1.5 py-0.5 text-[9px] font-mono font-semibold border rounded ${ROLE_BADGE[topic.minRole]}`}
                               >
                                 {topic.minRole.toUpperCase()}+
                               </span>
                             </div>
-                            <p className="text-xs text-slate-400 leading-relaxed">{topic.tldr}</p>
+                            <p className="text-xs text-steel leading-relaxed">{topic.tldr}</p>
                           </div>
                         </button>
                         {isOpen && (
-                          <div className="px-4 pb-4 pt-1 border-t border-[#1e2d47]/50">
+                          <div className="px-5 pb-4 pt-1 border-t border-black/5">
                             <HelpDetails markdown={topic.details} />
                           </div>
                         )}
@@ -227,13 +227,13 @@ function splitBlocks(markdown: string): Block[] {
 function HelpDetails({ markdown }: { markdown: string }) {
   const blocks = splitBlocks(markdown)
   return (
-    <div className="space-y-3 pt-3 text-xs text-slate-300 leading-relaxed">
+    <div className="space-y-3 pt-3 text-xs text-steel leading-relaxed">
       {blocks.map((block, i) => {
         if (block.type === 'code') {
           return (
             <pre
               key={i}
-              className="bg-[#050b18] border border-[#1e2d47] rounded px-3 py-2 text-[11px] font-mono text-slate-300 overflow-x-auto"
+              className="bg-canvas border border-black/5 rounded px-3 py-2 text-[11px] font-mono text-graphite overflow-x-auto"
             >
               {block.content}
             </pre>
@@ -244,7 +244,7 @@ function HelpDetails({ markdown }: { markdown: string }) {
             <ul key={i} className="space-y-1 list-none pl-0">
               {block.items.map((item, j) => (
                 <li key={j} className="flex gap-2">
-                  <span className="text-amber-500/70 flex-shrink-0">•</span>
+                  <span className="text-steel flex-shrink-0">•</span>
                   <span className="flex-1">{renderInline(item)}</span>
                 </li>
               ))}
@@ -252,7 +252,7 @@ function HelpDetails({ markdown }: { markdown: string }) {
           )
         }
         return (
-          <p key={i} className="text-slate-300">
+          <p key={i} className="text-steel">
             {renderInline(block.content)}
           </p>
         )
@@ -268,14 +268,14 @@ function renderInline(text: string): React.ReactNode {
       {tokens.map((tok, i) => {
         if (tok.startsWith('**') && tok.endsWith('**')) {
           return (
-            <strong key={i} className="text-slate-100 font-semibold">
+            <strong key={i} className="text-graphite font-medium">
               {tok.slice(2, -2)}
             </strong>
           )
         }
         if (tok.startsWith('`') && tok.endsWith('`')) {
           return (
-            <code key={i} className="bg-[#050b18] border border-[#1e2d47] rounded px-1 py-0.5 text-[11px] font-mono text-amber-300">
+            <code key={i} className="bg-canvas border border-black/5 rounded px-1 py-0.5 text-[11px] font-mono text-graphite">
               {tok.slice(1, -1)}
             </code>
           )

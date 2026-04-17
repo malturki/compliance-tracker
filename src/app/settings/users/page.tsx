@@ -75,57 +75,57 @@ export default function UsersSettingsPage() {
 
   return (
     <div className="p-6 max-w-[1400px]">
-      <div className="flex items-baseline justify-between mb-6 border-b border-[#1e2d47] pb-4">
+      <div className="flex items-baseline justify-between mb-6 border-b border-black/5 pb-4">
         <div>
-          <h1 className="text-xl font-semibold text-slate-100">User Management</h1>
-          <p className="text-xs text-slate-500 mt-0.5 font-mono">Manage roles and access</p>
+          <h1 className="text-2xl font-medium tracking-[-0.02em] text-graphite">User Management</h1>
+          <p className="text-xs text-steel mt-0.5 font-mono">Manage roles and access</p>
         </div>
-        <div className="text-xs font-mono text-slate-500">{users.length} users</div>
+        <div className="text-xs font-mono text-steel">{users.length} users</div>
       </div>
 
       <SettingsTabs />
 
       {loading ? (
-        <div className="text-xs text-slate-500 font-mono">Loading...</div>
+        <div className="text-xs text-steel font-mono">Loading...</div>
       ) : (
-        <div className="border border-[#1e2d47] bg-[#0f1629] overflow-hidden">
+        <div className="bg-white border border-black/5 rounded-card shadow-card overflow-hidden">
           <table className="w-full text-xs">
             <thead>
-              <tr className="border-b border-[#1e2d47] text-slate-500">
+              <tr className="text-[10px] uppercase tracking-[0.18em] text-steel border-b border-black/5">
                 <th className="text-left px-3 py-2 font-medium">User</th>
                 <th className="text-left px-3 py-2 font-medium">Email</th>
                 <th className="text-left px-3 py-2 font-medium">Role</th>
-                <th className="text-right px-3 py-2 font-medium font-mono">Joined</th>
+                <th className="text-right px-3 py-2 font-medium">Joined</th>
               </tr>
             </thead>
             <tbody>
-              {users.map((user, i) => (
-                <tr key={user.id} className={`border-b border-[#1e2d47]/50 ${i % 2 === 0 ? '' : 'bg-[#0a0e1a]/30'}`}>
+              {users.map(user => (
+                <tr key={user.id} className="border-b border-silicon/40 last:border-b-0 hover:bg-silicon/[0.18]">
                   <td className="px-3 py-2">
                     <div className="flex items-center gap-2">
                       {user.image ? (
                         <img src={user.image} alt="" className="w-6 h-6 rounded-full" />
                       ) : (
-                        <div className="w-6 h-6 rounded-full bg-[#1e2d47] flex items-center justify-center text-[10px] text-slate-400 font-mono">
+                        <div className="w-6 h-6 rounded-full bg-silicon/50 flex items-center justify-center text-[10px] text-steel font-mono">
                           {user.name?.[0]?.toUpperCase() ?? '?'}
                         </div>
                       )}
-                      <span className="text-slate-300">{user.name ?? 'Unknown'}</span>
+                      <span className="text-graphite">{user.name ?? 'Unknown'}</span>
                     </div>
                   </td>
-                  <td className="px-3 py-2 font-mono text-slate-400">{user.email}</td>
+                  <td className="px-3 py-2 font-mono text-steel">{user.email}</td>
                   <td className="px-3 py-2">
                     <select
                       value={user.role}
                       onChange={e => handleRoleChange(user.id, e.target.value)}
-                      className="bg-[#0a0e1a] border border-[#1e2d47] text-slate-300 text-xs px-2 py-1 rounded focus:border-amber-500/50 focus:outline-none"
+                      className="bg-white border border-black/5 text-graphite text-xs px-2 py-1 rounded focus:border-light-steel focus:outline-none"
                     >
                       {ROLES.map(r => (
                         <option key={r} value={r}>{r.charAt(0).toUpperCase() + r.slice(1)}</option>
                       ))}
                     </select>
                   </td>
-                  <td className="px-3 py-2 text-right font-mono text-slate-500">
+                  <td className="px-3 py-2 text-right font-mono text-steel">
                     {new Date(user.createdAt).toLocaleDateString()}
                   </td>
                 </tr>

@@ -30,9 +30,9 @@ const EXPIRY_OPTIONS = [
 ]
 
 const roleBadgeColors: Record<string, string> = {
-  admin: 'text-red-400 bg-red-950/50 border-red-800/50',
-  editor: 'text-amber-400 bg-amber-950/50 border-amber-800/50',
-  viewer: 'text-slate-400 bg-slate-800/50 border-slate-700/50',
+  admin: 'text-graphite bg-light-steel/[0.28] border-light-steel',
+  editor: 'text-graphite bg-silicon/50 border-silicon',
+  viewer: 'text-steel bg-silicon/30 border-silicon',
 }
 
 export default function AgentsSettingsPage() {
@@ -135,14 +135,14 @@ export default function AgentsSettingsPage() {
 
   return (
     <div className="p-6 max-w-[1400px]">
-      <div className="flex items-baseline justify-between mb-6 border-b border-[#1e2d47] pb-4">
+      <div className="flex items-baseline justify-between mb-6 border-b border-black/5 pb-4">
         <div>
-          <h1 className="text-xl font-semibold text-slate-100">Agent Management</h1>
-          <p className="text-xs text-slate-500 mt-0.5 font-mono">Service accounts with API tokens</p>
+          <h1 className="text-2xl font-medium tracking-[-0.02em] text-graphite">Agent Management</h1>
+          <p className="text-xs text-steel mt-0.5 font-mono">Service accounts with API tokens</p>
         </div>
         <button
           onClick={() => setShowCreate(true)}
-          className="flex items-center gap-2 px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-medium rounded transition-colors"
+          className="flex items-center gap-2 px-3 py-1.5 bg-graphite hover:bg-graphite/90 text-platinum text-xs font-medium rounded transition-colors"
         >
           <Plus className="w-3.5 h-3.5" />
           New Agent
@@ -153,18 +153,18 @@ export default function AgentsSettingsPage() {
 
       {/* Skill URL — visible at the page level so admins always have it on hand,
           not just inside the create-token modal. */}
-      <div className="mt-4 mb-4 bg-[#0a0e1a] border border-[#1e2d47] p-3 flex items-center gap-3">
+      <div className="mt-4 mb-4 bg-white border border-black/5 rounded-card shadow-card p-4 flex items-center gap-3">
         <div className="flex-shrink-0">
-          <div className="text-[10px] text-slate-500 uppercase tracking-wider mb-0.5">Agent skill URL</div>
-          <div className="text-[10px] text-slate-600">Public, no auth — share with any AI agent</div>
+          <div className="text-[10px] text-steel uppercase tracking-[0.18em] mb-0.5">Agent skill URL</div>
+          <div className="text-[10px] text-steel/70">Public, no auth — share with any AI agent</div>
         </div>
-        <code className="flex-1 font-mono text-[11px] text-slate-300 break-all bg-[#0f1629] border border-[#1e2d47] px-2 py-1.5 rounded">
+        <code className="flex-1 font-mono text-[11px] text-graphite break-all bg-canvas border border-black/5 px-2.5 py-2 rounded-inner">
           {SKILL_URL}
         </code>
         <div className="flex items-center gap-1.5 flex-shrink-0">
           <button
             onClick={() => copyToClipboard('skill-url', SKILL_URL)}
-            className="inline-flex items-center gap-1 px-2 py-1.5 border border-[#1e2d47] hover:border-amber-500/50 text-slate-400 hover:text-amber-400 text-[10px] rounded transition-colors"
+            className="inline-flex items-center gap-1 px-2 py-1.5 bg-transparent border border-black/10 text-graphite hover:bg-silicon/[0.18] text-[10px] rounded transition-colors"
           >
             {copiedKey === 'skill-url' ? <><Check className="w-3 h-3" /> Copied</> : <><Copy className="w-3 h-3" /> Copy URL</>}
           </button>
@@ -172,7 +172,7 @@ export default function AgentsSettingsPage() {
             href={SKILL_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 px-2 py-1.5 border border-[#1e2d47] hover:border-amber-500/50 text-slate-400 hover:text-amber-400 text-[10px] rounded transition-colors"
+            className="inline-flex items-center gap-1 px-2 py-1.5 bg-transparent border border-black/10 text-graphite hover:bg-silicon/[0.18] text-[10px] rounded transition-colors"
           >
             <ExternalLink className="w-3 h-3" />
             Open
@@ -181,16 +181,16 @@ export default function AgentsSettingsPage() {
       </div>
 
       {loading ? (
-        <div className="text-xs text-slate-500 font-mono">Loading...</div>
+        <div className="text-xs text-steel font-mono">Loading...</div>
       ) : agents.length === 0 ? (
-        <div className="text-xs text-slate-500 border border-[#1e2d47] bg-[#0f1629] p-6 text-center">
+        <div className="text-xs text-steel border border-black/5 bg-white rounded-card p-6 text-center">
           No agents yet. Create one to give an AI agent access to the API.
         </div>
       ) : (
-        <div className="border border-[#1e2d47] bg-[#0f1629] overflow-hidden">
+        <div className="bg-white border border-black/5 rounded-card shadow-card overflow-hidden">
           <table className="w-full text-xs">
             <thead>
-              <tr className="border-b border-[#1e2d47] text-slate-500">
+              <tr className="text-[10px] uppercase tracking-[0.18em] text-steel border-b border-black/5">
                 <th className="text-left px-3 py-2 font-medium">Name</th>
                 <th className="text-left px-3 py-2 font-medium">Role</th>
                 <th className="text-left px-3 py-2 font-medium">Token</th>
@@ -200,25 +200,25 @@ export default function AgentsSettingsPage() {
               </tr>
             </thead>
             <tbody>
-              {agents.map((agent, i) => {
+              {agents.map(agent => {
                 const revoked = !!agent.revokedAt
                 const expired = new Date(agent.expiresAt) < new Date()
                 return (
-                  <tr key={agent.id} className={`border-b border-[#1e2d47]/50 ${i % 2 === 0 ? '' : 'bg-[#0a0e1a]/30'} ${revoked ? 'opacity-50' : ''}`}>
+                  <tr key={agent.id} className={`border-b border-silicon/40 last:border-b-0 hover:bg-silicon/[0.18] ${revoked ? 'opacity-50' : ''}`}>
                     <td className="px-3 py-2">
-                      <div className={revoked ? 'line-through text-slate-500' : 'text-slate-300'}>{agent.name}</div>
-                      {agent.description && <div className="text-[10px] text-slate-600 mt-0.5">{agent.description}</div>}
+                      <div className={revoked ? 'line-through text-steel' : 'text-graphite'}>{agent.name}</div>
+                      {agent.description && <div className="text-[10px] text-steel/70 mt-0.5">{agent.description}</div>}
                     </td>
                     <td className="px-3 py-2">
                       <span className={`inline-flex px-1.5 py-0.5 text-[10px] font-mono font-semibold border rounded ${roleBadgeColors[agent.role] ?? roleBadgeColors.viewer}`}>
                         {agent.role.toUpperCase()}
                       </span>
                     </td>
-                    <td className="px-3 py-2 font-mono text-slate-400 text-[10px]">{agent.tokenPrefix}...</td>
-                    <td className={`px-3 py-2 font-mono ${expired ? 'text-red-400' : 'text-slate-500'}`}>
+                    <td className="px-3 py-2 font-mono text-steel text-[10px]">{agent.tokenPrefix}...</td>
+                    <td className={`px-3 py-2 font-mono ${expired ? 'text-danger' : 'text-steel'}`}>
                       {formatDistanceToNow(new Date(agent.expiresAt), { addSuffix: true })}
                     </td>
-                    <td className="px-3 py-2 font-mono text-slate-500">
+                    <td className="px-3 py-2 font-mono text-steel">
                       {agent.lastUsedAt ? formatDistanceToNow(new Date(agent.lastUsedAt), { addSuffix: true }) : 'never'}
                     </td>
                     <td className="px-3 py-2 text-right">
@@ -226,14 +226,14 @@ export default function AgentsSettingsPage() {
                         <div className="flex items-center justify-end gap-2">
                           <button
                             onClick={() => handleRegenerate(agent.id)}
-                            className="inline-flex items-center gap-1 px-2 py-1 border border-[#1e2d47] hover:border-amber-500/50 text-slate-400 hover:text-amber-400 text-[10px] rounded transition-colors"
+                            className="inline-flex items-center gap-1 px-2 py-1 bg-transparent border border-black/10 text-graphite hover:bg-silicon/[0.18] text-[10px] rounded transition-colors"
                           >
                             <RotateCw className="w-3 h-3" />
                             Regenerate
                           </button>
                           <button
                             onClick={() => handleRevoke(agent.id, agent.name)}
-                            className="inline-flex items-center gap-1 px-2 py-1 border border-[#1e2d47] hover:border-red-500/50 text-slate-400 hover:text-red-400 text-[10px] rounded transition-colors"
+                            className="inline-flex items-center gap-1 px-2 py-1 bg-transparent border border-black/10 text-danger hover:bg-danger/10 text-[10px] rounded transition-colors"
                           >
                             <Trash2 className="w-3 h-3" />
                             Revoke
@@ -250,46 +250,46 @@ export default function AgentsSettingsPage() {
       )}
 
       {showCreate && !createdToken && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#0f1629] border border-[#1e2d47] max-w-md w-full p-5">
-            <h2 className="text-sm font-semibold text-slate-100 mb-4">Create Agent</h2>
+        <div className="fixed inset-0 bg-graphite/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white border border-black/5 rounded-card shadow-card max-w-md w-full p-5">
+            <h2 className="text-sm font-semibold text-graphite mb-4">Create Agent</h2>
             <div className="space-y-3">
               <div>
-                <label className="text-xs text-slate-500 mb-1 block">Name</label>
+                <label className="text-xs text-steel mb-1 block">Name</label>
                 <input
                   type="text"
                   value={newAgent.name}
                   onChange={e => setNewAgent({ ...newAgent, name: e.target.value })}
                   placeholder="e.g. SlackBot"
-                  className="w-full bg-[#0a0e1a] border border-[#1e2d47] text-slate-200 text-xs px-3 py-2 rounded focus:border-amber-500/50 focus:outline-none"
+                  className="w-full bg-canvas border border-black/5 text-graphite text-xs px-3 py-2 rounded focus:border-light-steel focus:outline-none"
                 />
               </div>
               <div>
-                <label className="text-xs text-slate-500 mb-1 block">Description (optional)</label>
+                <label className="text-xs text-steel mb-1 block">Description (optional)</label>
                 <input
                   type="text"
                   value={newAgent.description}
                   onChange={e => setNewAgent({ ...newAgent, description: e.target.value })}
                   placeholder="What does this agent do?"
-                  className="w-full bg-[#0a0e1a] border border-[#1e2d47] text-slate-200 text-xs px-3 py-2 rounded focus:border-amber-500/50 focus:outline-none"
+                  className="w-full bg-canvas border border-black/5 text-graphite text-xs px-3 py-2 rounded focus:border-light-steel focus:outline-none"
                 />
               </div>
               <div>
-                <label className="text-xs text-slate-500 mb-1 block">Role</label>
+                <label className="text-xs text-steel mb-1 block">Role</label>
                 <select
                   value={newAgent.role}
                   onChange={e => setNewAgent({ ...newAgent, role: e.target.value })}
-                  className="w-full bg-[#0a0e1a] border border-[#1e2d47] text-slate-200 text-xs px-3 py-2 rounded focus:border-amber-500/50 focus:outline-none"
+                  className="w-full bg-canvas border border-black/5 text-graphite text-xs px-3 py-2 rounded focus:border-light-steel focus:outline-none"
                 >
                   {ROLES.map(r => <option key={r} value={r}>{r.charAt(0).toUpperCase() + r.slice(1)}</option>)}
                 </select>
               </div>
               <div>
-                <label className="text-xs text-slate-500 mb-1 block">Expires in</label>
+                <label className="text-xs text-steel mb-1 block">Expires in</label>
                 <select
                   value={newAgent.expiresInDays}
                   onChange={e => setNewAgent({ ...newAgent, expiresInDays: Number(e.target.value) })}
-                  className="w-full bg-[#0a0e1a] border border-[#1e2d47] text-slate-200 text-xs px-3 py-2 rounded focus:border-amber-500/50 focus:outline-none"
+                  className="w-full bg-canvas border border-black/5 text-graphite text-xs px-3 py-2 rounded focus:border-light-steel focus:outline-none"
                 >
                   {EXPIRY_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
@@ -298,13 +298,13 @@ export default function AgentsSettingsPage() {
             <div className="flex gap-2 mt-5">
               <button
                 onClick={closeTokenModal}
-                className="flex-1 px-3 py-2 text-xs text-slate-400 hover:text-slate-200 transition-colors"
+                className="flex-1 px-3 py-2 text-xs text-steel hover:text-graphite transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleCreate}
-                className="flex-1 px-3 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-medium rounded transition-colors"
+                className="flex-1 px-3 py-2 bg-graphite hover:bg-graphite/90 text-platinum text-xs font-medium rounded transition-colors"
               >
                 Create Agent
               </button>
@@ -314,37 +314,37 @@ export default function AgentsSettingsPage() {
       )}
 
       {createdToken && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-[#0f1629] border border-[#1e2d47] max-w-lg w-full p-5 my-8">
-            <h2 className="text-sm font-semibold text-slate-100 mb-2">Agent Token</h2>
-            <p className="text-xs text-amber-400 mb-3">
+        <div className="fixed inset-0 bg-graphite/40 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white border border-black/5 rounded-card shadow-card max-w-lg w-full p-5 my-8">
+            <h2 className="text-sm font-semibold text-graphite mb-2">Agent Token</h2>
+            <p className="text-warning text-xs mb-3">
               Copy this token now. It will never be shown again.
             </p>
-            <div className="bg-[#0a0e1a] border border-[#1e2d47] rounded p-3 font-mono text-[11px] text-slate-200 break-all mb-2">
+            <div className="bg-canvas border border-black/5 rounded-inner p-3 font-mono text-[11px] text-graphite break-all mb-2">
               {createdToken.token}
             </div>
             <button
               onClick={() => copyToClipboard('token', createdToken.token)}
-              className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-medium rounded transition-colors"
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-graphite hover:bg-graphite/90 text-platinum text-xs font-medium rounded transition-colors"
             >
               {copiedKey === 'token' ? <><Check className="w-3.5 h-3.5" /> Copied</> : <><Copy className="w-3.5 h-3.5" /> Copy Token</>}
             </button>
 
             {/* Instructions */}
-            <div className="mt-5 pt-4 border-t border-[#1e2d47]">
-              <h3 className="text-xs font-semibold text-slate-100 uppercase tracking-wider mb-3">How to use this token</h3>
+            <div className="mt-5 pt-4 border-t border-black/5">
+              <h3 className="text-xs font-semibold text-graphite uppercase tracking-wider mb-3">How to use this token</h3>
 
               {/* Step 1: Export */}
               <div className="mb-4">
-                <div className="text-xs text-slate-400 mb-1.5">
-                  <span className="text-slate-500 font-mono">1.</span> Export the token in your shell:
+                <div className="text-xs text-steel mb-1.5">
+                  <span className="text-steel/70 font-mono">1.</span> Export the token in your shell:
                 </div>
-                <div className="bg-[#0a0e1a] border border-[#1e2d47] rounded p-2.5 font-mono text-[11px] text-slate-200 break-all mb-1.5">
+                <div className="bg-canvas border border-black/5 rounded-inner p-2.5 font-mono text-[11px] text-graphite break-all mb-1.5">
                   {exportCommand(createdToken.token)}
                 </div>
                 <button
                   onClick={() => copyToClipboard('export', exportCommand(createdToken.token))}
-                  className="w-full flex items-center justify-center gap-1.5 px-2 py-1.5 border border-[#1e2d47] text-slate-400 hover:text-amber-400 hover:border-amber-500/50 text-[11px] rounded transition-colors"
+                  className="w-full flex items-center justify-center gap-1.5 px-2 py-1.5 bg-transparent border border-black/10 text-graphite hover:bg-silicon/[0.18] text-[11px] rounded transition-colors"
                 >
                   {copiedKey === 'export' ? <><Check className="w-3 h-3" /> Copied</> : <><Copy className="w-3 h-3" /> Copy command</>}
                 </button>
@@ -352,29 +352,29 @@ export default function AgentsSettingsPage() {
 
               {/* Step 2: Agent prompt */}
               <div className="mb-3">
-                <div className="text-xs text-slate-400 mb-1.5">
-                  <span className="text-slate-500 font-mono">2.</span> Paste this into your AI agent:
+                <div className="text-xs text-steel mb-1.5">
+                  <span className="text-steel/70 font-mono">2.</span> Paste this into your AI agent:
                 </div>
-                <div className="bg-[#0a0e1a] border border-[#1e2d47] rounded p-2.5 text-[11px] text-slate-300 mb-1.5 leading-relaxed">
+                <div className="bg-canvas border border-black/5 rounded-inner p-2.5 text-[11px] text-graphite mb-1.5 leading-relaxed">
                   {agentPrompt}
                 </div>
                 <button
                   onClick={() => copyToClipboard('prompt', agentPrompt)}
-                  className="w-full flex items-center justify-center gap-1.5 px-2 py-1.5 border border-[#1e2d47] text-slate-400 hover:text-amber-400 hover:border-amber-500/50 text-[11px] rounded transition-colors"
+                  className="w-full flex items-center justify-center gap-1.5 px-2 py-1.5 bg-transparent border border-black/10 text-graphite hover:bg-silicon/[0.18] text-[11px] rounded transition-colors"
                 >
                   {copiedKey === 'prompt' ? <><Check className="w-3 h-3" /> Copied</> : <><Copy className="w-3 h-3" /> Copy prompt</>}
                 </button>
               </div>
 
-              <div className="text-[10px] text-slate-500 leading-relaxed">
-                The prompt references <span className="font-mono text-slate-400">COMPLIANCE_TRACKER_TOKEN</span>, not the raw token — safer to paste into chat history.
+              <div className="text-[10px] text-steel leading-relaxed">
+                The prompt references <span className="font-mono text-graphite">COMPLIANCE_TRACKER_TOKEN</span>, not the raw token — safer to paste into chat history.
               </div>
 
               <a
                 href={SKILL_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-slate-500 hover:text-amber-400 transition-colors"
+                className="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-steel hover:text-graphite transition-colors"
               >
                 <ExternalLink className="w-3 h-3" />
                 View skill
@@ -383,7 +383,7 @@ export default function AgentsSettingsPage() {
 
             <button
               onClick={closeTokenModal}
-              className="w-full mt-4 px-3 py-2 text-xs text-slate-400 hover:text-slate-200 transition-colors"
+              className="w-full mt-4 px-3 py-2 text-xs text-steel hover:text-graphite transition-colors"
             >
               Close
             </button>
