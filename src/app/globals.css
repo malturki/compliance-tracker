@@ -4,22 +4,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@font-face {
-  font-family: 'General Sans';
-  src: url('/fonts/GeneralSans-Variable.woff2') format('woff2');
-  font-weight: 200 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'General Sans';
-  src: url('/fonts/GeneralSans-VariableItalic.woff2') format('woff2');
-  font-weight: 200 700;
-  font-style: italic;
-  font-display: swap;
-}
-
 :root {
   --font-sans: 'General Sans', system-ui, -apple-system, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -68,7 +52,6 @@ body {
 
 /* Section headings use General Sans Medium per kit */
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-sans);
   font-weight: 500;
   letter-spacing: -0.015em;
 }

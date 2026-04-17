@@ -19,7 +19,6 @@ const generalSans = localFont({
 export const metadata: Metadata = {
   title: 'FAST Compliance Tracker',
   description: 'Track compliance obligations, deadlines, and completions.',
-  icons: { icon: '/icon.png' },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
