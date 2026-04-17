@@ -59,7 +59,7 @@ function ErrorContent() {
         </div>
 
         <p className="text-center text-[10px] text-steel/70 mt-4 font-mono">
-          Compliance Tracker — Pi Squared Inc.
+          FAST Compliance Tracker
         </p>
       </div>
     </div>

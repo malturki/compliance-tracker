@@ -72,7 +72,7 @@ export default async function OverviewPage() {
         <div className="flex items-baseline justify-between mb-6 border-b border-black/5 pb-4">
           <div>
             <h1 className="text-2xl font-medium tracking-[-0.02em] text-graphite">Overview</h1>
-            <p className="text-xs text-steel mt-0.5 font-mono">Pi Squared Inc. — Compliance Dashboard</p>
+            <p className="text-xs text-steel mt-0.5 font-mono">FAST — Compliance Dashboard</p>
           </div>
           <div className="text-xs font-mono text-steel">{format(today, 'EEE, MMM d yyyy')}</div>
         </div>
@@ -119,7 +119,7 @@ export default async function OverviewPage() {
       <div className="flex items-baseline justify-between mb-6 border-b border-black/5 pb-4">
         <div>
           <h1 className="text-2xl font-medium tracking-[-0.02em] text-graphite">Overview</h1>
-          <p className="text-xs text-steel mt-0.5 font-mono">Pi Squared Inc. — Compliance Dashboard</p>
+          <p className="text-xs text-steel mt-0.5 font-mono">FAST — Compliance Dashboard</p>
         </div>
         <div className="text-xs font-mono text-steel">{format(today, 'EEE, MMM d yyyy')}</div>
       </div>

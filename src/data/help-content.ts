@@ -20,7 +20,7 @@ export const HELP_TOPICS: HelpTopic[] = [
     category: 'Getting Started',
     minRole: 'viewer',
     tldr: 'The compliance tracker keeps track of obligations your company has to meet — tax filings, vendor contracts, insurance renewals, investor reports, and so on. Each obligation has a due date, a risk level, and an owner. Your role determines what you can do.',
-    details: `Pi Squared Inc.'s compliance tracker helps you see at a glance what's due, what's overdue, and who's responsible. It replaces scattered spreadsheets and calendar invites with a single source of truth.
+    details: `The FAST Compliance Tracker helps you see at a glance what's due, what's overdue, and who's responsible. It replaces scattered spreadsheets and calendar invites with a single source of truth.
 
 **Roles determine what you see:**
 
@@ -121,7 +121,7 @@ The app is restricted to \`@fast.xyz\` and \`@pi2labs.org\` accounts. No one out
     category: 'Using the App',
     minRole: 'viewer',
     tldr: 'Counterparty is the external party an obligation is owed to (AWS, California FTB, Republic Registered Agent). Set it on each obligation to filter and group by who you actually owe.',
-    details: `Counterparty is the **other party** to an obligation — the entity you pay, file with, report to, or renew with. It is distinct from \`entity\` (which is always Pi Squared Inc.) and from \`jurisdiction\` (which is the geographic scope, e.g., "California"). The same jurisdiction can have many counterparties (Franchise Tax Board, Secretary of State, EDD).
+    details: `Counterparty is the **other party** to an obligation — the entity you pay, file with, report to, or renew with. It is distinct from \`entity\` (the legal corporate entity the obligation belongs to — by default Pi Squared Inc.) and from \`jurisdiction\` (which is the geographic scope, e.g., "California"). The same jurisdiction can have many counterparties (Franchise Tax Board, Secretary of State, EDD).
 
 **Examples:**
 
@@ -173,7 +173,7 @@ Use the canonical legal name when possible (\`Amazon Web Services\` not \`AWS\`,
 
 **Alert days:** A list of integers representing "alert me N days before due." For example, \`[30, 14, 7]\` sends three reminders. These trigger the email alert cron job.
 
-**Entity:** Defaults to "Pi Squared Inc." You normally don't change this.`,
+**Entity:** Defaults to "Pi Squared Inc." — the legal corporate entity the obligation belongs to. You normally don't change this.`,
   },
   {
     slug: 'marking-complete',

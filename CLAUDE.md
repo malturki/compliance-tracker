@@ -93,10 +93,16 @@
 
 ## UI direction
 
-- Preserve the current dense, operational dashboard feel.
-- Avoid playful consumer SaaS styling.
-- Prefer incremental UI improvements over broad restyles.
+- The app follows the FAST design language (see `docs/superpowers/plans/2026-04-17-fast-rebrand.md`):
+  - Light theme, Platinum canvas (`#F6F8FA`), white cards, Graphite (`#2B2C2F`) text.
+  - General Sans typography (woff2 in `public/fonts/`, loaded via `next/font/local` in `src/app/layout.tsx`).
+  - Accent is Light Steel Blue `#A1B0CF` — use as a blade, not a paint bucket.
+  - FAST wordmark logo in sidebar (`public/fast-logo-dark.svg`); never type "FAST" as plain text.
+  - Semantic colors (`danger`, `warning`, `success`) are Tailwind tokens; prefer `text-danger` over inline `#B45555`.
+- Keep density controlled but not crowded. One dominant pane per page.
 - Viewer role sees a reduced UI: only Overview and Dashboard in the sidebar, stats + category breakdown on Overview (no obligation tables), no owner-performance table on Dashboard. Tune viewer experience when changing page layouts.
+- Role-badge colors live in `src/lib/role-colors.ts` — reuse `ROLE_BADGE_CLASSES` instead of re-defining per page.
+- Follow the FAST pre-ship checklist at `/tmp/fast-demo-kit/fast-demo-kit/references/pre-ship-checklist.md` (or the copy at `docs/superpowers/plans/2026-04-17-fast-rebrand.md#phase-10`) before shipping a new surface.
 
 ## Keyboard and navigation
 
