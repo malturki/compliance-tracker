@@ -53,20 +53,20 @@ export function computeStatus(
 
 export function getRiskColor(risk: RiskLevel): string {
   switch (risk) {
-    case 'critical': return 'text-red-400 bg-red-950/50 border-red-800/50'
-    case 'high': return 'text-orange-400 bg-orange-950/50 border-orange-800/50'
-    case 'medium': return 'text-amber-400 bg-amber-950/50 border-amber-800/50'
-    case 'low': return 'text-emerald-400 bg-emerald-950/50 border-emerald-800/50'
+    case 'critical': return 'text-[#B45555] bg-[#B45555]/10 border-[#B45555]/30'
+    case 'high': return 'text-[#A1620E] bg-[#A1620E]/10 border-[#A1620E]/30'
+    case 'medium': return 'text-steel bg-silicon/[0.4] border-silicon'
+    case 'low': return 'text-[#3A6B4F] bg-[#3A6B4F]/10 border-[#3A6B4F]/30'
   }
 }
 
 export function getStatusColor(status: Status): string {
   switch (status) {
-    case 'overdue': return 'text-red-400 bg-red-950/50 border-red-800/50'
-    case 'upcoming': return 'text-amber-400 bg-amber-950/50 border-amber-800/50'
-    case 'current': return 'text-emerald-400 bg-emerald-950/50 border-emerald-800/50'
-    case 'completed': return 'text-sky-400 bg-sky-950/50 border-sky-800/50'
-    default: return 'text-slate-400 bg-slate-800/50 border-slate-700/50'
+    case 'overdue': return 'text-[#B45555] bg-[#B45555]/10 border-[#B45555]/30'
+    case 'upcoming': return 'text-[#A1620E] bg-[#A1620E]/10 border-[#A1620E]/30'
+    case 'current': return 'text-graphite bg-white border-silicon'
+    case 'completed': return 'text-[#3A6B4F] bg-[#3A6B4F]/10 border-[#3A6B4F]/30'
+    default: return 'text-steel bg-silicon/[0.4] border-silicon'
   }
 }
 

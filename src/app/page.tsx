@@ -69,22 +69,22 @@ export default async function OverviewPage() {
   if (data.total === 0) {
     return (
       <div className="p-6 max-w-[1400px]">
-        <div className="flex items-baseline justify-between mb-6 border-b border-[#1e2d47] pb-4">
+        <div className="flex items-baseline justify-between mb-6 border-b border-black/5 pb-4">
           <div>
-            <h1 className="text-xl font-semibold text-slate-100">Overview</h1>
-            <p className="text-xs text-slate-500 mt-0.5 font-mono">Pi Squared Inc. — Compliance Dashboard</p>
+            <h1 className="text-2xl font-medium tracking-[-0.02em] text-graphite">Overview</h1>
+            <p className="text-xs text-steel mt-0.5 font-mono">Pi Squared Inc. — Compliance Dashboard</p>
           </div>
-          <div className="text-xs font-mono text-slate-500">{format(today, 'EEE, MMM d yyyy')}</div>
+          <div className="text-xs font-mono text-steel">{format(today, 'EEE, MMM d yyyy')}</div>
         </div>
 
         <div className="max-w-2xl mx-auto mt-16 text-center">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded bg-amber-500/10 border border-amber-500/30 mb-5">
-            <TrendingUp className="w-6 h-6 text-amber-400" />
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded bg-light-steel/[0.18] border border-light-steel/40 mb-5">
+            <TrendingUp className="w-6 h-6 text-graphite" />
           </div>
-          <h2 className="text-lg font-semibold text-slate-100 mb-2">
+          <h2 className="text-lg font-semibold text-graphite mb-2">
             Welcome to the Compliance Tracker
           </h2>
-          <p className="text-sm text-slate-400 mb-8 leading-relaxed">
+          <p className="text-sm text-steel mb-8 leading-relaxed">
             No obligations are being tracked yet.
             {canEdit
               ? ' Get started by applying a template for common compliance requirements, or add your first obligation manually.'
@@ -95,14 +95,14 @@ export default async function OverviewPage() {
             <div className="flex items-center justify-center gap-3">
               <Link
                 href="/templates"
-                className="inline-flex items-center gap-2 px-4 py-2.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-medium rounded transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2.5 bg-graphite hover:bg-graphite/90 text-white text-xs font-medium rounded transition-colors"
               >
                 <TrendingUp className="w-3.5 h-3.5" />
                 Apply a template
               </Link>
               <Link
                 href="/obligations"
-                className="inline-flex items-center gap-2 px-4 py-2.5 border border-[#1e2d47] hover:border-amber-500/50 text-slate-300 hover:text-amber-400 text-xs font-medium rounded transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2.5 border border-black/5 hover:border-light-steel text-graphite hover:text-graphite text-xs font-medium rounded transition-colors"
               >
                 Add manually →
               </Link>
@@ -116,41 +116,41 @@ export default async function OverviewPage() {
   return (
     <div className="p-6 max-w-[1400px]">
       {/* Header */}
-      <div className="flex items-baseline justify-between mb-6 border-b border-[#1e2d47] pb-4">
+      <div className="flex items-baseline justify-between mb-6 border-b border-black/5 pb-4">
         <div>
-          <h1 className="text-xl font-semibold text-slate-100">Overview</h1>
-          <p className="text-xs text-slate-500 mt-0.5 font-mono">Pi Squared Inc. — Compliance Dashboard</p>
+          <h1 className="text-2xl font-medium tracking-[-0.02em] text-graphite">Overview</h1>
+          <p className="text-xs text-steel mt-0.5 font-mono">Pi Squared Inc. — Compliance Dashboard</p>
         </div>
-        <div className="text-xs font-mono text-slate-500">{format(today, 'EEE, MMM d yyyy')}</div>
+        <div className="text-xs font-mono text-steel">{format(today, 'EEE, MMM d yyyy')}</div>
       </div>
 
       {/* Stats Row */}
       <div className="grid grid-cols-4 gap-3 mb-6">
-        <div className="bg-[#0f1629] border border-[#1e2d47] p-4">
-          <div className="text-xs text-slate-500 uppercase tracking-wider mb-1">Total</div>
-          <div className="text-3xl font-mono font-bold text-slate-100">{data.total}</div>
-          <div className="text-xs text-slate-500 mt-1">obligations tracked</div>
+        <div className="bg-white border border-black/5 rounded-card shadow-card p-5">
+          <div className="text-[10px] uppercase tracking-[0.18em] text-steel mb-1">Total</div>
+          <div className="text-3xl font-medium tracking-[-0.02em] text-graphite">{data.total}</div>
+          <div className="text-[10px] uppercase tracking-[0.18em] text-steel mt-1">obligations tracked</div>
         </div>
-        <div className="bg-[#0f1629] border border-red-900/40 p-4">
-          <div className="text-xs text-red-400/70 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+        <div className="bg-white border border-black/5 rounded-card shadow-card p-5">
+          <div className="text-[10px] uppercase tracking-[0.18em] text-steel mb-1 flex items-center gap-1.5">
             <AlertTriangle className="w-3 h-3" />Overdue
           </div>
-          <div className="text-3xl font-mono font-bold text-red-400">{data.overdueCount}</div>
-          <div className="text-xs text-slate-500 mt-1">require immediate action</div>
+          <div className={`text-3xl font-medium tracking-[-0.02em] ${data.overdueCount > 0 ? 'text-[#B45555]' : 'text-graphite'}`}>{data.overdueCount}</div>
+          <div className="text-[10px] uppercase tracking-[0.18em] text-steel mt-1">require immediate action</div>
         </div>
-        <div className="bg-[#0f1629] border border-amber-900/40 p-4">
-          <div className="text-xs text-amber-400/70 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+        <div className="bg-white border border-black/5 rounded-card shadow-card p-5">
+          <div className="text-[10px] uppercase tracking-[0.18em] text-steel mb-1 flex items-center gap-1.5">
             <Clock className="w-3 h-3" />Due Soon
           </div>
-          <div className="text-3xl font-mono font-bold text-amber-400">{data.dueThisWeekCount}</div>
-          <div className="text-xs text-slate-500 mt-1">within 7 days</div>
+          <div className="text-3xl font-medium tracking-[-0.02em] text-graphite">{data.dueThisWeekCount}</div>
+          <div className="text-[10px] uppercase tracking-[0.18em] text-steel mt-1">within 7 days</div>
         </div>
-        <div className="bg-[#0f1629] border border-[#1e2d47] p-4">
-          <div className="text-xs text-slate-500 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+        <div className="bg-white border border-black/5 rounded-card shadow-card p-5">
+          <div className="text-[10px] uppercase tracking-[0.18em] text-steel mb-1 flex items-center gap-1.5">
             <TrendingUp className="w-3 h-3" />This Month
           </div>
-          <div className="text-3xl font-mono font-bold text-slate-300">{data.dueThisMonthCount}</div>
-          <div className="text-xs text-slate-500 mt-1">due in {format(today, 'MMMM')}</div>
+          <div className="text-3xl font-medium tracking-[-0.02em] text-graphite">{data.dueThisMonthCount}</div>
+          <div className="text-[10px] uppercase tracking-[0.18em] text-steel mt-1">due in {format(today, 'MMMM')}</div>
         </div>
       </div>
 
@@ -161,15 +161,15 @@ export default async function OverviewPage() {
           {data.overdue.length > 0 && (
             <section>
               <div className="flex items-center gap-2 mb-2">
-                <div className="w-1.5 h-4 bg-red-500 rounded-sm" />
-                <h2 className="text-sm font-semibold text-red-400 uppercase tracking-wider">
+                <div className="w-1.5 h-4 bg-[#B45555] rounded-sm" />
+                <h2 className="text-[10px] uppercase tracking-[0.18em] text-steel">
                   Overdue ({data.overdue.length})
                 </h2>
               </div>
-              <div className="border border-red-900/30 bg-[#0f1629] overflow-hidden">
+              <div className="bg-white border border-black/5 rounded-card shadow-card overflow-hidden">
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="border-b border-[#1e2d47] text-slate-500">
+                    <tr className="border-b border-black/5 text-steel text-[10px] uppercase tracking-[0.18em]">
                       <th className="text-left px-3 py-2 font-medium">Obligation</th>
                       <th className="text-left px-3 py-2 font-medium">Category</th>
                       <th className="text-left px-3 py-2 font-medium">Owner</th>
@@ -180,17 +180,18 @@ export default async function OverviewPage() {
                   <tbody>
                     {data.overdue.map((item, i) => {
                       const days = getDaysUntil(item.nextDueDate)
+                      const isLast = i === data.overdue.length - 1
                       return (
-                        <tr key={item.id} className={`border-b border-[#1e2d47]/50 hover:bg-red-950/20 transition-colors ${i % 2 === 0 ? '' : 'bg-[#0a0e1a]/30'}`}>
+                        <tr key={item.id} className={`${isLast ? '' : 'border-b border-silicon/40'} bg-[#B45555]/[0.04] hover:bg-[#B45555]/[0.08] transition-colors`}>
                           <td className="px-3 py-2">
-                            <Link href={`/obligations?id=${item.id}`} className="text-slate-200 hover:text-amber-400 transition-colors">
+                            <Link href={`/obligations?id=${item.id}`} className="text-graphite hover:text-graphite transition-colors">
                               {item.title}
                             </Link>
                           </td>
-                          <td className="px-3 py-2 text-slate-500">{getCategoryLabel(item.category)}</td>
-                          <td className="px-3 py-2 text-slate-500 truncate max-w-[120px]">{item.owner}</td>
-                          <td className="px-3 py-2 text-right font-mono text-slate-400">{formatDate(item.nextDueDate)}</td>
-                          <td className="px-3 py-2 text-right font-mono text-red-400 font-semibold">{Math.abs(days)}d ago</td>
+                          <td className="px-3 py-2 text-steel">{getCategoryLabel(item.category)}</td>
+                          <td className="px-3 py-2 text-steel truncate max-w-[120px]">{item.owner}</td>
+                          <td className="px-3 py-2 text-right font-mono text-[#B45555]">{formatDate(item.nextDueDate)}</td>
+                          <td className="px-3 py-2 text-right font-mono text-[#B45555] font-semibold">{Math.abs(days)}d ago</td>
                         </tr>
                       )
                     })}
@@ -204,15 +205,15 @@ export default async function OverviewPage() {
           {data.upcoming.length > 0 && (
             <section>
               <div className="flex items-center gap-2 mb-2">
-                <div className="w-1.5 h-4 bg-amber-500 rounded-sm" />
-                <h2 className="text-sm font-semibold text-amber-400 uppercase tracking-wider">
+                <div className="w-1.5 h-4 bg-graphite rounded-sm" />
+                <h2 className="text-[10px] uppercase tracking-[0.18em] text-steel">
                   Due Within 7 Days ({data.upcoming.length})
                 </h2>
               </div>
-              <div className="border border-amber-900/30 bg-[#0f1629] overflow-hidden">
+              <div className="bg-white border border-black/5 rounded-card shadow-card overflow-hidden">
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="border-b border-[#1e2d47] text-slate-500">
+                    <tr className="border-b border-black/5 text-steel text-[10px] uppercase tracking-[0.18em]">
                       <th className="text-left px-3 py-2 font-medium">Obligation</th>
                       <th className="text-left px-3 py-2 font-medium">Category</th>
                       <th className="text-left px-3 py-2 font-medium">Risk</th>
@@ -224,22 +225,23 @@ export default async function OverviewPage() {
                   <tbody>
                     {data.upcoming.map((item, i) => {
                       const days = getDaysUntil(item.nextDueDate)
+                      const isLast = i === data.upcoming.length - 1
                       return (
-                        <tr key={item.id} className={`border-b border-[#1e2d47]/50 hover:bg-amber-950/10 transition-colors ${i % 2 === 0 ? '' : 'bg-[#0a0e1a]/30'}`}>
+                        <tr key={item.id} className={`${isLast ? '' : 'border-b border-silicon/40'} hover:bg-silicon/[0.18] transition-colors`}>
                           <td className="px-3 py-2">
-                            <Link href={`/obligations?id=${item.id}`} className="text-slate-200 hover:text-amber-400 transition-colors">
+                            <Link href={`/obligations?id=${item.id}`} className="text-graphite hover:text-graphite transition-colors">
                               {item.title}
                             </Link>
                           </td>
-                          <td className="px-3 py-2 text-slate-500">{getCategoryLabel(item.category)}</td>
+                          <td className="px-3 py-2 text-steel">{getCategoryLabel(item.category)}</td>
                           <td className="px-3 py-2">
                             <span className={`inline-flex px-1.5 py-0.5 text-[10px] font-medium border ${getRiskColor(item.riskLevel as any)}`}>
                               {item.riskLevel}
                             </span>
                           </td>
-                          <td className="px-3 py-2 text-slate-500 truncate max-w-[100px]">{item.owner}</td>
-                          <td className="px-3 py-2 text-right font-mono text-slate-400">{formatDate(item.nextDueDate)}</td>
-                          <td className="px-3 py-2 text-right font-mono text-amber-400 font-semibold">
+                          <td className="px-3 py-2 text-steel truncate max-w-[100px]">{item.owner}</td>
+                          <td className="px-3 py-2 text-right font-mono text-steel">{formatDate(item.nextDueDate)}</td>
+                          <td className="px-3 py-2 text-right font-mono text-[#A1620E] font-semibold">
                             {days === 0 ? 'today' : `${days}d`}
                           </td>
                         </tr>
@@ -255,15 +257,15 @@ export default async function OverviewPage() {
           {data.dueThisMonth.length > 0 && (
             <section>
               <div className="flex items-center gap-2 mb-2">
-                <div className="w-1.5 h-4 bg-slate-600 rounded-sm" />
-                <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">
+                <div className="w-1.5 h-4 bg-steel/70 rounded-sm" />
+                <h2 className="text-[10px] uppercase tracking-[0.18em] text-steel">
                   Rest of {format(today, 'MMMM')} ({data.dueThisMonth.length})
                 </h2>
               </div>
-              <div className="border border-[#1e2d47] bg-[#0f1629] overflow-hidden">
+              <div className="bg-white border border-black/5 rounded-card shadow-card overflow-hidden">
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="border-b border-[#1e2d47] text-slate-500">
+                    <tr className="border-b border-black/5 text-steel text-[10px] uppercase tracking-[0.18em]">
                       <th className="text-left px-3 py-2 font-medium">Obligation</th>
                       <th className="text-left px-3 py-2 font-medium">Category</th>
                       <th className="text-left px-3 py-2 font-medium">Risk</th>
@@ -272,23 +274,26 @@ export default async function OverviewPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {data.dueThisMonth.slice(0, 20).map((item, i) => (
-                      <tr key={item.id} className={`border-b border-[#1e2d47]/50 hover:bg-[#162035] transition-colors ${i % 2 === 0 ? '' : 'bg-[#0a0e1a]/30'}`}>
-                        <td className="px-3 py-2">
-                          <Link href={`/obligations?id=${item.id}`} className="text-slate-200 hover:text-amber-400 transition-colors">
-                            {item.title}
-                          </Link>
-                        </td>
-                        <td className="px-3 py-2 text-slate-500">{getCategoryLabel(item.category)}</td>
-                        <td className="px-3 py-2">
-                          <span className={`inline-flex px-1.5 py-0.5 text-[10px] font-medium border ${getRiskColor(item.riskLevel as any)}`}>
-                            {item.riskLevel}
-                          </span>
-                        </td>
-                        <td className="px-3 py-2 text-slate-500 truncate max-w-[100px]">{item.owner}</td>
-                        <td className="px-3 py-2 text-right font-mono text-slate-400">{formatDate(item.nextDueDate)}</td>
-                      </tr>
-                    ))}
+                    {data.dueThisMonth.slice(0, 20).map((item, i, arr) => {
+                      const isLast = i === arr.length - 1
+                      return (
+                        <tr key={item.id} className={`${isLast ? '' : 'border-b border-silicon/40'} hover:bg-silicon/[0.18] transition-colors`}>
+                          <td className="px-3 py-2">
+                            <Link href={`/obligations?id=${item.id}`} className="text-graphite hover:text-graphite transition-colors">
+                              {item.title}
+                            </Link>
+                          </td>
+                          <td className="px-3 py-2 text-steel">{getCategoryLabel(item.category)}</td>
+                          <td className="px-3 py-2">
+                            <span className={`inline-flex px-1.5 py-0.5 text-[10px] font-medium border ${getRiskColor(item.riskLevel as any)}`}>
+                              {item.riskLevel}
+                            </span>
+                          </td>
+                          <td className="px-3 py-2 text-steel truncate max-w-[100px]">{item.owner}</td>
+                          <td className="px-3 py-2 text-right font-mono text-steel">{formatDate(item.nextDueDate)}</td>
+                        </tr>
+                      )
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -300,29 +305,29 @@ export default async function OverviewPage() {
         <div className="space-y-3">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-1.5 h-4 bg-amber-500/60 rounded-sm" />
-              <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">By Category</h2>
+              <div className="w-1.5 h-4 bg-graphite rounded-sm" />
+              <h2 className="text-[10px] uppercase tracking-[0.18em] text-steel">By Category</h2>
             </div>
-            <div className="border border-[#1e2d47] bg-[#0f1629] p-3 space-y-2">
+            <div className="bg-white border border-black/5 rounded-card shadow-card p-3 space-y-2">
               {categoryKeys.map(cat => {
                 const { total, overdue } = data.byCategory[cat]
                 const pct = Math.round((total / maxTotal) * 100)
                 return (
                   <Link key={cat} href={`/obligations?category=${cat}`} className="block group">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-slate-300 group-hover:text-amber-400 transition-colors">
+                      <span className="text-steel text-xs group-hover:text-graphite transition-colors">
                         {getCategoryLabel(cat)}
                       </span>
                       <div className="flex items-center gap-2">
                         {overdue > 0 && (
-                          <span className="text-[10px] font-mono text-red-400">{overdue} overdue</span>
+                          <span className="text-[10px] font-mono text-[#B45555] font-medium">{overdue} overdue</span>
                         )}
-                        <span className="text-xs font-mono text-slate-400">{total}</span>
+                        <span className="text-graphite text-xs font-medium font-mono">{total}</span>
                       </div>
                     </div>
-                    <div className="h-1 bg-[#1e2d47] overflow-hidden">
+                    <div className="h-1 bg-silicon/[0.4] overflow-hidden rounded-sm">
                       <div
-                        className={`h-full transition-all ${overdue > 0 ? 'bg-red-500/60' : 'bg-amber-500/40'}`}
+                        className={`h-full transition-all ${overdue > 0 ? 'bg-[#B45555]' : 'bg-light-steel'}`}
                         style={{ width: `${pct}%` }}
                       />
                     </div>
