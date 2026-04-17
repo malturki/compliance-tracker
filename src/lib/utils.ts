@@ -53,19 +53,19 @@ export function computeStatus(
 
 export function getRiskColor(risk: RiskLevel): string {
   switch (risk) {
-    case 'critical': return 'text-[#B45555] bg-[#B45555]/10 border-[#B45555]/30'
-    case 'high': return 'text-[#A1620E] bg-[#A1620E]/10 border-[#A1620E]/30'
+    case 'critical': return 'text-danger bg-danger/10 border-danger/30'
+    case 'high': return 'text-warning bg-warning/10 border-warning/30'
     case 'medium': return 'text-steel bg-silicon/[0.4] border-silicon'
-    case 'low': return 'text-[#3A6B4F] bg-[#3A6B4F]/10 border-[#3A6B4F]/30'
+    case 'low': return 'text-success bg-success/10 border-success/30'
   }
 }
 
 export function getStatusColor(status: Status): string {
   switch (status) {
-    case 'overdue': return 'text-[#B45555] bg-[#B45555]/10 border-[#B45555]/30'
-    case 'upcoming': return 'text-[#A1620E] bg-[#A1620E]/10 border-[#A1620E]/30'
+    case 'overdue': return 'text-danger bg-danger/10 border-danger/30'
+    case 'upcoming': return 'text-warning bg-warning/10 border-warning/30'
     case 'current': return 'text-graphite bg-white border-silicon'
-    case 'completed': return 'text-[#3A6B4F] bg-[#3A6B4F]/10 border-[#3A6B4F]/30'
+    case 'completed': return 'text-success bg-success/10 border-success/30'
     default: return 'text-steel bg-silicon/[0.4] border-silicon'
   }
 }

@@ -20,6 +20,10 @@ const config: Config = {
         card: '#FFFFFF',
         'text-primary': '#2B2C2F',
         'text-muted': '#5F6672',
+        // FAST semantic tokens
+        danger: '#B45555',   // error, overdue, critical
+        warning: '#A1620E',  // upcoming, high risk, cautionary
+        success: '#3A6B4F',  // completed, low risk, positive
       },
       borderRadius: {
         card: '14px',
