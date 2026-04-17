@@ -20,9 +20,9 @@ const navItems = [
 const ROLE_LEVEL: Record<string, number> = { viewer: 0, editor: 1, admin: 2 }
 
 const roleBadgeColors: Record<string, string> = {
-  admin: 'text-[#2B2C2F] bg-[rgba(161,176,207,0.28)] border-[#A1B0CF]',
-  editor: 'text-[#2B2C2F] bg-[rgba(200,207,216,0.5)] border-[#C8CFD8]',
-  viewer: 'text-[#5F6672] bg-[rgba(200,207,216,0.3)] border-[#C8CFD8]',
+  admin: 'text-[#2B2C2F] bg-light-steel/[0.28] border-light-steel',
+  editor: 'text-[#2B2C2F] bg-silicon/[0.5] border-silicon',
+  viewer: 'text-[#5F6672] bg-silicon/[0.3] border-silicon',
 }
 
 export function Sidebar() {
@@ -36,6 +36,8 @@ export function Sidebar() {
         <img
           src="/fast-logo-dark.svg"
           alt="FAST"
+          width={146}
+          height={52}
           className="h-6 w-auto"
         />
         <div className="text-[10px] text-[#5F6672] font-medium uppercase tracking-[0.18em] mt-1.5">
@@ -52,7 +54,7 @@ export function Sidebar() {
             const ev = new KeyboardEvent('keydown', { key: 'k', metaKey: true, bubbles: true })
             document.dispatchEvent(ev)
           }}
-          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-[#5F6672] hover:text-[#2B2C2F] hover:bg-[rgba(200,207,216,0.18)] transition-colors"
+          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-[#5F6672] hover:text-[#2B2C2F] hover:bg-silicon/[0.18] transition-colors"
         >
           <Search className="w-4 h-4 flex-shrink-0" />
           <span className="flex-1 text-left">Search</span>
@@ -68,8 +70,8 @@ export function Sidebar() {
               className={cn(
                 'flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors',
                 active
-                  ? 'bg-[rgba(161,176,207,0.18)] text-[#2B2C2F] font-medium'
-                  : 'text-[#5F6672] hover:text-[#2B2C2F] hover:bg-[rgba(200,207,216,0.18)]',
+                  ? 'bg-light-steel/[0.18] text-[#2B2C2F] font-medium'
+                  : 'text-[#5F6672] hover:text-[#2B2C2F] hover:bg-silicon/[0.18]',
               )}
             >
               <Icon className="w-4 h-4 flex-shrink-0" />
@@ -83,8 +85,8 @@ export function Sidebar() {
             className={cn(
               'flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors',
               pathname.startsWith('/settings')
-                ? 'bg-[rgba(161,176,207,0.18)] text-[#2B2C2F] font-medium'
-                : 'text-[#5F6672] hover:text-[#2B2C2F] hover:bg-[rgba(200,207,216,0.18)]',
+                ? 'bg-light-steel/[0.18] text-[#2B2C2F] font-medium'
+                : 'text-[#5F6672] hover:text-[#2B2C2F] hover:bg-silicon/[0.18]',
             )}
           >
             <Settings className="w-4 h-4 flex-shrink-0" />
@@ -99,7 +101,7 @@ export function Sidebar() {
             {session.user.image ? (
               <img src={session.user.image} alt="" className="w-7 h-7 rounded-full border border-black/10" />
             ) : (
-              <div className="w-7 h-7 rounded-full bg-[rgba(200,207,216,0.4)] flex items-center justify-center text-xs text-[#2B2C2F] font-mono">
+              <div className="w-7 h-7 rounded-full bg-silicon/[0.4] flex items-center justify-center text-xs text-[#2B2C2F] font-mono">
                 {session.user.name?.[0]?.toUpperCase() ?? '?'}
               </div>
             )}
