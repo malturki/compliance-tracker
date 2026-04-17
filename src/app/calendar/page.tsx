@@ -171,22 +171,22 @@ export default function CalendarPage() {
           </div>
           {/* Legend */}
           <div className="flex items-center gap-4 mt-3 text-xs">
-            <div className="text-steel">Risk levels:</div>
+            <div className="text-steel">Status:</div>
             <div className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-danger" />
-              <span className="text-steel">Critical</span>
+              <span className="text-steel">Overdue</span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-warning" />
-              <span className="text-steel">High</span>
+              <span className="text-steel">Upcoming</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-light-steel" />
-              <span className="text-steel">Medium</span>
+              <span className="w-2 h-2 rounded-full bg-white border border-black/10" />
+              <span className="text-steel">Future</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-success" />
-              <span className="text-steel">Low</span>
+              <span className="w-2 h-2 rounded-full bg-light-steel/[0.18] border border-light-steel" />
+              <span className="text-steel">Today</span>
             </div>
           </div>
         </div>

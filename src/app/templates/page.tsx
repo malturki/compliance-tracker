@@ -143,15 +143,6 @@ export default function TemplatesPage() {
     }
   }
 
-  const categoryColors: Record<string, string> = {
-    'corporate': 'border-black/10 bg-silicon/40 text-steel',
-    'tax': 'border-black/10 bg-silicon/40 text-steel',
-    'investor-relations': 'border-black/10 bg-silicon/40 text-steel',
-    'hr-benefits': 'border-black/10 bg-silicon/40 text-steel',
-    'contracts': 'border-black/10 bg-silicon/40 text-steel',
-    'insurance': 'border-black/10 bg-silicon/40 text-steel',
-  }
-
   if (loading) {
     return (
       <div className="p-8">
@@ -197,7 +188,7 @@ export default function TemplatesPage() {
                 {template.description}
               </p>
               <div className="flex items-center justify-between">
-                <span className={`text-[10px] px-2 py-0.5 border rounded font-mono ${categoryColors[template.category] || 'border-black/10 text-steel'}`}>
+                <span className="text-[10px] px-2 py-0.5 border rounded font-mono border-black/10 bg-silicon/40 text-steel">
                   {template.category.replace(/-/g, ' ')}
                 </span>
                 <span className="bg-silicon/40 text-steel text-[10px] font-mono px-2 py-0.5 rounded">
