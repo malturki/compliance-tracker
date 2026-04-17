@@ -74,7 +74,7 @@ export function FileUpload({
     if (file.type.startsWith('image/')) {
       return <ImageIcon className="w-4 h-4 text-blue-400" />
     }
-    return <FileText className="w-4 h-4 text-slate-400" />
+    return <FileText className="w-4 h-4 text-[#5F6672]" />
   }
 
   const formatFileSize = (bytes: number) => {
@@ -90,8 +90,8 @@ export function FileUpload({
         className={`relative border-2 border-dashed rounded-lg p-4 transition-colors cursor-pointer
           ${
             dragActive
-              ? 'border-amber-500 bg-amber-950/20'
-              : 'border-[#1e2d47] hover:border-[#2e3d57] bg-[#0a0e1a]'
+              ? 'border-light-steel bg-light-steel/[0.12]'
+              : 'border-silicon/60 hover:border-light-steel bg-white'
           }
         `}
         onDragEnter={handleDrag}
@@ -109,12 +109,12 @@ export function FileUpload({
           className="hidden"
         />
         <div className="flex flex-col items-center justify-center gap-2 text-center">
-          <Upload className="w-8 h-8 text-slate-500" />
-          <div className="text-xs text-slate-400">
-            <span className="font-medium text-slate-300">Click to upload</span>{' '}
+          <Upload className="w-8 h-8 text-[#5F6672]" />
+          <div className="text-xs text-[#5F6672]">
+            <span className="font-medium text-[#2B2C2F]">Click to upload</span>{' '}
             or drag and drop
           </div>
-          <div className="text-[10px] text-slate-600">
+          <div className="text-[10px] text-[#5F6672]/70">
             PDF, images, or documents (max {maxSizeMB}MB, {maxFiles} files)
           </div>
         </div>
@@ -122,7 +122,7 @@ export function FileUpload({
 
       {/* Error message */}
       {error && (
-        <div className="mt-2 text-xs text-red-400 bg-red-950/20 border border-red-900/30 rounded px-2 py-1">
+        <div className="mt-2 text-xs text-[#B45555] bg-[#B45555]/10 border border-[#B45555]/30 rounded px-2 py-1">
           {error}
         </div>
       )}
@@ -133,12 +133,12 @@ export function FileUpload({
           {files.map((file, index) => (
             <div
               key={index}
-              className="flex items-center gap-2 bg-[#0a0e1a] border border-[#1e2d47] rounded px-2.5 py-2 text-xs"
+              className="flex items-center gap-2 bg-white border border-silicon/60 rounded px-2.5 py-2 text-xs"
             >
               {getFileIcon(file)}
               <div className="flex-1 min-w-0">
-                <div className="text-slate-300 truncate">{file.name}</div>
-                <div className="text-slate-600 text-[10px]">
+                <div className="text-[#2B2C2F] truncate">{file.name}</div>
+                <div className="text-[#5F6672]/70 text-[10px]">
                   {formatFileSize(file.size)}
                 </div>
               </div>
@@ -150,7 +150,7 @@ export function FileUpload({
                   e.stopPropagation()
                   removeFile(index)
                 }}
-                className="h-6 w-6 p-0 text-slate-500 hover:text-red-400 hover:bg-red-950/20"
+                className="h-6 w-6 p-0 text-[#5F6672] hover:text-[#B45555] hover:bg-[#B45555]/10"
               >
                 <X className="w-3 h-3" />
               </Button>
