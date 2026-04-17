@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
-import { LayoutDashboard, Calendar, FileText, Tag, Shield, Sparkles, TrendingUp, History, Settings, LogOut, Search, HelpCircle } from 'lucide-react'
+import { LayoutDashboard, Calendar, FileText, Tag, Sparkles, TrendingUp, History, Settings, LogOut, Search, HelpCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const navItems = [
@@ -20,9 +20,9 @@ const navItems = [
 const ROLE_LEVEL: Record<string, number> = { viewer: 0, editor: 1, admin: 2 }
 
 const roleBadgeColors: Record<string, string> = {
-  admin: 'text-red-400 bg-red-950/50 border-red-800/50',
-  editor: 'text-amber-400 bg-amber-950/50 border-amber-800/50',
-  viewer: 'text-slate-400 bg-slate-800/50 border-slate-700/50',
+  admin: 'text-[#2B2C2F] bg-[rgba(161,176,207,0.28)] border-[#A1B0CF]',
+  editor: 'text-[#2B2C2F] bg-[rgba(200,207,216,0.5)] border-[#C8CFD8]',
+  viewer: 'text-[#5F6672] bg-[rgba(200,207,216,0.3)] border-[#C8CFD8]',
 }
 
 export function Sidebar() {
@@ -31,16 +31,15 @@ export function Sidebar() {
   const role = session?.user?.role ?? 'viewer'
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-64 bg-[#050b18] border-r border-[#1e2d47] flex flex-col z-50">
-      <div className="px-5 py-4 border-b border-[#1e2d47]">
-        <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded bg-amber-500/20 border border-amber-500/40 flex items-center justify-center">
-            <Shield className="w-4 h-4 text-amber-400" />
-          </div>
-          <div>
-            <div className="text-sm font-semibold text-slate-100 leading-tight">Pi Squared Inc.</div>
-            <div className="text-[10px] text-amber-500/80 font-mono uppercase tracking-widest">Compliance</div>
-          </div>
+    <aside className="fixed left-0 top-0 h-screen w-64 bg-white border-r border-black/5 flex flex-col z-50">
+      <div className="px-5 py-5 border-b border-black/5">
+        <img
+          src="/fast-logo-dark.svg"
+          alt="FAST"
+          className="h-6 w-auto"
+        />
+        <div className="text-[10px] text-[#5F6672] font-medium uppercase tracking-[0.18em] mt-1.5">
+          Compliance
         </div>
       </div>
 
@@ -53,13 +52,13 @@ export function Sidebar() {
             const ev = new KeyboardEvent('keydown', { key: 'k', metaKey: true, bubbles: true })
             document.dispatchEvent(ev)
           }}
-          className="w-full flex items-center gap-2.5 px-3 py-2 rounded text-sm text-slate-500 hover:text-slate-200 hover:bg-[#0f1629] transition-colors"
+          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-[#5F6672] hover:text-[#2B2C2F] hover:bg-[rgba(200,207,216,0.18)] transition-colors"
         >
           <Search className="w-4 h-4 flex-shrink-0" />
           <span className="flex-1 text-left">Search</span>
-          <kbd className="text-[9px] font-mono text-slate-600 border border-[#1e2d47] rounded px-1 py-0.5">⌘K</kbd>
+          <kbd className="text-[9px] font-mono text-[#5F6672] border border-black/10 rounded px-1 py-0.5">⌘K</kbd>
         </button>
-        <div className="h-px bg-[#1e2d47] my-1.5 mx-1" />
+        <div className="h-px bg-black/5 my-1.5 mx-1" />
         {navItems.filter(item => (ROLE_LEVEL[role] ?? 0) >= (ROLE_LEVEL[item.minRole] ?? 0)).map(({ href, label, icon: Icon }) => {
           const active = pathname === href || (href !== '/' && pathname.startsWith(href))
           return (
@@ -67,10 +66,10 @@ export function Sidebar() {
               key={href}
               href={href}
               className={cn(
-                'flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors',
+                'flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors',
                 active
-                  ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-[#0f1629]',
+                  ? 'bg-[rgba(161,176,207,0.18)] text-[#2B2C2F] font-medium'
+                  : 'text-[#5F6672] hover:text-[#2B2C2F] hover:bg-[rgba(200,207,216,0.18)]',
               )}
             >
               <Icon className="w-4 h-4 flex-shrink-0" />
@@ -82,10 +81,10 @@ export function Sidebar() {
           <Link
             href="/settings/users"
             className={cn(
-              'flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors',
+              'flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors',
               pathname.startsWith('/settings')
-                ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-[#0f1629]',
+                ? 'bg-[rgba(161,176,207,0.18)] text-[#2B2C2F] font-medium'
+                : 'text-[#5F6672] hover:text-[#2B2C2F] hover:bg-[rgba(200,207,216,0.18)]',
             )}
           >
             <Settings className="w-4 h-4 flex-shrink-0" />
@@ -94,32 +93,32 @@ export function Sidebar() {
         )}
       </nav>
 
-      <div className="px-4 py-3 border-t border-[#1e2d47]">
+      <div className="px-4 py-3 border-t border-black/5">
         {session?.user ? (
           <div className="flex items-center gap-2.5">
             {session.user.image ? (
-              <img src={session.user.image} alt="" className="w-7 h-7 rounded-full border border-[#1e2d47]" />
+              <img src={session.user.image} alt="" className="w-7 h-7 rounded-full border border-black/10" />
             ) : (
-              <div className="w-7 h-7 rounded-full bg-[#1e2d47] flex items-center justify-center text-xs text-slate-400 font-mono">
+              <div className="w-7 h-7 rounded-full bg-[rgba(200,207,216,0.4)] flex items-center justify-center text-xs text-[#2B2C2F] font-mono">
                 {session.user.name?.[0]?.toUpperCase() ?? '?'}
               </div>
             )}
             <div className="flex-1 min-w-0">
-              <div className="text-xs text-slate-300 truncate">{session.user.name ?? session.user.email}</div>
+              <div className="text-xs text-[#2B2C2F] truncate">{session.user.name ?? session.user.email}</div>
               <span className={cn('inline-flex px-1.5 py-0.5 text-[10px] font-mono font-semibold border rounded', roleBadgeColors[role] ?? roleBadgeColors.viewer)}>
                 {role.toUpperCase()}
               </span>
             </div>
             <button
               onClick={() => signOut()}
-              className="text-slate-600 hover:text-slate-400 transition-colors"
+              className="text-[#5F6672] hover:text-[#2B2C2F] transition-colors"
               title="Sign out"
             >
               <LogOut className="w-3.5 h-3.5" />
             </button>
           </div>
         ) : (
-          <div className="text-[11px] text-slate-600 font-mono">Not signed in</div>
+          <div className="text-[11px] text-[#5F6672] font-mono">Not signed in</div>
         )}
       </div>
     </aside>
