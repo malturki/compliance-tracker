@@ -17,8 +17,19 @@ const generalSans = localFont({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://compliance-tracker-alturki.vercel.app'),
   title: 'FAST Compliance Tracker',
   description: 'Track compliance obligations, deadlines, and completions.',
+  openGraph: {
+    title: 'FAST Compliance Tracker',
+    description: 'Track compliance obligations, deadlines, and completions.',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'FAST Compliance Tracker',
+    description: 'Track compliance obligations, deadlines, and completions.',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
