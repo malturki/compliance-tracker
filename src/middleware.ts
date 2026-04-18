@@ -13,8 +13,15 @@ export default auth((req) => {
   const isAuthRoute = pathname.startsWith('/api/auth') || pathname.startsWith('/auth/')
   const isCronRoute = pathname.startsWith('/api/cron')
   const isWellKnownRoute = pathname.startsWith('/.well-known/')
+  // Launch assets must be reachable by unauthenticated crawlers (Slack, Twitter,
+  // LinkedIn, WhatsApp, search engines). Without this, link previews 307 to
+  // sign-in and show nothing instead of the FAST liquid-metal OG card.
+  const isLaunchAsset =
+    pathname === '/icon.svg' ||
+    pathname.startsWith('/opengraph-image') ||
+    pathname.startsWith('/twitter-image')
 
-  if (isAuthRoute || isCronRoute || isWellKnownRoute) return NextResponse.next()
+  if (isAuthRoute || isCronRoute || isWellKnownRoute || isLaunchAsset) return NextResponse.next()
 
   // If a Bearer token is present, let the request through and let the route
   // handler's requireRole() verify it. Any invalid token will get 401 from
