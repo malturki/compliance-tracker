@@ -102,6 +102,7 @@
 - Keep density controlled but not crowded. One dominant pane per page.
 - Viewer role sees a reduced UI: only Overview and Dashboard in the sidebar, stats + category breakdown on Overview (no obligation tables), no owner-performance table on Dashboard. Tune viewer experience when changing page layouts.
 - Role-badge colors live in `src/lib/role-colors.ts` — reuse `ROLE_BADGE_CLASSES` instead of re-defining per page.
+- **Mobile layout is a known gap.** The rebrand is desktop-first: fixed `w-64` sidebar, `ml-64` main, `w-[420px]` detail sheet, almost zero `sm:`/`md:` breakpoint classes across the codebase. The app works on desktop only. A dedicated mobile pass is required before claiming mobile support.
 - Follow the FAST pre-ship checklist at `/tmp/fast-demo-kit/fast-demo-kit/references/pre-ship-checklist.md` (or the copy at `docs/superpowers/plans/2026-04-17-fast-rebrand.md#phase-10`) before shipping a new surface.
 
 ## Keyboard and navigation
