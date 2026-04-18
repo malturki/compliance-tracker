@@ -102,7 +102,13 @@
 - Keep density controlled but not crowded. One dominant pane per page.
 - Viewer role sees a reduced UI: only Overview and Dashboard in the sidebar, stats + category breakdown on Overview (no obligation tables), no owner-performance table on Dashboard. Tune viewer experience when changing page layouts.
 - Role-badge colors live in `src/lib/role-colors.ts` — reuse `ROLE_BADGE_CLASSES` instead of re-defining per page.
-- **Mobile layout is a known gap.** The rebrand is desktop-first: fixed `w-64` sidebar, `ml-64` main, `w-[420px]` detail sheet, almost zero `sm:`/`md:` breakpoint classes across the codebase. The app works on desktop only. A dedicated mobile pass is required before claiming mobile support.
+- **Mobile layout — basic 375px support landed in commit `69479dc5`:**
+  - Sidebar becomes a drawer below `lg` (hamburger at fixed `top-3 left-3`, backdrop overlay, Esc / navigation auto-closes).
+  - AppShell main is `lg:ml-64` (no margin on mobile) with `pt-12` to clear the hamburger.
+  - Overview stats are `grid-cols-2 md:grid-cols-4`; the overdue/upcoming/month tables grid is `grid-cols-1 lg:grid-cols-3`.
+  - Obligations list detail Sheet is `w-full sm:w-[420px]`; its table has `min-w-[900px]` so columns stay legible and the wrapping div's `overflow-auto` handles horizontal scroll.
+  - Obligations filter bar uses `flex-wrap` + `px-4 md:px-6` so filters stack instead of clipping.
+  - **Still not mobile-optimized:** per-surface polish on Dashboard charts, Calendar grid, Templates preview, Settings tables. Core flows work at 375px; polish is a dedicated milestone.
 - Follow the FAST pre-ship checklist at `/tmp/fast-demo-kit/fast-demo-kit/references/pre-ship-checklist.md` (or the copy at `docs/superpowers/plans/2026-04-17-fast-rebrand.md#phase-10`) before shipping a new surface.
 
 ## Keyboard and navigation
