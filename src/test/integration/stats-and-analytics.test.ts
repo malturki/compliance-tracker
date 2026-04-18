@@ -5,8 +5,13 @@ import { POST as completeObligation } from '@/app/api/obligations/[id]/complete/
 import { GET as getStats } from '@/app/api/stats/route'
 import { GET as getAnalytics } from '@/app/api/analytics/route'
 
-// Today is 2026-04-11 per the test session date.
-const TODAY = '2026-04-11'
+// Build a YYYY-MM-DD date string N days from today. Avoids hard-coding
+// dates that go stale as the real calendar advances past them.
+function daysFromNow(n: number): string {
+  const d = new Date()
+  d.setDate(d.getDate() + n)
+  return d.toISOString().split('T')[0]
+}
 
 async function complete(id: string, date: string) {
   const req = mkReq(`http://localhost/api/obligations/${id}/complete`, {
@@ -53,12 +58,12 @@ describe('GET /api/stats', () => {
   })
 
   it('counts dueThisWeek for an obligation due in 3 days', async () => {
-    // Today = 2026-04-11; +3 days = 2026-04-14
-    await insertObligation({ title: 'Soon', nextDueDate: '2026-04-14' })
+    await insertObligation({ title: 'Soon', nextDueDate: daysFromNow(3) })
     const res = await getStats()
     const body = await res.json()
     expect(body.dueThisWeek).toBeGreaterThanOrEqual(1)
-    expect(body.dueThisMonth).toBeGreaterThanOrEqual(1)
+    // dueThisMonth may or may not include the row depending on whether +3 days
+    // rolls into next month — only assert dueThisWeek, which is stable.
   })
 
   it('viewer can read stats (200)', async () => {
@@ -101,9 +106,9 @@ describe('GET /api/analytics', () => {
   })
 
   it('overview reflects inserted rows', async () => {
-    await insertObligation({ title: 'A', nextDueDate: '2025-01-01' }) // overdue
-    await insertObligation({ title: 'B', nextDueDate: '2026-04-13' }) // within week
-    await insertObligation({ title: 'C', nextDueDate: '2027-01-01' }) // far future
+    await insertObligation({ title: 'A', nextDueDate: daysFromNow(-180) }) // overdue
+    await insertObligation({ title: 'B', nextDueDate: daysFromNow(3) })    // within week
+    await insertObligation({ title: 'C', nextDueDate: daysFromNow(180) })  // far future
 
     const res = await getAnalytics()
     const body = await res.json()
