@@ -112,7 +112,7 @@ export function OwnerPerformanceTable({ owners }: Props) {
                 <td className="py-2 px-3 text-center">
                   <span className={`
                     inline-flex items-center justify-center px-2 py-0.5 text-[10px] font-mono font-semibold border
-                    ${owner.overdue === 0 ? 'bg-[#3A6B4F]/10 text-[#3A6B4F] border-[#3A6B4F]/30' : 'bg-[#B45555]/10 text-[#B45555] border-[#B45555]/30'}
+                    ${owner.overdue === 0 ? 'bg-success/10 text-success border-success/30' : 'bg-danger/10 text-danger border-danger/30'}
                   `}>
                     {owner.overdue}
                   </span>
@@ -123,9 +123,9 @@ export function OwnerPerformanceTable({ owners }: Props) {
                 <td className="py-2 px-3 text-center">
                   <span className={`
                     font-mono font-semibold
-                    ${owner.completionRate >= 90 ? 'text-[#3A6B4F]' :
-                      owner.completionRate >= 70 ? 'text-[#A1620E]' :
-                      'text-[#B45555]'}
+                    ${owner.completionRate >= 90 ? 'text-success' :
+                      owner.completionRate >= 70 ? 'text-warning' :
+                      'text-danger'}
                   `}>
                     {owner.completionRate}%
                   </span>
@@ -133,9 +133,9 @@ export function OwnerPerformanceTable({ owners }: Props) {
                 <td className="py-2 px-3 text-center">
                   <span className={`
                     font-mono text-[11px]
-                    ${owner.avgDaysToComplete <= 0 ? 'text-[#3A6B4F]' :
-                      owner.avgDaysToComplete <= 3 ? 'text-[#A1620E]' :
-                      'text-[#B45555]'}
+                    ${owner.avgDaysToComplete <= 0 ? 'text-success' :
+                      owner.avgDaysToComplete <= 3 ? 'text-warning' :
+                      'text-danger'}
                   `}>
                     {owner.avgDaysToComplete > 0 ? '+' : ''}{owner.avgDaysToComplete}
                   </span>

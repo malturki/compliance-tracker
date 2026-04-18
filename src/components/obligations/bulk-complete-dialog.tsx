@@ -85,7 +85,7 @@ export function BulkCompleteDialog({
           <Button
             onClick={handleSubmit}
             disabled={submitting}
-            className="bg-[#3A6B4F] hover:bg-[#3A6B4F]/90 text-white text-xs"
+            className="bg-success hover:bg-success/90 text-white text-xs"
           >
             {submitting ? 'Completing...' : 'Confirm'}
           </Button>

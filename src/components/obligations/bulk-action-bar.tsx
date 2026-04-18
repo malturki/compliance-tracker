@@ -55,7 +55,7 @@ export function BulkActionBar({
           size="sm"
           variant="outline"
           onClick={onDelete}
-          className="h-7 text-xs bg-[#B45555]/10 text-[#B45555] border border-[#B45555]/30 hover:bg-[#B45555]/20"
+          className="h-7 text-xs bg-danger/10 text-danger border border-danger/30 hover:bg-danger/20"
         >
           <Trash2 className="w-3 h-3 mr-1" />
           Delete

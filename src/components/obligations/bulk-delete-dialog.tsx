@@ -47,19 +47,19 @@ export function BulkDeleteDialog({
       <DialogContent className="bg-white border-black/5 text-graphite max-w-md">
         <DialogHeader>
           <DialogTitle className="text-graphite flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 text-[#B45555]" />
+            <AlertTriangle className="w-4 h-4 text-danger" />
             Delete Obligations
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-3 text-sm">
           <p className="text-xs text-steel">
             You are about to permanently delete{' '}
-            <span className="font-semibold text-[#B45555]">
+            <span className="font-semibold text-danger">
               {selectedCount} obligation{selectedCount > 1 ? 's' : ''}
             </span>.
             This action cannot be undone.
           </p>
-          <div className="bg-[#B45555]/10 border border-[#B45555]/40 p-3 text-xs text-[#B45555]">
+          <div className="bg-danger/10 border border-danger/40 p-3 text-xs text-danger">
             <strong>Warning:</strong> All completion history for these obligations will also be deleted.
           </div>
           <div>
@@ -86,7 +86,7 @@ export function BulkDeleteDialog({
           <Button
             onClick={handleSubmit}
             disabled={submitting || confirmation !== 'DELETE'}
-            className="bg-[#B45555] hover:bg-[#B45555]/90 text-white text-xs"
+            className="bg-danger hover:bg-danger/90 text-white text-xs"
           >
             {submitting ? 'Deleting...' : 'Delete'}
           </Button>

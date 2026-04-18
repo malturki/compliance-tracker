@@ -135,7 +135,7 @@ export default async function OverviewPage() {
           <div className="text-[10px] uppercase tracking-[0.18em] text-steel mb-1 flex items-center gap-1.5">
             <AlertTriangle className="w-3 h-3" />Overdue
           </div>
-          <div className={`text-3xl font-medium tracking-[-0.02em] ${data.overdueCount > 0 ? 'text-[#B45555]' : 'text-graphite'}`}>{data.overdueCount}</div>
+          <div className={`text-3xl font-medium tracking-[-0.02em] ${data.overdueCount > 0 ? 'text-danger' : 'text-graphite'}`}>{data.overdueCount}</div>
           <div className="text-[10px] uppercase tracking-[0.18em] text-steel mt-1">require immediate action</div>
         </div>
         <div className="bg-white border border-black/5 rounded-card shadow-card p-5">
@@ -161,7 +161,7 @@ export default async function OverviewPage() {
           {data.overdue.length > 0 && (
             <section>
               <div className="flex items-center gap-2 mb-2">
-                <div className="w-1.5 h-4 bg-[#B45555] rounded-sm" />
+                <div className="w-1.5 h-4 bg-danger rounded-sm" />
                 <h2 className="text-[10px] uppercase tracking-[0.18em] text-steel">
                   Overdue ({data.overdue.length})
                 </h2>
@@ -182,7 +182,7 @@ export default async function OverviewPage() {
                       const days = getDaysUntil(item.nextDueDate)
                       const isLast = i === data.overdue.length - 1
                       return (
-                        <tr key={item.id} className={`${isLast ? '' : 'border-b border-silicon/40'} bg-[#B45555]/[0.04] hover:bg-[#B45555]/[0.08] transition-colors`}>
+                        <tr key={item.id} className={`${isLast ? '' : 'border-b border-silicon/40'} bg-danger/[0.04] hover:bg-danger/[0.08] transition-colors`}>
                           <td className="px-3 py-2">
                             <Link href={`/obligations?id=${item.id}`} className="text-graphite hover:text-graphite transition-colors">
                               {item.title}
@@ -190,8 +190,8 @@ export default async function OverviewPage() {
                           </td>
                           <td className="px-3 py-2 text-steel">{getCategoryLabel(item.category)}</td>
                           <td className="px-3 py-2 text-steel truncate max-w-[120px]">{item.owner}</td>
-                          <td className="px-3 py-2 text-right font-mono text-[#B45555]">{formatDate(item.nextDueDate)}</td>
-                          <td className="px-3 py-2 text-right font-mono text-[#B45555] font-semibold">{Math.abs(days)}d ago</td>
+                          <td className="px-3 py-2 text-right font-mono text-danger">{formatDate(item.nextDueDate)}</td>
+                          <td className="px-3 py-2 text-right font-mono text-danger font-semibold">{Math.abs(days)}d ago</td>
                         </tr>
                       )
                     })}
@@ -241,7 +241,7 @@ export default async function OverviewPage() {
                           </td>
                           <td className="px-3 py-2 text-steel truncate max-w-[100px]">{item.owner}</td>
                           <td className="px-3 py-2 text-right font-mono text-steel">{formatDate(item.nextDueDate)}</td>
-                          <td className="px-3 py-2 text-right font-mono text-[#A1620E] font-semibold">
+                          <td className="px-3 py-2 text-right font-mono text-warning font-semibold">
                             {days === 0 ? 'today' : `${days}d`}
                           </td>
                         </tr>
@@ -320,14 +320,14 @@ export default async function OverviewPage() {
                       </span>
                       <div className="flex items-center gap-2">
                         {overdue > 0 && (
-                          <span className="text-[10px] font-mono text-[#B45555] font-medium">{overdue} overdue</span>
+                          <span className="text-[10px] font-mono text-danger font-medium">{overdue} overdue</span>
                         )}
                         <span className="text-graphite text-xs font-medium font-mono">{total}</span>
                       </div>
                     </div>
                     <div className="h-1 bg-silicon/[0.4] overflow-hidden rounded-sm">
                       <div
-                        className={`h-full transition-all ${overdue > 0 ? 'bg-[#B45555]' : 'bg-light-steel'}`}
+                        className={`h-full transition-all ${overdue > 0 ? 'bg-danger' : 'bg-light-steel'}`}
                         style={{ width: `${pct}%` }}
                       />
                     </div>

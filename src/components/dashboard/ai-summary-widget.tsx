@@ -71,13 +71,13 @@ export function AISummaryWidget({ analyticsData }: Props) {
   
   if (error) {
     return (
-      <div className="border border-[#B45555]/40 bg-[#B45555]/10 p-4 mb-6">
+      <div className="border border-danger/40 bg-danger/10 p-4 mb-6">
         <div className="flex items-start gap-3">
-          <div className="bg-[#B45555]/20 border border-[#B45555]/40 p-2">
-            <AlertCircle className="w-4 h-4 text-[#B45555]" />
+          <div className="bg-danger/20 border border-danger/40 p-2">
+            <AlertCircle className="w-4 h-4 text-danger" />
           </div>
           <div className="flex-1">
-            <h3 className="text-sm font-semibold text-[#B45555] mb-1 uppercase tracking-wider">
+            <h3 className="text-sm font-semibold text-danger mb-1 uppercase tracking-wider">
               Summary Unavailable
             </h3>
             <p className="text-xs text-steel">{error}</p>

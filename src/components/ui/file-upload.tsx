@@ -122,7 +122,7 @@ export function FileUpload({
 
       {/* Error message */}
       {error && (
-        <div className="mt-2 text-xs text-[#B45555] bg-[#B45555]/10 border border-[#B45555]/30 rounded px-2 py-1">
+        <div className="mt-2 text-xs text-danger bg-danger/10 border border-danger/30 rounded px-2 py-1">
           {error}
         </div>
       )}
@@ -150,7 +150,7 @@ export function FileUpload({
                   e.stopPropagation()
                   removeFile(index)
                 }}
-                className="h-6 w-6 p-0 text-[#5F6672] hover:text-[#B45555] hover:bg-[#B45555]/10"
+                className="h-6 w-6 p-0 text-[#5F6672] hover:text-danger hover:bg-danger/10"
               >
                 <X className="w-3 h-3" />
               </Button>
