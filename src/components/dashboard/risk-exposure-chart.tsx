@@ -1,6 +1,7 @@
 'use client'
 
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts'
+import { RISK_COLORS } from './risk-colors'
 
 interface RiskMetrics {
   riskLevel: string
@@ -12,17 +13,6 @@ interface RiskMetrics {
 
 interface Props {
   risks: RiskMetrics[]
-}
-
-// Severity → color semantics. Each tier gets a distinct FAST token:
-//   critical = danger red, high = warning amber, medium = neutral steel,
-//   low = success green. Using hue (not just lightness) so the chart stays
-//   legible for colorblind users and under small slice widths.
-export const COLORS: Record<string, string> = {
-  critical: '#B45555', // danger
-  high: '#A1620E',     // warning
-  medium: '#5F6672',   // steel (neutral)
-  low: '#3A6B4F',      // success
 }
 
 export function RiskExposureChart({ risks }: Props) {
@@ -52,7 +42,7 @@ export function RiskExposureChart({ risks }: Props) {
             {data.map((entry, index) => (
               <Cell
                 key={`cell-${index}`}
-                fill={COLORS[entry.name.toLowerCase()] || '#5F6672'}
+                fill={RISK_COLORS[entry.name.toLowerCase()] || '#5F6672'}
               />
             ))}
           </Pie>
