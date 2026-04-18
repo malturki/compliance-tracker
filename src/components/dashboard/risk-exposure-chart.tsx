@@ -18,7 +18,7 @@ interface Props {
 //   critical = danger red, high = warning amber, medium = neutral steel,
 //   low = success green. Using hue (not just lightness) so the chart stays
 //   legible for colorblind users and under small slice widths.
-const COLORS: Record<string, string> = {
+export const COLORS: Record<string, string> = {
   critical: '#B45555', // danger
   high: '#A1620E',     // warning
   medium: '#5F6672',   // steel (neutral)
