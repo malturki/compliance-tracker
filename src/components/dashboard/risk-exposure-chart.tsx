@@ -33,11 +33,29 @@ export function RiskExposureChart({ risks }: Props) {
             cx="50%"
             cy="50%"
             labelLine={false}
-            label={({ name, percentage }) => `${name}: ${percentage}%`}
+            // Custom <text> label so we can style it without polluting the
+            // Pie's SVG fill inheritance. A `style={{ fill: ... }}` on <Pie>
+            // would cascade to every <Cell> path, wiping out per-slice colors.
+            label={({ cx, cy, midAngle, outerRadius, name, percentage }) => {
+              const RAD = Math.PI / 180
+              const r = outerRadius + 18
+              const x = cx + r * Math.cos(-midAngle * RAD)
+              const y = cy + r * Math.sin(-midAngle * RAD)
+              return (
+                <text
+                  x={x}
+                  y={y}
+                  fill="#5F6672"
+                  fontSize={11}
+                  textAnchor={x > cx ? 'start' : 'end'}
+                  dominantBaseline="central"
+                >
+                  {`${name}: ${percentage}%`}
+                </text>
+              )
+            }}
             outerRadius={100}
-            fill="#A1B0CF"
             dataKey="value"
-            style={{ fontSize: '11px', fill: '#5F6672' }}
           >
             {data.map((entry, index) => (
               <Cell
