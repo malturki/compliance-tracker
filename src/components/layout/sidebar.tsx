@@ -1,9 +1,10 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
-import { LayoutDashboard, Calendar, FileText, Tag, Sparkles, TrendingUp, History, Settings, LogOut, Search, HelpCircle } from 'lucide-react'
+import { LayoutDashboard, Calendar, FileText, Tag, Sparkles, TrendingUp, History, Settings, LogOut, Search, HelpCircle, Menu, X as CloseIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ROLE_BADGE_CLASSES } from '@/lib/role-colors'
 
@@ -24,9 +25,56 @@ export function Sidebar() {
   const pathname = usePathname()
   const { data: session } = useSession()
   const role = session?.user?.role ?? 'viewer'
+  // Drawer open state — only relevant on mobile (<lg). On desktop the sidebar
+  // is always visible via `lg:translate-x-0` regardless of this state.
+  const [mobileOpen, setMobileOpen] = useState(false)
+
+  // Auto-close the drawer on navigation.
+  useEffect(() => {
+    setMobileOpen(false)
+  }, [pathname])
+
+  // Close on Esc.
+  useEffect(() => {
+    if (!mobileOpen) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMobileOpen(false)
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [mobileOpen])
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-64 bg-white border-r border-black/5 flex flex-col z-50">
+    <>
+      {/* Mobile hamburger — fixed top-left, hidden on lg+. */}
+      <button
+        type="button"
+        aria-label={mobileOpen ? 'Close navigation' : 'Open navigation'}
+        aria-expanded={mobileOpen}
+        onClick={() => setMobileOpen(v => !v)}
+        className="fixed top-3 left-3 z-[60] lg:hidden bg-white border border-black/10 rounded-lg p-2 shadow-card text-[#2B2C2F] hover:bg-silicon/[0.18] transition-colors"
+      >
+        {mobileOpen ? <CloseIcon className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+      </button>
+
+      {/* Backdrop when drawer is open on mobile. */}
+      {mobileOpen && (
+        <div
+          onClick={() => setMobileOpen(false)}
+          aria-hidden
+          className="fixed inset-0 z-40 bg-graphite/40 lg:hidden"
+        />
+      )}
+
+      <aside
+        className={cn(
+          'fixed left-0 top-0 h-screen w-64 bg-white border-r border-black/5 flex flex-col z-50 transition-transform duration-200',
+          // Off-screen on mobile by default, on-screen when drawer is open.
+          // On lg+ the sidebar is always visible regardless.
+          mobileOpen ? 'translate-x-0' : '-translate-x-full',
+          'lg:translate-x-0',
+        )}
+      >
       <div className="px-5 py-5 border-b border-black/5">
         <img
           src="/fast-logo-dark.svg"
@@ -118,6 +166,7 @@ export function Sidebar() {
           <div className="text-[11px] text-[#5F6672] font-mono">Not signed in</div>
         )}
       </div>
-    </aside>
+      </aside>
+    </>
   )
 }

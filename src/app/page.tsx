@@ -124,8 +124,8 @@ export default async function OverviewPage() {
         <div className="text-xs font-mono text-steel">{format(today, 'EEE, MMM d yyyy')}</div>
       </div>
 
-      {/* Stats Row */}
-      <div className="grid grid-cols-4 gap-3 mb-6">
+      {/* Stats Row — 2 columns on mobile, 4 from md upward */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         <div className="bg-white border border-black/5 rounded-card shadow-card p-5">
           <div className="text-[10px] uppercase tracking-[0.18em] text-steel mb-1">Total</div>
           <div className="text-3xl font-medium tracking-[-0.02em] text-graphite">{data.total}</div>
@@ -154,7 +154,7 @@ export default async function OverviewPage() {
         </div>
       </div>
 
-      <div className={isViewer ? '' : 'grid grid-cols-3 gap-4'}>
+      <div className={isViewer ? '' : 'grid grid-cols-1 lg:grid-cols-3 gap-4'}>
         {/* Left: Overdue + Upcoming (hidden for viewers) */}
         {!isViewer && <div className="col-span-2 space-y-4">
           {/* Overdue */}

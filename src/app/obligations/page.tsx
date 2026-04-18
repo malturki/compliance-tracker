@@ -947,7 +947,7 @@ function ObligationsPageContent() {
             onDelete={() => setShowBulkDelete(true)}
           />
         ) : (
-          <div className="px-6 py-3 border-b border-black/5 flex items-center gap-3 flex-shrink-0 bg-white">
+          <div className="px-4 md:px-6 py-3 border-b border-black/5 flex flex-wrap items-center gap-3 flex-shrink-0 bg-white">
             <div className="relative flex-shrink-0 w-52">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-steel" />
               <Input
@@ -1014,7 +1014,9 @@ function ObligationsPageContent() {
 
         {/* Table */}
         <div className="flex-1 overflow-auto">
-          <table className="w-full text-xs">
+          {/* min-w keeps columns legible on narrow viewports;
+              the wrapper's overflow-auto provides horizontal scroll. */}
+          <table className="w-full min-w-[900px] text-xs">
             <thead className="sticky top-0 bg-white border-b border-black/5 z-10">
               <tr>
                 {canEdit && (
@@ -1152,7 +1154,8 @@ function ObligationsPageContent() {
       <Sheet open={!!selectedId && !!selectedItem && !bulkMode} onOpenChange={open => !open && setSelectedId(null)}>
         <SheetContent
           side="right"
-          className="w-[420px] p-0 bg-white border-l border-black/5 text-graphite"
+          // Mobile: fill the viewport. Desktop: fixed 420px right drawer.
+          className="w-full sm:w-[420px] sm:max-w-[420px] p-0 bg-white border-l border-black/5 text-graphite"
         >
           {selectedItem && (
             <DetailPanel
