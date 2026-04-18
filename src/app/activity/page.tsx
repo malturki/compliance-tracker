@@ -61,8 +61,8 @@ export default async function ActivityPage({ searchParams }: { searchParams: Sea
               </tr>
             </thead>
             <tbody>
-              {rows.map((r) => (
-                <tr key={r.id} className="border-b border-silicon/40 last:border-b-0 hover:bg-silicon/[0.18]">
+              {rows.map((r, i) => (
+                <tr key={r.id} className={`border-b border-silicon/40 last:border-b-0 hover:bg-silicon/[0.22] ${i % 2 === 1 ? 'bg-silicon/[0.08]' : ''}`}>
                   <td className="px-3 py-2 font-mono text-steel" title={r.ts}>
                     {formatDistanceToNow(new Date(r.ts), { addSuffix: true })}
                   </td>

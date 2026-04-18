@@ -271,9 +271,9 @@ function DetailPanel({
         <div className="px-5 py-4 space-y-5 text-xs">
           {/* Hero: Next due date — most important info, largest text */}
           <div className={`border p-4 rounded-card ${
-            item.computedStatus === 'overdue' ? 'bg-danger/5 border-danger/30'
-            : item.computedStatus === 'upcoming' ? 'bg-warning/5 border-warning/30'
-            : item.computedStatus === 'completed' ? 'bg-success/5 border-success/30'
+            item.computedStatus === 'overdue' ? 'bg-danger/10 border-danger/30'
+            : item.computedStatus === 'upcoming' ? 'bg-warning/10 border-warning/30'
+            : item.computedStatus === 'completed' ? 'bg-success/10 border-success/30'
             : 'bg-white border-black/5'
           }`}>
             <div className="text-[10px] uppercase tracking-[0.18em] text-steel mb-1">Next Due</div>
@@ -1103,7 +1103,7 @@ function ObligationsPageContent() {
                         ${isSelected && !bulkMode ? 'bg-light-steel/[0.12] border-l-2 border-l-light-steel' : ''}
                         ${isSelected && bulkMode ? 'bg-light-steel/[0.12]' : ''}
                         ${!isSelected && (i % 2 === 0 ? 'hover:bg-silicon/[0.18]' : 'bg-white hover:bg-silicon/[0.18]')}
-                        ${item.computedStatus === 'overdue' ? 'bg-danger/[0.04] hover:bg-danger/[0.08]' : ''}
+                        ${item.computedStatus === 'overdue' ? 'bg-danger/[0.07] hover:bg-danger/[0.12]' : ''}
                       `}
                     >
                       {canEdit && (

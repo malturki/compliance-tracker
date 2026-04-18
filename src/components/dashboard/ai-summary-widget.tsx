@@ -49,7 +49,7 @@ export function AISummaryWidget({ analyticsData }: Props) {
   
   if (loading) {
     return (
-      <div className="border border-light-steel/[0.24] bg-light-steel/[0.08] p-4 mb-6">
+      <div className="border border-light-steel/40 bg-light-steel/[0.12] rounded-card shadow-card p-4 mb-6">
         <div className="flex items-start gap-3">
           <div className="bg-light-steel/[0.18] border border-light-steel/40 p-2">
             <Sparkles className="w-4 h-4 text-graphite animate-pulse" />
@@ -88,7 +88,7 @@ export function AISummaryWidget({ analyticsData }: Props) {
   }
   
   return (
-    <div className="border border-light-steel/[0.24] bg-light-steel/[0.08] p-4 mb-6">
+    <div className="border border-light-steel/40 bg-light-steel/[0.12] rounded-card shadow-card p-4 mb-6">
       <div className="flex items-start gap-3">
         <div className="bg-light-steel/[0.18] border border-light-steel/40 p-2 flex-shrink-0">
           <Sparkles className="w-4 h-4 text-graphite" />
