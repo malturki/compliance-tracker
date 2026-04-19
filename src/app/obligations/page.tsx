@@ -52,6 +52,21 @@ function RiskBadge({ risk }: { risk: RiskLevel }) {
   )
 }
 
+function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }) {
+  return (
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] bg-white border border-light-steel/60 text-graphite rounded">
+      {label}
+      <button
+        onClick={onRemove}
+        aria-label={`Remove ${label}`}
+        className="text-steel hover:text-graphite -mr-0.5 p-0.5 rounded transition-colors"
+      >
+        <X className="w-2.5 h-2.5" />
+      </button>
+    </span>
+  )
+}
+
 // Inline editor for the counterparty field. Click "Edit" or the placeholder
 // to switch into an input with autocomplete from existing counterparties; blur,
 // Enter, or Save commits via PUT, Esc cancels. Viewers see a read-only row.
@@ -1009,6 +1024,30 @@ function ObligationsPageContent() {
                 <X className="w-3 h-3" /> Clear
               </button>
             )}
+          </div>
+        )}
+
+        {/* Active filter chips — one-click removal for each active filter.
+            Stays visible while scrolling down large lists. */}
+        {!bulkMode && (category || status || riskLevel || counterparty || search) && (
+          <div className="px-4 md:px-6 py-2 border-b border-black/5 bg-canvas flex flex-wrap items-center gap-1.5">
+            <span className="text-[10px] uppercase tracking-[0.18em] text-steel mr-1">Active:</span>
+            {search && (
+              <FilterChip label={`Search: "${search}"`} onRemove={() => setSearch('')} />
+            )}
+            {category && (
+              <FilterChip label={`Category: ${getCategoryLabel(category)}`} onRemove={() => setCategory('')} />
+            )}
+            {status && (
+              <FilterChip label={`Status: ${status}`} onRemove={() => setStatus('')} />
+            )}
+            {riskLevel && (
+              <FilterChip label={`Risk: ${riskLevel}`} onRemove={() => setRiskLevel('')} />
+            )}
+            {counterparty && (
+              <FilterChip label={`Counterparty: ${counterparty}`} onRemove={() => setCounterparty('')} />
+            )}
+            <span className="text-[10px] text-steel/70 font-mono ml-1">{items.length} result{items.length !== 1 ? 's' : ''}</span>
           </div>
         )}
 

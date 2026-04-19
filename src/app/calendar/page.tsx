@@ -1,9 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
 import { formatDate, getCategoryLabel, getRiskColor } from '@/lib/utils'
 import type { Obligation } from '@/lib/types'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, MousePointerClick } from 'lucide-react'
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths } from 'date-fns'
 import Link from 'next/link'
 
@@ -15,14 +16,26 @@ export default function CalendarPage() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
+  const loadObligations = () => {
+    setLoading(true)
     fetch('/api/obligations')
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) throw new Error('Failed to fetch')
+        return r.json()
+      })
       .then(data => {
         setItems(data.map((d: any) => ({ ...d, computedStatus: d.status })))
-        setLoading(false)
       })
-      .catch(() => setLoading(false))
+      .catch(() =>
+        toast.error('Failed to load obligations', {
+          action: { label: 'Retry', onClick: () => loadObligations() },
+        }),
+      )
+      .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    loadObligations()
   }, [])
 
   const monthStart = startOfMonth(currentMonth)
@@ -232,7 +245,13 @@ export default function CalendarPage() {
             </div>
           ) : (
             <div className="bg-white border border-black/5 rounded-card shadow-card p-8 text-center">
-              <div className="text-sm text-steel">Select a date to view obligations</div>
+              <div className="inline-flex items-center justify-center w-8 h-8 rounded bg-light-steel/[0.18] border border-light-steel/40 mb-3">
+                <MousePointerClick className="w-4 h-4 text-graphite" />
+              </div>
+              <div className="text-sm font-medium text-graphite mb-1">Pick a date</div>
+              <div className="text-xs text-steel leading-relaxed">
+                Click any day on the calendar to see obligations due that day.
+              </div>
             </div>
           )}
         </div>

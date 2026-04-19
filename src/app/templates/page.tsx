@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, Plus, Check, Square, CheckSquare } from 'lucide-react'
+import { ArrowLeft, Plus, Check, Square, CheckSquare, Loader2 } from 'lucide-react'
 import { formatDate, getCategoryLabel, getRiskColor } from '@/lib/utils'
 
 interface TemplateListItem {
@@ -62,13 +62,16 @@ export default function TemplatesPage() {
   }, [])
 
   const loadTemplates = async () => {
+    setLoading(true)
     try {
       const res = await fetch('/api/templates')
       if (!res.ok) throw new Error('Failed to load templates')
       const data = await res.json()
       setTemplates(data.templates)
     } catch (error: any) {
-      toast.error(error.message || 'Failed to load templates')
+      toast.error(error.message || 'Failed to load templates', {
+        action: { label: 'Retry', onClick: () => loadTemplates() },
+      })
     } finally {
       setLoading(false)
     }
@@ -147,7 +150,10 @@ export default function TemplatesPage() {
     return (
       <div className="p-8">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center py-12 text-steel">Loading templates...</div>
+          <div className="flex items-center justify-center gap-2 py-16 text-steel">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span className="text-sm">Loading templates...</span>
+          </div>
         </div>
       </div>
     )
@@ -227,6 +233,9 @@ export default function TemplatesPage() {
                         placeholder="e.g., CFO"
                         className="mt-1 text-xs h-8"
                       />
+                      <p className="text-[10px] text-steel/70 mt-1 leading-snug">
+                        Leave blank to keep each template default (shown per row below).
+                      </p>
                     </div>
                     <div>
                       <Label htmlFor="custom-entity" className="text-xs text-steel">
@@ -238,6 +247,9 @@ export default function TemplatesPage() {
                         onChange={(e) => setCustomEntity(e.target.value)}
                         className="mt-1 text-xs h-8"
                       />
+                      <p className="text-[10px] text-steel/70 mt-1 leading-snug">
+                        The internal party these obligations belong to. Defaults to Pi Squared Inc.
+                      </p>
                     </div>
                   </div>
                 </div>

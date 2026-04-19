@@ -119,7 +119,7 @@ export function CommandPalette() {
         <CommandInput
           value={query}
           onValueChange={setQuery}
-          placeholder="Search obligations, jump to pages..."
+          placeholder={canAccess('editor') ? 'Search obligations, pages, help...' : 'Search pages and help...'}
         />
         <CommandList className="max-h-[60vh]">
           <CommandEmpty>

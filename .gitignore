@@ -42,3 +42,8 @@ coverage/
 # external design kit (local-only, never committed)
 fast-demo-kit*.zip
 fast-fonts*.zip
+
+# local screen recordings (never commit)
+*.mov
+*.mp4
+Screen Recording*.mov

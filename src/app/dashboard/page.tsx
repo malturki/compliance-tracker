@@ -38,28 +38,29 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null)
   const today = new Date()
 
-  useEffect(() => {
-    const fetchAnalytics = async () => {
-      try {
-        setLoading(true)
-        setError(null)
+  const fetchAnalytics = async () => {
+    try {
+      setLoading(true)
+      setError(null)
 
-        const response = await fetch('/api/analytics')
-        if (!response.ok) {
-          throw new Error('Failed to fetch analytics')
-        }
-
-        const data = await response.json()
-        setAnalytics(data)
-      } catch (err) {
-        console.error('Failed to fetch analytics:', err)
-        setError('Failed to load analytics data')
-      } finally {
-        setLoading(false)
+      const response = await fetch('/api/analytics')
+      if (!response.ok) {
+        throw new Error('Failed to fetch analytics')
       }
-    }
 
+      const data = await response.json()
+      setAnalytics(data)
+    } catch (err) {
+      console.error('Failed to fetch analytics:', err)
+      setError('Failed to load analytics data')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
     fetchAnalytics()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   if (loading) {
@@ -83,7 +84,7 @@ export default function DashboardPage() {
           </h2>
           <p className="text-steel">{error || 'Unknown error'}</p>
           <button
-            onClick={() => window.location.reload()}
+            onClick={fetchAnalytics}
             className="mt-4 px-4 py-2 bg-graphite text-platinum hover:bg-graphite/90 transition-colors"
           >
             Retry
@@ -98,7 +99,7 @@ export default function DashboardPage() {
   return (
     <div className="p-6 max-w-[1400px]">
       {/* Header */}
-      <div className="flex items-baseline justify-between mb-6 border-b border-black/5 pb-4">
+      <div className="flex items-baseline justify-between flex-wrap gap-2 mb-6 border-b border-black/5 pb-4">
         <div>
           <h1 className="text-2xl font-medium tracking-[-0.02em] text-graphite">Analytics Dashboard</h1>
           <p className="text-xs text-steel mt-0.5 font-mono">AI-powered compliance insights</p>
@@ -109,8 +110,8 @@ export default function DashboardPage() {
       {/* AI Summary */}
       <AISummaryWidget analyticsData={analytics} />
 
-      {/* Metric Cards */}
-      <div className="grid grid-cols-4 gap-3 mb-6">
+      {/* Metric Cards — 2 columns on mobile, 4 from md upward */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         <MetricCard
           title="Compliance Score"
           value={`${overview.complianceScore}/100`}
@@ -144,14 +145,14 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* Charts Row 1 */}
-      <div className="grid grid-cols-2 gap-4 mb-4">
+      {/* Charts Row 1 — stacked on mobile, side-by-side from lg upward */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
         <CompletionTrendChart trends={analytics.trends} />
         <CategoryPerformanceChart categories={analytics.categoryPerformance} />
       </div>
 
       {/* Charts Row 2 */}
-      <div className="grid grid-cols-2 gap-4 mb-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
         <RiskExposureChart risks={analytics.riskExposure} />
         <div className="bg-white border border-black/5 rounded-card shadow-card p-6">
           <h3 className="text-[10px] uppercase tracking-[0.18em] text-steel mb-3">Key Metrics</h3>

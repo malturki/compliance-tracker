@@ -75,7 +75,10 @@ export function Sidebar() {
           'lg:translate-x-0',
         )}
       >
-      <div className="px-5 py-5 border-b border-black/5">
+      {/* Left padding reserves space for the mobile hamburger/close button
+          that sits at `top-3 left-3` inside the drawer area. On lg+ the
+          button is hidden so the extra padding doesn't hurt layout. */}
+      <div className="pl-16 pr-5 py-5 lg:pl-5 border-b border-black/5">
         <img
           src="/fast-logo-dark.svg"
           alt="FAST"
@@ -165,6 +168,13 @@ export function Sidebar() {
         ) : (
           <div className="text-[11px] text-[#5F6672] font-mono">Not signed in</div>
         )}
+        <div className="mt-2 pt-2 border-t border-black/5 flex items-center justify-between text-[10px] font-mono text-[#5F6672]">
+          <span>Shortcuts</span>
+          <div className="flex items-center gap-1">
+            <kbd className="border border-black/10 rounded px-1 py-0.5">⌘K</kbd>
+            <kbd className="border border-black/10 rounded px-1 py-0.5">?</kbd>
+          </div>
+        </div>
       </div>
       </aside>
     </>

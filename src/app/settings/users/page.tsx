@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import Link from 'next/link'
+import { ShieldAlert } from 'lucide-react'
 import { SettingsTabs } from '@/components/settings/settings-tabs'
 
 type User = {
@@ -19,25 +20,35 @@ const ROLES = ['viewer', 'editor', 'admin'] as const
 const ROLE_LEVEL: Record<string, number> = { viewer: 0, editor: 1, admin: 2 }
 
 export default function UsersSettingsPage() {
-  const { data: session } = useSession()
-  const router = useRouter()
+  const { data: session, status } = useSession()
+  const isAdmin = session?.user?.role === 'admin'
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    if (session?.user?.role !== 'admin') {
-      router.push('/')
-      return
-    }
+  const loadUsers = () => {
+    setLoading(true)
     fetch('/api/users')
       .then(r => {
         if (!r.ok) throw new Error('Failed to fetch')
         return r.json()
       })
       .then(d => setUsers(d.users))
-      .catch(() => toast.error('Failed to load users'))
+      .catch(() =>
+        toast.error('Failed to load users', {
+          action: { label: 'Retry', onClick: () => loadUsers() },
+        }),
+      )
       .finally(() => setLoading(false))
-  }, [session, router])
+  }
+
+  useEffect(() => {
+    if (!isAdmin) {
+      setLoading(false)
+      return
+    }
+    loadUsers()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAdmin])
 
   const handleRoleChange = async (userId: string, newRole: string) => {
     const user = users.find(u => u.id === userId)
@@ -71,7 +82,33 @@ export default function UsersSettingsPage() {
     }
   }
 
-  if (session?.user?.role !== 'admin') return null
+  if (status === 'authenticated' && !isAdmin) {
+    return (
+      <div className="p-6 max-w-[1400px]">
+        <div className="flex items-baseline mb-6 border-b border-black/5 pb-4">
+          <div>
+            <h1 className="text-2xl font-medium tracking-[-0.02em] text-graphite">Settings</h1>
+            <p className="text-xs text-steel mt-0.5 font-mono">Admin-only area</p>
+          </div>
+        </div>
+        <div className="bg-white border border-black/5 rounded-card shadow-card p-8 text-center max-w-lg mx-auto mt-12">
+          <div className="inline-flex items-center justify-center w-10 h-10 rounded bg-light-steel/[0.18] border border-light-steel/40 mb-4">
+            <ShieldAlert className="w-5 h-5 text-graphite" />
+          </div>
+          <h2 className="text-sm font-semibold text-graphite mb-2">Admin access required</h2>
+          <p className="text-xs text-steel leading-relaxed mb-5">
+            Your role is <span className="font-mono text-graphite">{session?.user?.role?.toUpperCase() ?? 'UNKNOWN'}</span>. Only admins can manage users and agents. Contact an admin if you need elevated access.
+          </p>
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 px-4 py-2 border border-black/5 hover:border-light-steel text-graphite text-xs font-medium rounded transition-colors"
+          >
+            ← Back to Overview
+          </Link>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="p-6 max-w-[1400px]">
@@ -86,7 +123,19 @@ export default function UsersSettingsPage() {
       <SettingsTabs />
 
       {loading ? (
-        <div className="text-xs text-steel font-mono">Loading...</div>
+        <div className="bg-white border border-black/5 rounded-card shadow-card overflow-hidden">
+          <div className="animate-pulse">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="flex items-center gap-3 px-3 py-3 border-b border-silicon/40 last:border-b-0">
+                <div className="w-6 h-6 rounded-full bg-silicon/60" />
+                <div className="flex-1 h-3 bg-silicon/60 rounded max-w-[200px]" />
+                <div className="h-3 bg-silicon/60 rounded w-40" />
+                <div className="h-6 bg-silicon/60 rounded w-20" />
+                <div className="h-3 bg-silicon/60 rounded w-20" />
+              </div>
+            ))}
+          </div>
+        </div>
       ) : (
         <div className="bg-white border border-black/5 rounded-card shadow-card overflow-hidden">
           <table className="w-full text-xs">

@@ -84,7 +84,11 @@ export default function HelpPage() {
             Help
           </h1>
           <p className="text-xs text-steel mt-0.5 font-mono">
-            In-app documentation — scoped to your role ({role.toUpperCase()})
+            In-app documentation
+            {role !== 'admin' && (
+              <> — showing topics for your role ({role.toUpperCase()}). Admin-only topics are hidden; contact an admin for elevated access.</>
+            )}
+            {role === 'admin' && <> — showing all topics ({role.toUpperCase()})</>}
           </p>
         </div>
         <div className="flex items-center gap-2">
