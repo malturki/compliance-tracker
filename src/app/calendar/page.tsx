@@ -71,9 +71,9 @@ export default function CalendarPage() {
   today.setHours(0, 0, 0, 0)
 
   return (
-    <div className="p-6 max-w-[1400px]">
+    <div className="p-4 md:p-6 max-w-[1400px] overflow-x-hidden">
       {/* Header */}
-      <div className="flex items-baseline justify-between mb-6 border-b border-black/5 pb-4">
+      <div className="flex items-baseline justify-between flex-wrap gap-2 mb-6 border-b border-black/5 pb-4">
         <div>
           <h1 className="text-2xl font-medium tracking-[-0.02em] text-graphite">Calendar View</h1>
           <p className="text-xs text-steel mt-0.5 font-mono">Obligations by due date</p>
@@ -103,9 +103,9 @@ export default function CalendarPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-7 gap-3">
+      <div className="grid grid-cols-1 lg:grid-cols-7 gap-3">
         {/* Calendar grid */}
-        <div className="col-span-5">
+        <div className="lg:col-span-5">
           <div className={`bg-white border border-black/5 rounded-card shadow-card overflow-hidden relative transition-opacity ${loading ? 'opacity-60' : ''}`}>
             {loading && (
               <div className="absolute top-2 right-2 z-10 text-[10px] font-mono text-steel flex items-center gap-1.5">
@@ -116,8 +116,9 @@ export default function CalendarPage() {
             {/* Day headers */}
             <div className="grid grid-cols-7 text-[10px] uppercase tracking-[0.18em] text-steel border-b border-black/5">
               {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                <div key={day} className="px-2 py-2 text-center font-semibold">
-                  {day}
+                <div key={day} className="px-1 md:px-2 py-2 text-center font-semibold">
+                  <span className="md:hidden">{day.charAt(0)}</span>
+                  <span className="hidden md:inline">{day}</span>
                 </div>
               ))}
             </div>
@@ -138,15 +139,27 @@ export default function CalendarPage() {
                     <div
                       key={di}
                       onClick={() => setSelectedDate(day)}
-                      className={`border-t border-l border-silicon/40 p-2 min-h-[100px] cursor-pointer transition-colors relative
+                      className={`border-t border-l border-silicon/40 p-1 md:p-2 min-h-[60px] md:min-h-[100px] cursor-pointer transition-colors relative
                         ${isSelected ? 'bg-light-steel/[0.28] border-light-steel' : isToday ? 'bg-light-steel/[0.18] border-light-steel' : 'bg-white hover:bg-silicon/[0.18]'}
                         ${!inMonth ? 'bg-canvas text-steel/60' : ''}
                       `}
                     >
-                      <div className={`text-xs font-mono mb-1 ${isToday ? 'text-graphite font-semibold' : 'text-steel'}`}>
+                      <div className={`text-[10px] md:text-xs font-mono mb-1 ${isToday ? 'text-graphite font-semibold' : 'text-steel'}`}>
                         {format(day, 'd')}
                       </div>
-                      <div className="space-y-0.5">
+                      {/* On mobile (<md) show just a count indicator; on md+ show chip list */}
+                      <div className="md:hidden">
+                        {dayItems.length > 0 && (
+                          <div className={`text-[9px] font-mono font-semibold text-center leading-none py-0.5 rounded ${
+                            dayItems.some(i => i.computedStatus === 'overdue') ? 'bg-danger/10 text-danger' :
+                            dayItems.some(i => i.computedStatus === 'upcoming') ? 'bg-warning/10 text-warning' :
+                            'bg-silicon/40 text-graphite'
+                          }`}>
+                            {dayItems.length}
+                          </div>
+                        )}
+                      </div>
+                      <div className="hidden md:block space-y-0.5">
                         {dayItems.slice(0, 3).map(item => {
                           const isOverdue = item.computedStatus === 'overdue'
                           const isUpcoming = item.computedStatus === 'upcoming'
@@ -205,7 +218,7 @@ export default function CalendarPage() {
         </div>
 
         {/* Detail panel */}
-        <div className="col-span-2">
+        <div className="lg:col-span-2">
           {selectedDate ? (
             <div className="bg-white border border-black/5 rounded-card shadow-card overflow-hidden">
               <div className="px-4 py-3 border-b border-black/5 bg-canvas">

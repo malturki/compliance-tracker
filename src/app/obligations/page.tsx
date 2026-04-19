@@ -1054,8 +1054,10 @@ function ObligationsPageContent() {
         {/* Table */}
         <div className="flex-1 overflow-auto">
           {/* min-w keeps columns legible on narrow viewports;
-              the wrapper's overflow-auto provides horizontal scroll. */}
-          <table className="w-full min-w-[900px] text-xs">
+              the wrapper's overflow-auto provides horizontal scroll.
+              On mobile (<md) we hide Freq/Owner/Chevron columns and drop min-w
+              so the table fits without horizontal scroll at 375px. */}
+          <table className="w-full md:min-w-[900px] text-xs">
             <thead className="sticky top-0 bg-white border-b border-black/5 z-10">
               <tr>
                 {canEdit && (
@@ -1068,16 +1070,16 @@ function ObligationsPageContent() {
                 </th>
                 )}
                 {([
-                  ['title', 'Obligation', 'text-left'],
-                  ['category', 'Category', 'text-left'],
-                  ['frequency', 'Freq', 'text-left'],
-                  ['next_due_date', 'Due Date', 'text-right'],
-                  ['owner', 'Owner', 'text-left'],
-                ] as [SortField, string, string][]).map(([field, label, align]) => (
+                  ['title', 'Obligation', 'text-left', ''],
+                  ['category', 'Category', 'text-left', ''],
+                  ['frequency', 'Freq', 'text-left', 'hidden md:table-cell'],
+                  ['next_due_date', 'Due Date', 'text-right', ''],
+                  ['owner', 'Owner', 'text-left', 'hidden md:table-cell'],
+                ] as [SortField, string, string, string][]).map(([field, label, align, responsive]) => (
                   <th
                     key={field}
                     onClick={() => handleSort(field)}
-                    className={`px-3 py-2.5 font-medium text-steel cursor-pointer hover:text-graphite select-none ${align}`}
+                    className={`px-3 py-2.5 font-medium text-steel cursor-pointer hover:text-graphite select-none ${align} ${responsive}`}
                   >
                     <span className="inline-flex items-center gap-1">
                       {label} <SortIcon field={field} />
@@ -1091,7 +1093,7 @@ function ObligationsPageContent() {
                 >
                   <span className="inline-flex items-center gap-1">Risk <SortIcon field="risk_level" /></span>
                 </th>
-                {!bulkMode && <th className="w-6" />}
+                {!bulkMode && <th className="w-6 hidden md:table-cell" />}
               </tr>
             </thead>
             <tbody>
@@ -1101,12 +1103,12 @@ function ObligationsPageContent() {
                     <td className="px-3 py-3"><div className="h-3 w-4 bg-silicon/60 rounded" /></td>
                     <td className="px-3 py-3"><div className="h-3 w-48 bg-silicon/60 rounded" /></td>
                     <td className="px-3 py-3"><div className="h-3 w-16 bg-silicon/60 rounded" /></td>
-                    <td className="px-3 py-3"><div className="h-3 w-16 bg-silicon/60 rounded" /></td>
+                    <td className="px-3 py-3 hidden md:table-cell"><div className="h-3 w-16 bg-silicon/60 rounded" /></td>
                     <td className="px-3 py-3"><div className="h-3 w-14 bg-silicon/60 rounded" /></td>
-                    <td className="px-3 py-3"><div className="h-3 w-20 bg-silicon/60 rounded" /></td>
+                    <td className="px-3 py-3 hidden md:table-cell"><div className="h-3 w-20 bg-silicon/60 rounded" /></td>
                     <td className="px-3 py-3"><div className="h-3 w-20 bg-silicon/60 rounded" /></td>
                     <td className="px-3 py-3"><div className="h-3 w-12 bg-silicon/60 rounded" /></td>
-                    <td className="px-3 py-3"><div className="h-3 w-10 bg-silicon/60 rounded" /></td>
+                    <td className="px-3 py-3 hidden md:table-cell"><div className="h-3 w-10 bg-silicon/60 rounded" /></td>
                   </tr>
                 ))
               ) : items.length === 0 ? (
@@ -1167,7 +1169,7 @@ function ObligationsPageContent() {
                         )}
                       </td>
                       <td className="px-3 py-2 text-steel">{getCategoryLabel(item.category)}</td>
-                      <td className="px-3 py-2 text-steel capitalize">{item.frequency}</td>
+                      <td className="px-3 py-2 text-steel capitalize hidden md:table-cell">{item.frequency}</td>
                       <td className="px-3 py-2 text-right font-mono">
                         <span className={item.computedStatus === 'overdue' ? 'text-danger' : item.computedStatus === 'upcoming' ? 'text-warning' : 'text-steel'}>
                           {formatDate(item.nextDueDate)}
@@ -1176,10 +1178,10 @@ function ObligationsPageContent() {
                           {days === 0 ? 'today' : days > 0 ? `+${days}d` : `${days}d`}
                         </span>
                       </td>
-                      <td className="px-3 py-2 text-steel max-w-[140px] truncate">{item.owner}</td>
+                      <td className="px-3 py-2 text-steel max-w-[140px] truncate hidden md:table-cell">{item.owner}</td>
                       <td className="px-3 py-2 text-center"><StatusBadge status={item.computedStatus} /></td>
                       <td className="px-3 py-2 text-center"><RiskBadge risk={item.riskLevel as RiskLevel} /></td>
-                      {!bulkMode && <td className="px-2 py-2 text-steel/70"><ChevronRight className="w-3 h-3" /></td>}
+                      {!bulkMode && <td className="px-2 py-2 text-steel/70 hidden md:table-cell"><ChevronRight className="w-3 h-3" /></td>}
                     </tr>
                   )
                 })

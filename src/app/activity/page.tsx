@@ -33,8 +33,8 @@ export default async function ActivityPage({ searchParams }: { searchParams: Sea
   const isPaged = !!searchParams.before
 
   return (
-    <div className="p-6 max-w-[1400px]">
-      <div className="flex items-baseline justify-between mb-6 border-b border-black/5 pb-4">
+    <div className="p-4 md:p-6 max-w-[1400px] overflow-x-hidden">
+      <div className="flex items-baseline justify-between flex-wrap gap-2 mb-6 border-b border-black/5 pb-4">
         <div>
           <h1 className="text-2xl font-medium tracking-[-0.02em] text-graphite">Activity</h1>
           <p className="text-xs text-steel mt-0.5 font-mono">
@@ -50,38 +50,40 @@ export default async function ActivityPage({ searchParams }: { searchParams: Sea
         </div>
       ) : (
         <div className="bg-white border border-black/5 rounded-card shadow-card overflow-hidden">
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="text-[10px] uppercase tracking-[0.18em] text-steel border-b border-black/5">
-                <th className="text-left px-3 py-2 font-medium font-mono">When</th>
-                <th className="text-left px-3 py-2 font-medium">Actor</th>
-                <th className="text-left px-3 py-2 font-medium">Event</th>
-                <th className="text-left px-3 py-2 font-medium">Summary</th>
-                <th className="text-right px-3 py-2 font-medium font-mono">Link</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((r, i) => (
-                <tr key={r.id} className={`border-b border-silicon/40 last:border-b-0 hover:bg-silicon/[0.22] ${i % 2 === 1 ? 'bg-silicon/[0.08]' : ''}`}>
-                  <td className="px-3 py-2 font-mono text-steel" title={r.ts}>
-                    {formatDistanceToNow(new Date(r.ts), { addSuffix: true })}
-                  </td>
-                  <td className="px-3 py-2 text-graphite">{r.actor}</td>
-                  <td className="px-3 py-2 font-mono text-steel text-[11px]">{r.eventType}</td>
-                  <td className="px-3 py-2 text-steel">{r.summary}</td>
-                  <td className="px-3 py-2 text-right">
-                    {r.entityType === 'obligation' && r.entityId ? (
-                      <Link href={`/obligations?id=${r.entityId}`} className="text-graphite hover:underline font-mono">
-                        open →
-                      </Link>
-                    ) : (
-                      <span className="text-steel/60">—</span>
-                    )}
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full md:min-w-[720px] text-xs">
+              <thead>
+                <tr className="text-[10px] uppercase tracking-[0.18em] text-steel border-b border-black/5">
+                  <th className="text-left px-3 py-2 font-medium font-mono">When</th>
+                  <th className="text-left px-3 py-2 font-medium">Actor</th>
+                  <th className="text-left px-3 py-2 font-medium hidden md:table-cell">Event</th>
+                  <th className="text-left px-3 py-2 font-medium">Summary</th>
+                  <th className="text-right px-3 py-2 font-medium font-mono hidden md:table-cell">Link</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {rows.map((r, i) => (
+                  <tr key={r.id} className={`border-b border-silicon/40 last:border-b-0 hover:bg-silicon/[0.22] ${i % 2 === 1 ? 'bg-silicon/[0.08]' : ''}`}>
+                    <td className="px-3 py-2 font-mono text-steel" title={r.ts}>
+                      {formatDistanceToNow(new Date(r.ts), { addSuffix: true })}
+                    </td>
+                    <td className="px-3 py-2 text-graphite">{r.actor}</td>
+                    <td className="px-3 py-2 font-mono text-steel text-[11px] hidden md:table-cell">{r.eventType}</td>
+                    <td className="px-3 py-2 text-steel">{r.summary}</td>
+                    <td className="px-3 py-2 text-right hidden md:table-cell">
+                      {r.entityType === 'obligation' && r.entityId ? (
+                        <Link href={`/obligations?id=${r.entityId}`} className="text-graphite hover:underline font-mono">
+                          open →
+                        </Link>
+                      ) : (
+                        <span className="text-steel/60">—</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 

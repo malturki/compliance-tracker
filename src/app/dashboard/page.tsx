@@ -97,7 +97,7 @@ export default function DashboardPage() {
   const { overview } = analytics
 
   return (
-    <div className="p-6 max-w-[1400px]">
+    <div className="p-6 max-w-[1400px] overflow-x-hidden">
       {/* Header */}
       <div className="flex items-baseline justify-between flex-wrap gap-2 mb-6 border-b border-black/5 pb-4">
         <div>

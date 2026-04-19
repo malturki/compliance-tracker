@@ -59,7 +59,7 @@ export function OwnerPerformanceTable({ owners }: Props) {
         <h3 className="text-sm font-semibold text-graphite uppercase tracking-wider">Owner Performance</h3>
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full text-xs">
+        <table className="w-full min-w-[640px] text-xs">
           <thead>
             <tr className="border-b border-silicon/40 text-steel">
               <th

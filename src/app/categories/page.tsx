@@ -138,7 +138,7 @@ export default async function CategoriesPage() {
       </div>
 
       {/* Grid */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {sortedCategories.map(cat => {
           const data = byCategory[cat]
           const Icon = CATEGORY_ICONS[cat] || FileText
@@ -257,7 +257,7 @@ export default async function CategoriesPage() {
               {sortedCounterparties.length} counterparties
             </p>
           </div>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {sortedCounterparties.map(cp => {
               const hasProblems = cp.overdue > 0
               return (
