@@ -927,7 +927,7 @@ function ObligationsPageContent() {
     <div className="flex h-screen overflow-hidden">
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-black/5 flex items-center justify-between flex-shrink-0">
+        <div className="px-4 md:px-6 py-4 border-b border-black/5 flex items-center justify-between flex-wrap gap-2 flex-shrink-0">
           <div>
             <h1 className="text-lg font-semibold text-graphite">Obligations</h1>
             <p className="text-xs text-steel mt-0.5 font-mono">{items.length} obligations</p>
@@ -1159,7 +1159,7 @@ function ObligationsPageContent() {
                         />
                       </td>
                       )}
-                      <td className="px-3 py-2 max-w-[280px]">
+                      <td className="px-3 py-2 max-w-[280px] break-words">
                         <span className={`font-medium leading-tight ${item.computedStatus === 'overdue' ? 'text-danger' : 'text-graphite'}`}>
                           {item.title}
                         </span>

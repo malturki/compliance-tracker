@@ -41,6 +41,13 @@
   border-color: rgba(95, 102, 114, 0.16);
 }
 
+html, body {
+  /* Safety net: prevent stray horizontal scroll from wide children.
+     `overflow-x: clip` (vs. `hidden`) avoids creating a scroll context,
+     so sticky positioning and smooth scroll still work. */
+  overflow-x: clip;
+}
+
 body {
   background: #F6F8FA;
   color: #2B2C2F;

@@ -59,7 +59,7 @@ export function OwnerPerformanceTable({ owners }: Props) {
         <h3 className="text-sm font-semibold text-graphite uppercase tracking-wider">Owner Performance</h3>
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[640px] text-xs">
+        <table className="w-full md:min-w-[640px] text-xs">
           <thead>
             <tr className="border-b border-silicon/40 text-steel">
               <th
@@ -80,7 +80,7 @@ export function OwnerPerformanceTable({ owners }: Props) {
               >
                 Overdue <SortIcon columnKey="overdue" />
               </th>
-              <th className="text-center py-2.5 px-3 font-medium">
+              <th className="text-center py-2.5 px-3 font-medium hidden md:table-cell">
                 Upcoming
               </th>
               <th
@@ -90,7 +90,7 @@ export function OwnerPerformanceTable({ owners }: Props) {
                 On-Time Rate <SortIcon columnKey="completionRate" />
               </th>
               <th
-                className="text-center py-2.5 px-3 font-medium cursor-pointer hover:text-graphite select-none"
+                className="text-center py-2.5 px-3 font-medium cursor-pointer hover:text-graphite select-none hidden md:table-cell"
                 onClick={() => handleSort('avgDaysToComplete')}
               >
                 Avg Days <SortIcon columnKey="avgDaysToComplete" />
@@ -117,7 +117,7 @@ export function OwnerPerformanceTable({ owners }: Props) {
                     {owner.overdue}
                   </span>
                 </td>
-                <td className="py-2 px-3 text-center text-steel font-mono">
+                <td className="py-2 px-3 text-center text-steel font-mono hidden md:table-cell">
                   {owner.upcoming}
                 </td>
                 <td className="py-2 px-3 text-center">
@@ -130,7 +130,7 @@ export function OwnerPerformanceTable({ owners }: Props) {
                     {owner.completionRate}%
                   </span>
                 </td>
-                <td className="py-2 px-3 text-center">
+                <td className="py-2 px-3 text-center hidden md:table-cell">
                   <span className={`
                     font-mono text-[11px]
                     ${owner.avgDaysToComplete <= 0 ? 'text-success' :

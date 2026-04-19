@@ -137,7 +137,7 @@ export default function AgentsSettingsPage() {
 
   if (status === 'authenticated' && !isAdmin) {
     return (
-      <div className="p-6 max-w-[1400px]">
+      <div className="p-4 md:p-6 max-w-[1400px] overflow-x-hidden">
         <div className="flex items-baseline mb-6 border-b border-black/5 pb-4">
           <div>
             <h1 className="text-2xl font-medium tracking-[-0.02em] text-graphite">Settings</h1>
@@ -164,8 +164,8 @@ export default function AgentsSettingsPage() {
   }
 
   return (
-    <div className="p-6 max-w-[1400px]">
-      <div className="flex items-baseline justify-between mb-6 border-b border-black/5 pb-4">
+    <div className="p-4 md:p-6 max-w-[1400px] overflow-x-hidden">
+      <div className="flex items-baseline justify-between flex-wrap gap-2 mb-6 border-b border-black/5 pb-4">
         <div>
           <h1 className="text-2xl font-medium tracking-[-0.02em] text-graphite">Agent Management</h1>
           <p className="text-xs text-steel mt-0.5 font-mono">Service accounts with API tokens</p>
@@ -181,17 +181,17 @@ export default function AgentsSettingsPage() {
 
       <SettingsTabs />
 
-      {/* Skill URL — visible at the page level so admins always have it on hand,
-          not just inside the create-token modal. */}
-      <div className="mt-4 mb-4 bg-white border border-black/5 rounded-card shadow-card p-4 flex items-center gap-3">
+      {/* Skill URL — stacks on mobile (label → URL → buttons) so the long URL
+          doesn't force horizontal scroll. Row layout on md+. */}
+      <div className="mt-4 mb-4 bg-white border border-black/5 rounded-card shadow-card p-4 flex flex-col md:flex-row md:items-center gap-3">
         <div className="flex-shrink-0">
           <div className="text-[10px] text-steel uppercase tracking-[0.18em] mb-0.5">Agent skill URL</div>
           <div className="text-[10px] text-steel/70">Public, no auth — share with any AI agent</div>
         </div>
-        <code className="flex-1 font-mono text-[11px] text-graphite break-all bg-canvas border border-black/5 px-2.5 py-2 rounded-inner">
+        <code className="flex-1 min-w-0 font-mono text-[11px] text-graphite break-all bg-canvas border border-black/5 px-2.5 py-2 rounded-inner">
           {SKILL_URL}
         </code>
-        <div className="flex items-center gap-1.5 flex-shrink-0">
+        <div className="flex items-center gap-1.5 md:flex-shrink-0">
           <button
             onClick={() => copyToClipboard('skill URL', SKILL_URL)}
             className="inline-flex items-center gap-1 px-2 py-1.5 bg-transparent border border-black/10 text-graphite hover:bg-silicon/[0.18] text-[10px] rounded transition-colors"
@@ -231,64 +231,74 @@ export default function AgentsSettingsPage() {
         </div>
       ) : (
         <div className="bg-white border border-black/5 rounded-card shadow-card overflow-hidden">
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="text-[10px] uppercase tracking-[0.18em] text-steel border-b border-black/5">
-                <th className="text-left px-3 py-2 font-medium">Name</th>
-                <th className="text-left px-3 py-2 font-medium">Role</th>
-                <th className="text-left px-3 py-2 font-medium">Token</th>
-                <th className="text-left px-3 py-2 font-medium">Expires</th>
-                <th className="text-left px-3 py-2 font-medium">Last used</th>
-                <th className="text-right px-3 py-2 font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {agents.map(agent => {
-                const revoked = !!agent.revokedAt
-                const expired = new Date(agent.expiresAt) < new Date()
-                return (
-                  <tr key={agent.id} className={`border-b border-silicon/40 last:border-b-0 hover:bg-silicon/[0.18] ${revoked ? 'opacity-50' : ''}`}>
-                    <td className="px-3 py-2">
-                      <div className={revoked ? 'line-through text-steel' : 'text-graphite'}>{agent.name}</div>
-                      {agent.description && <div className="text-[10px] text-steel/70 mt-0.5">{agent.description}</div>}
-                    </td>
-                    <td className="px-3 py-2">
-                      <span className={`inline-flex px-1.5 py-0.5 text-[10px] font-mono font-semibold border rounded ${ROLE_BADGE_CLASSES[agent.role as Role] ?? ROLE_BADGE_CLASSES.viewer}`}>
-                        {agent.role.toUpperCase()}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2 font-mono text-steel text-[10px]">{agent.tokenPrefix}...</td>
-                    <td className={`px-3 py-2 font-mono ${expired ? 'text-danger' : 'text-steel'}`}>
-                      {formatDistanceToNow(new Date(agent.expiresAt), { addSuffix: true })}
-                    </td>
-                    <td className="px-3 py-2 font-mono text-steel">
-                      {agent.lastUsedAt ? formatDistanceToNow(new Date(agent.lastUsedAt), { addSuffix: true }) : 'never'}
-                    </td>
-                    <td className="px-3 py-2 text-right">
-                      {!revoked && (
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => handleRegenerate(agent.id)}
-                            className="inline-flex items-center gap-1 px-2 py-1 bg-transparent border border-black/10 text-graphite hover:bg-silicon/[0.18] text-[10px] rounded transition-colors"
-                          >
-                            <RotateCw className="w-3 h-3" />
-                            Regenerate
-                          </button>
-                          <button
-                            onClick={() => handleRevoke(agent.id, agent.name)}
-                            className="inline-flex items-center gap-1 px-2 py-1 bg-transparent border border-black/10 text-danger hover:bg-danger/10 text-[10px] rounded transition-colors"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                            Revoke
-                          </button>
+          <div className="overflow-x-auto">
+            <table className="w-full md:min-w-[760px] text-xs">
+              <thead>
+                <tr className="text-[10px] uppercase tracking-[0.18em] text-steel border-b border-black/5">
+                  <th className="text-left px-3 py-2 font-medium">Name</th>
+                  <th className="text-left px-3 py-2 font-medium">Role</th>
+                  <th className="text-left px-3 py-2 font-medium hidden md:table-cell">Token</th>
+                  <th className="text-left px-3 py-2 font-medium hidden md:table-cell">Expires</th>
+                  <th className="text-left px-3 py-2 font-medium hidden md:table-cell">Last used</th>
+                  <th className="text-right px-3 py-2 font-medium">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {agents.map(agent => {
+                  const revoked = !!agent.revokedAt
+                  const expired = new Date(agent.expiresAt) < new Date()
+                  return (
+                    <tr key={agent.id} className={`border-b border-silicon/40 last:border-b-0 hover:bg-silicon/[0.18] ${revoked ? 'opacity-50' : ''}`}>
+                      <td className="px-3 py-2">
+                        <div className={revoked ? 'line-through text-steel' : 'text-graphite'}>{agent.name}</div>
+                        {agent.description && <div className="text-[10px] text-steel/70 mt-0.5">{agent.description}</div>}
+                        {/* Compact metadata under name on mobile */}
+                        <div className="md:hidden mt-1 text-[10px] text-steel/70 font-mono">
+                          <span>{agent.tokenPrefix}...</span>
+                          <span className="mx-1.5">·</span>
+                          <span className={expired ? 'text-danger' : ''}>expires {formatDistanceToNow(new Date(agent.expiresAt), { addSuffix: true })}</span>
                         </div>
-                      )}
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
+                      </td>
+                      <td className="px-3 py-2">
+                        <span className={`inline-flex px-1.5 py-0.5 text-[10px] font-mono font-semibold border rounded ${ROLE_BADGE_CLASSES[agent.role as Role] ?? ROLE_BADGE_CLASSES.viewer}`}>
+                          {agent.role.toUpperCase()}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2 font-mono text-steel text-[10px] hidden md:table-cell">{agent.tokenPrefix}...</td>
+                      <td className={`px-3 py-2 font-mono hidden md:table-cell ${expired ? 'text-danger' : 'text-steel'}`}>
+                        {formatDistanceToNow(new Date(agent.expiresAt), { addSuffix: true })}
+                      </td>
+                      <td className="px-3 py-2 font-mono text-steel hidden md:table-cell">
+                        {agent.lastUsedAt ? formatDistanceToNow(new Date(agent.lastUsedAt), { addSuffix: true }) : 'never'}
+                      </td>
+                      <td className="px-3 py-2 text-right">
+                        {!revoked && (
+                          <div className="flex items-center justify-end gap-1 md:gap-2">
+                            <button
+                              onClick={() => handleRegenerate(agent.id)}
+                              aria-label="Regenerate token"
+                              className="inline-flex items-center gap-1 px-2 py-1 bg-transparent border border-black/10 text-graphite hover:bg-silicon/[0.18] text-[10px] rounded transition-colors"
+                            >
+                              <RotateCw className="w-3 h-3" />
+                              <span className="hidden md:inline">Regenerate</span>
+                            </button>
+                            <button
+                              onClick={() => handleRevoke(agent.id, agent.name)}
+                              aria-label="Revoke agent"
+                              className="inline-flex items-center gap-1 px-2 py-1 bg-transparent border border-black/10 text-danger hover:bg-danger/10 text-[10px] rounded transition-colors"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                              <span className="hidden md:inline">Revoke</span>
+                            </button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 

@@ -84,7 +84,7 @@ export default function UsersSettingsPage() {
 
   if (status === 'authenticated' && !isAdmin) {
     return (
-      <div className="p-6 max-w-[1400px]">
+      <div className="p-4 md:p-6 max-w-[1400px] overflow-x-hidden">
         <div className="flex items-baseline mb-6 border-b border-black/5 pb-4">
           <div>
             <h1 className="text-2xl font-medium tracking-[-0.02em] text-graphite">Settings</h1>
