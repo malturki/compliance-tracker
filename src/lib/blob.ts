@@ -1,8 +1,5 @@
-import { put, del, list } from '@vercel/blob'
+import { put } from '@vercel/blob'
 
-/**
- * Upload a file to Vercel Blob Storage
- */
 export async function uploadToBlob(
   file: File,
   filename?: string
@@ -20,33 +17,7 @@ export async function uploadToBlob(
   return blob.url
 }
 
-/**
- * Delete a file from Vercel Blob Storage
- */
-export async function deleteFromBlob(url: string): Promise<void> {
-  const token = process.env.BLOB_READ_WRITE_TOKEN
-  if (!token) {
-    throw new Error('BLOB_READ_WRITE_TOKEN is not configured')
-  }
 
-  await del(url, { token })
-}
-
-/**
- * List all blobs (for cleanup/management)
- */
-export async function listBlobs() {
-  const token = process.env.BLOB_READ_WRITE_TOKEN
-  if (!token) {
-    throw new Error('BLOB_READ_WRITE_TOKEN is not configured')
-  }
-
-  return await list({ token })
-}
-
-/**
- * Validate file size and type before upload
- */
 export function validateFile(
   file: File,
   maxSizeMB: number = 10

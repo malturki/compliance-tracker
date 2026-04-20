@@ -3,8 +3,9 @@
  * and Settings pages. Keep a single source of truth so tuning the FAST
  * accent tint happens in one place.
  */
+import type { Role } from './types'
 
-export type Role = 'admin' | 'editor' | 'viewer'
+export type { Role }
 
 export const ROLE_BADGE_CLASSES: Record<Role, string> = {
   admin: 'text-graphite bg-light-steel/[0.28] border-light-steel',

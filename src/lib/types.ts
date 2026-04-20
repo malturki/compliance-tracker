@@ -2,6 +2,7 @@ export type Category = 'tax' | 'investor' | 'equity' | 'state' | 'federal' | 'co
 export type Frequency = 'annual' | 'quarterly' | 'monthly' | 'weekly' | 'one-time' | 'event-triggered'
 export type Status = 'current' | 'upcoming' | 'overdue' | 'completed' | 'unknown' | 'not-applicable'
 export type RiskLevel = 'critical' | 'high' | 'medium' | 'low'
+export type Role = 'viewer' | 'editor' | 'admin'
 
 export interface Obligation {
   id: string

@@ -2,8 +2,9 @@ import { auth } from './auth'
 import { verifyAgentToken } from './agent-auth'
 import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
+import type { Role } from './types'
 
-export type Role = 'viewer' | 'editor' | 'admin'
+export type { Role }
 
 const ROLE_HIERARCHY: Record<Role, number> = {
   viewer: 0,
