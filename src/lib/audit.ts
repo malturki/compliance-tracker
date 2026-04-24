@@ -9,14 +9,17 @@ export type AuditEventType =
   | 'obligation.deleted'
   | 'obligation.completed'
   | 'obligation.bulk_updated'
+  | 'obligation.sub_created'
+  | 'obligation.parent_rollup_complete'
   | 'template.applied'
+  | 'playbook.applied'
   | 'alert.sent'
   | 'user.role_changed'
   | 'agent.created'
   | 'agent.regenerated'
   | 'agent.revoked'
 
-export type AuditEntityType = 'obligation' | 'template' | 'alert' | 'user' | 'agent'
+export type AuditEntityType = 'obligation' | 'template' | 'playbook' | 'alert' | 'user' | 'agent'
 
 export type LogEventInput = {
   type: AuditEventType

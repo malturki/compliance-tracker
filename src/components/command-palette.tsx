@@ -26,6 +26,7 @@ import {
   Clock,
   FileSearch,
   HelpCircle,
+  Workflow,
 } from 'lucide-react'
 import { HELP_TOPICS, visibleTopicsForRole, type HelpRole } from '@/data/help-content'
 
@@ -46,6 +47,7 @@ const PAGES: { href: string; label: string; icon: typeof FileText; minRole: Role
   { href: '/obligations', label: 'Obligations', icon: FileText, minRole: 'editor' },
   { href: '/calendar', label: 'Calendar', icon: Calendar, minRole: 'editor' },
   { href: '/templates', label: 'Templates', icon: Sparkles, minRole: 'editor' },
+  { href: '/playbooks', label: 'Playbooks', icon: Workflow, minRole: 'editor' },
   { href: '/activity', label: 'Activity', icon: History, minRole: 'editor' },
   { href: '/categories', label: 'Categories', icon: Tag, minRole: 'editor' },
   { href: '/help', label: 'Help', icon: HelpCircle, minRole: 'viewer' },

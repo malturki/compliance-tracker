@@ -204,12 +204,18 @@ function DetailPanel({
   onComplete,
   onUpdate,
   canEdit,
+  subObligations,
+  parentSummary,
+  onSelectObligation,
 }: {
   item: Obligation & { computedStatus: Status; completions?: Completion[] }
   onClose: () => void
   onComplete: () => void
   onUpdate: () => void
   canEdit: boolean
+  subObligations: (Obligation & { computedStatus: Status })[]
+  parentSummary: { id: string; title: string } | null
+  onSelectObligation: (id: string) => void
 }) {
   const [completing, setCompleting] = useState(false)
   const [completedBy, setCompletedBy] = useState('')
@@ -304,6 +310,79 @@ function DetailPanel({
               {item.computedStatus === 'completed' ? 'Completed — no recurrence' : days === 0 ? 'today' : days > 0 ? `in ${days} day${days === 1 ? '' : 's'}` : `${Math.abs(days)} day${Math.abs(days) === 1 ? '' : 's'} ago`}
             </div>
           </div>
+
+          {/* Parent breadcrumb (sub-obligation of a playbook-applied parent) */}
+          {parentSummary && (
+            <div className="flex items-center gap-1.5 text-[11px] font-mono">
+              <span className="text-steel/70">Part of:</span>
+              <button
+                type="button"
+                onClick={() => onSelectObligation(parentSummary.id)}
+                className="text-graphite hover:underline truncate text-left"
+              >
+                {parentSummary.title} →
+              </button>
+            </div>
+          )}
+
+          {/* Blocker callout */}
+          {(item as any).blockerReason && (
+            <div className="bg-danger/10 border border-danger/30 rounded p-3">
+              <div className="text-[10px] uppercase tracking-[0.18em] text-danger mb-1">Blocked</div>
+              <div className="text-xs text-graphite leading-relaxed break-words">
+                {(item as any).blockerReason}
+              </div>
+            </div>
+          )}
+
+          {/* Next recommended action hint */}
+          {(item as any).nextRecommendedAction && (
+            <div className="bg-light-steel/[0.12] border border-light-steel/40 rounded p-3">
+              <div className="text-[10px] uppercase tracking-[0.18em] text-steel mb-1">Next action</div>
+              <div className="text-xs text-graphite leading-relaxed break-words">
+                {(item as any).nextRecommendedAction}
+              </div>
+            </div>
+          )}
+
+          {/* Sub-obligation tree */}
+          {subObligations.length > 0 && (
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-[10px] text-steel uppercase tracking-[0.18em]">
+                  Steps ({subObligations.filter(c => c.status === 'completed').length}/{subObligations.length} complete)
+                </div>
+              </div>
+              <div className="bg-white border border-black/5 divide-y divide-silicon/40 rounded-card overflow-hidden">
+                {subObligations.map((child, idx) => (
+                  <button
+                    key={child.id}
+                    type="button"
+                    onClick={() => onSelectObligation(child.id)}
+                    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-left hover:bg-silicon/[0.18] transition-colors"
+                  >
+                    <div className="text-[10px] font-mono text-steel/70 w-5 text-right flex-shrink-0">
+                      {idx + 1}.
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className={`text-xs ${child.status === 'completed' ? 'line-through text-steel' : 'text-graphite'} truncate`}>
+                          {child.title}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 mt-0.5 text-[10px] font-mono text-steel">
+                        <span>{formatDate(child.nextDueDate)}</span>
+                        <span>·</span>
+                        <span>{child.owner}</span>
+                      </div>
+                    </div>
+                    <StatusBadge status={child.status as Status} />
+                    <ChevronRight className="w-3 h-3 text-steel/70 flex-shrink-0" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Schedule */}
           <div>
@@ -729,6 +808,8 @@ function ObligationsPageContent() {
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
   const [selectedId, setSelectedId] = useState<string | null>(searchParams.get('id'))
   const [selectedItem, setSelectedItem] = useState<(Obligation & { computedStatus: Status; completions?: Completion[] }) | null>(null)
+  const [subObligations, setSubObligations] = useState<(Obligation & { computedStatus: Status })[]>([])
+  const [parentSummary, setParentSummary] = useState<{ id: string; title: string } | null>(null)
   const [showAdd, setShowAdd] = useState(false)
 
   // Bulk selection state
@@ -769,12 +850,46 @@ function ObligationsPageContent() {
   useEffect(() => { fetchItems() }, [fetchItems])
 
   useEffect(() => {
-    if (!selectedId) { setSelectedItem(null); return }
+    if (!selectedId) {
+      setSelectedItem(null)
+      setSubObligations([])
+      setParentSummary(null)
+      return
+    }
     fetch(`/api/obligations/${selectedId}`)
       .then(r => { if (!r.ok) throw new Error('fetch failed'); return r.json() })
       .then(d => setSelectedItem({ ...d, alertDays: d.alertDays || [], computedStatus: d.status }))
       .catch(() => setSelectedItem(null))
+
+    // Sub-obligation tree + parent breadcrumb for playbook-linked obligations.
+    // Both are fire-and-forget: failures leave the sub-tree empty, which is
+    // the correct UI for obligations without a tree.
+    fetch(`/api/obligations/${selectedId}/sub-obligations`)
+      .then(r => (r.ok ? r.json() : { children: [] }))
+      .then((d: { children?: any[] }) => {
+        const children = (d.children ?? []).map((c: any) => ({
+          ...c,
+          alertDays: c.alertDays || [],
+          computedStatus: c.status,
+        }))
+        setSubObligations(children)
+      })
+      .catch(() => setSubObligations([]))
   }, [selectedId])
+
+  // When the loaded obligation has a parent, fetch the parent's summary so
+  // the breadcrumb can render.
+  useEffect(() => {
+    const parentId = (selectedItem as any)?.parentId as string | null | undefined
+    if (!parentId) {
+      setParentSummary(null)
+      return
+    }
+    fetch(`/api/obligations/${parentId}`)
+      .then(r => (r.ok ? r.json() : null))
+      .then(d => setParentSummary(d ? { id: d.id, title: d.title } : null))
+      .catch(() => setParentSummary(null))
+  }, [selectedItem])
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -1202,9 +1317,32 @@ function ObligationsPageContent() {
             <DetailPanel
               item={selectedItem}
               onClose={() => setSelectedId(null)}
-              onComplete={() => { fetchItems(); if (selectedId) { fetch(`/api/obligations/${selectedId}`).then(r => { if (!r.ok) throw new Error('fetch failed'); return r.json() }).then(d => setSelectedItem({ ...d, alertDays: d.alertDays || [], computedStatus: d.status })).catch(() => setSelectedId(null)) } }}
-              onUpdate={() => { fetchItems(); if (selectedId) { fetch(`/api/obligations/${selectedId}`).then(r => { if (!r.ok) throw new Error('fetch failed'); return r.json() }).then(d => setSelectedItem({ ...d, alertDays: d.alertDays || [], computedStatus: d.status })).catch(() => {}) } }}
+              onComplete={() => {
+                fetchItems()
+                if (selectedId) {
+                  fetch(`/api/obligations/${selectedId}`)
+                    .then(r => { if (!r.ok) throw new Error('fetch failed'); return r.json() })
+                    .then(d => setSelectedItem({ ...d, alertDays: d.alertDays || [], computedStatus: d.status }))
+                    .catch(() => setSelectedId(null))
+                  fetch(`/api/obligations/${selectedId}/sub-obligations`)
+                    .then(r => (r.ok ? r.json() : { children: [] }))
+                    .then(d => setSubObligations((d.children ?? []).map((c: any) => ({ ...c, alertDays: c.alertDays || [], computedStatus: c.status }))))
+                    .catch(() => {})
+                }
+              }}
+              onUpdate={() => {
+                fetchItems()
+                if (selectedId) {
+                  fetch(`/api/obligations/${selectedId}`)
+                    .then(r => { if (!r.ok) throw new Error('fetch failed'); return r.json() })
+                    .then(d => setSelectedItem({ ...d, alertDays: d.alertDays || [], computedStatus: d.status }))
+                    .catch(() => {})
+                }
+              }}
               canEdit={canEdit}
+              subObligations={subObligations}
+              parentSummary={parentSummary}
+              onSelectObligation={id => setSelectedId(id)}
             />
           )}
         </SheetContent>

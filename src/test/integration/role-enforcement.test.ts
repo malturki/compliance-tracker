@@ -16,6 +16,12 @@ import { POST as bulkAction } from '@/app/api/obligations/bulk/route'
 import { GET as listUsers } from '@/app/api/users/route'
 import { GET as listAgents } from '@/app/api/agents/route'
 import { GET as listCounterparties } from '@/app/api/counterparties/route'
+import {
+  GET as listPlaybooks,
+  POST as applyPlaybook,
+} from '@/app/api/playbooks/route'
+import { GET as getPlaybookDetail } from '@/app/api/playbooks/[id]/route'
+import { GET as listSubObligations } from '@/app/api/obligations/[id]/sub-obligations/route'
 
 describe('Role enforcement', () => {
   beforeEach(async () => {
@@ -117,6 +123,43 @@ describe('Role enforcement', () => {
       const res = await listCounterparties()
       expect(res.status).toBe(200)
     })
+
+    it('cannot GET /api/playbooks (editor+, 403)', async () => {
+      const res = await listPlaybooks(mkReq('http://localhost/api/playbooks'))
+      expect(res.status).toBe(403)
+    })
+
+    it('cannot GET /api/playbooks/[id] (editor+, 403)', async () => {
+      const res = await getPlaybookDetail(
+        mkReq('http://localhost/api/playbooks/quarterly-investor-report'),
+        { params: { id: 'quarterly-investor-report' } },
+      )
+      expect(res.status).toBe(403)
+    })
+
+    it('cannot POST /api/playbooks (editor+, 403)', async () => {
+      const req = mkReq('http://localhost/api/playbooks', {
+        method: 'POST',
+        body: {
+          playbookId: 'quarterly-investor-report',
+          anchorDate: '2026-06-30',
+          counterparty: 'Acme',
+        },
+      })
+      const res = await applyPlaybook(req)
+      expect(res.status).toBe(403)
+    })
+
+    it('CAN GET /api/obligations/[id]/sub-obligations (viewer-readable)', async () => {
+      mockSession({ email: 'admin@test.com', role: 'admin' })
+      const id = await insertObligation({ title: 'Parent' })
+      mockSession({ email: 'viewer@test.com', role: 'viewer' })
+      const res = await listSubObligations(
+        mkReq(`http://localhost/api/obligations/${id}/sub-obligations`),
+        { params: { id } },
+      )
+      expect(res.status).toBe(200)
+    })
   })
 
   describe('Editor role', () => {
@@ -180,6 +223,24 @@ describe('Role enforcement', () => {
     it('cannot GET /api/agents (admin only, 403)', async () => {
       const res = await listAgents()
       expect(res.status).toBe(403)
+    })
+
+    it('can GET /api/playbooks (200)', async () => {
+      const res = await listPlaybooks(mkReq('http://localhost/api/playbooks'))
+      expect(res.status).toBe(200)
+    })
+
+    it('can POST /api/playbooks (201)', async () => {
+      const req = mkReq('http://localhost/api/playbooks', {
+        method: 'POST',
+        body: {
+          playbookId: 'quarterly-investor-report',
+          anchorDate: '2026-06-30',
+          counterparty: 'Acme Capital LP',
+        },
+      })
+      const res = await applyPlaybook(req)
+      expect(res.status).toBe(201)
     })
   })
 
