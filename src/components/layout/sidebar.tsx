@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
-import { LayoutDashboard, Calendar, FileText, Tag, Sparkles, TrendingUp, History, Settings, LogOut, Search, HelpCircle, Menu, X as CloseIcon, Workflow } from 'lucide-react'
+import { LayoutDashboard, Calendar, FileText, Tag, Sparkles, TrendingUp, History, Settings, LogOut, Search, HelpCircle, Menu, X as CloseIcon, Workflow, Library } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ROLE_BADGE_CLASSES } from '@/lib/role-colors'
 
@@ -15,6 +15,7 @@ const navItems = [
   { href: '/obligations', label: 'Obligations', icon: FileText, minRole: 'editor' as const },
   { href: '/templates', label: 'Templates', icon: Sparkles, minRole: 'editor' as const },
   { href: '/playbooks', label: 'Playbooks', icon: Workflow, minRole: 'editor' as const },
+  { href: '/catalog', label: 'Catalog', icon: Library, minRole: 'editor' as const },
   { href: '/activity', label: 'Activity', icon: History, minRole: 'editor' as const },
   { href: '/categories', label: 'Categories', icon: Tag, minRole: 'editor' as const },
   { href: '/help', label: 'Help', icon: HelpCircle, minRole: 'viewer' as const },

@@ -22,6 +22,7 @@ import {
 } from '@/app/api/playbooks/route'
 import { GET as getPlaybookDetail } from '@/app/api/playbooks/[id]/route'
 import { GET as listSubObligations } from '@/app/api/obligations/[id]/sub-obligations/route'
+import { GET as listCatalog } from '@/app/api/catalog/route'
 
 describe('Role enforcement', () => {
   beforeEach(async () => {
@@ -160,6 +161,11 @@ describe('Role enforcement', () => {
       )
       expect(res.status).toBe(200)
     })
+
+    it('cannot GET /api/catalog (editor+, 403)', async () => {
+      const res = await listCatalog(mkReq('http://localhost/api/catalog'))
+      expect(res.status).toBe(403)
+    })
   })
 
   describe('Editor role', () => {
@@ -241,6 +247,11 @@ describe('Role enforcement', () => {
       })
       const res = await applyPlaybook(req)
       expect(res.status).toBe(201)
+    })
+
+    it('can GET /api/catalog (200)', async () => {
+      const res = await listCatalog(mkReq('http://localhost/api/catalog'))
+      expect(res.status).toBe(200)
     })
   })
 
