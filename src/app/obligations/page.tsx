@@ -14,7 +14,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { Checkbox } from '@/components/ui/checkbox'
 import { BulkActionBar } from '@/components/obligations/bulk-action-bar'
@@ -288,8 +287,13 @@ function DetailPanel({
         </div>
       </SheetHeader>
 
-      <ScrollArea className="flex-1">
-        <div className="px-5 py-4 space-y-5 text-xs">
+      {/* `min-h-0` lets flex-1 actually shrink inside a flex-col parent, and
+          `overflow-y-auto` on a native div works reliably on iOS Safari (Base UI's
+          ScrollArea uses a transformed viewport that sometimes eats touchmove
+          events inside a Dialog). `overscroll-contain` keeps the outer page
+          from rubber-banding when scrolling hits the sheet's edges. */}
+      <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
+        <div className="px-5 py-4 pb-12 space-y-5 text-xs">
           {/* Hero: Next due date — most important info, largest text */}
           <div className={`border p-4 rounded-card ${
             item.computedStatus === 'overdue' ? 'bg-danger/10 border-danger/30'
@@ -577,7 +581,7 @@ function DetailPanel({
                     files={evidenceFiles}
                     onChange={setEvidenceFiles}
                     maxFiles={5}
-                    maxSizeMB={10}
+                    maxSizeMB={25}
                   />
                   <div className="flex items-center gap-2">
                     <div className="h-px flex-1 bg-silicon/40" />
@@ -628,7 +632,7 @@ function DetailPanel({
             </>
           )}
         </div>
-      </ScrollArea>
+      </div>
     </div>
   )
 }
