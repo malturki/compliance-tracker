@@ -5,7 +5,7 @@ import { eq } from 'drizzle-orm'
 import { resetDb, mockSession, mkReq } from '../integration-helpers'
 import { GET as listCatalog } from '@/app/api/catalog/route'
 import { POST as createObligation } from '@/app/api/obligations/route'
-import { listCatalogItems } from '@/data/recommended-additions'
+import { listCatalogItems, getCatalogItem } from '@/data/recommended-additions'
 
 describe('Catalog — recommended additions', () => {
   beforeEach(async () => {
@@ -47,6 +47,11 @@ describe('Catalog — recommended additions', () => {
     const items = listCatalogItems()
     const ids = items.map(i => i.id)
     expect(new Set(ids).size).toBe(ids.length)
+  })
+
+  it('getCatalogItem returns the requested item or undefined', () => {
+    expect(getCatalogItem('ca-soi-biennial')?.title).toBe('California Statement of Information')
+    expect(getCatalogItem('does-not-exist')).toBeUndefined()
   })
 
   it('catalog covers all major tags (state-securities, tax, privacy, ip, crypto)', () => {

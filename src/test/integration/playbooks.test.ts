@@ -246,6 +246,26 @@ describe('Playbooks — engine', () => {
       expect(res.status).toBe(404)
     })
 
+    it('POST /api/playbooks rejects malformed JSON bodies with 400', async () => {
+      const req = new Request('http://localhost/api/playbooks', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: 'not-json',
+      }) as any
+      req.nextUrl = new URL('http://localhost/api/playbooks')
+      const res = await applyPlaybook(req)
+      expect(res.status).toBe(400)
+    })
+
+    it('POST /api/playbooks rejects body missing required fields with 400', async () => {
+      const req = mkReq('http://localhost/api/playbooks', {
+        method: 'POST',
+        body: { playbookId: 'quarterly-investor-report' }, // missing anchorDate
+      })
+      const res = await applyPlaybook(req)
+      expect(res.status).toBe(400)
+    })
+
     it('GET /api/obligations/[id]/sub-obligations returns children in order', async () => {
       const result = await applyPlaybookDirect(
         {
@@ -301,6 +321,49 @@ describe('Playbooks — engine', () => {
         .where(eq(auditLog.eventType, 'obligation.parent_rollup_complete'))
       expect(events).toHaveLength(1)
       expect(events[0].entityId).toBe(result.parent.id)
+    })
+
+    it('is idempotent when the parent is already completed', async () => {
+      mockSession({ email: 'editor@test.com', role: 'editor' })
+      const result = await applyPlaybookDirect(
+        {
+          playbookId: 'quarterly-investor-report',
+          anchorDate: '2026-06-30',
+          counterparty: 'Acme',
+        },
+        { email: 'editor@test.com', source: 'user' },
+      )
+      // Complete every child (triggers first rollup).
+      for (const child of result.children) {
+        const req = mkReq(`http://localhost/api/obligations/${child.id}/complete`, {
+          method: 'POST',
+          body: { completedBy: 'editor@test.com', completedDate: '2026-06-30' },
+        })
+        await completeObligation(req, { params: { id: child.id } })
+      }
+      // Call the rollup helper again via the last child; parent is already
+      // 'completed', so the helper should no-op (no second audit event).
+      const { maybeRollupParent } = await import('@/lib/playbooks')
+      const again = await maybeRollupParent(result.children[0].id, {
+        email: 'editor@test.com',
+        source: 'user',
+      })
+      expect(again.parentCompleted).toBe(false)
+      expect(again.parentId).toBe(result.parent.id)
+
+      const events = await db
+        .select()
+        .from(auditLog)
+        .where(eq(auditLog.eventType, 'obligation.parent_rollup_complete'))
+      // Exactly one rollup event across both invocations.
+      expect(events).toHaveLength(1)
+    })
+
+    it('is a no-op for obligations without a parent', async () => {
+      const id = await insertObligation({ title: 'Top-level' })
+      const { maybeRollupParent } = await import('@/lib/playbooks')
+      const result = await maybeRollupParent(id, { email: 'x', source: 'user' })
+      expect(result).toEqual({ parentCompleted: false })
     })
 
     it('marking only some children complete leaves the parent in-progress', async () => {
