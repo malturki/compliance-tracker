@@ -20,6 +20,10 @@ export const TRACKED_OBLIGATION_FIELDS = [
   'notes',
   'counterparty',
   'jurisdiction',
+  'status',
+  'parentId',
+  'blockerReason',
+  'nextRecommendedAction',
 ] as const
 
 type ObligationRow = typeof obligations.$inferSelect

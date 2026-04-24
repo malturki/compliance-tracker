@@ -25,6 +25,11 @@ export const obligations = sqliteTable('obligations', {
   amount: real('amount'),
   autoRecur: integer('auto_recur', { mode: 'boolean' }).default(false),
   templateId: text('template_id'), // Track which template created this obligation
+  // Agentic obligations (Phase 0):
+  parentId: text('parent_id'),                 // FK to obligations.id; null = top-level
+  sequence: integer('sequence'),               // order among siblings under a parent
+  blockerReason: text('blocker_reason'),       // required when status='blocked'
+  nextRecommendedAction: text('next_recommended_action'),
   createdAt: text('created_at').notNull(),
   updatedAt: text('updated_at').notNull(),
 })
@@ -36,6 +41,12 @@ export const completions = sqliteTable('completions', {
   completedBy: text('completed_by').notNull(),
   evidenceUrl: text('evidence_url'),
   notes: text('notes'),
+  // Evidence packet (Phase 0):
+  approvedBy: text('approved_by'),
+  approvedDate: text('approved_date'),
+  verificationStatus: text('verification_status').default('unverified'), // unverified | self-verified | approved | audited
+  summary: text('summary'),
+  evidenceUrls: text('evidence_urls'),         // JSON array of URLs; evidenceUrl (singular) kept for back-compat
   createdAt: text('created_at').notNull(),
 })
 

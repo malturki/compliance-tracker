@@ -176,6 +176,10 @@ async function ensureSchema() {
       source_document TEXT, notes TEXT,
       entity TEXT DEFAULT 'Pi Squared Inc.', counterparty TEXT, jurisdiction TEXT, amount REAL,
       auto_recur INTEGER DEFAULT 0, template_id TEXT,
+      parent_id TEXT REFERENCES obligations(id),
+      sequence INTEGER,
+      blocker_reason TEXT,
+      next_recommended_action TEXT,
       created_at TEXT NOT NULL, updated_at TEXT NOT NULL
     )`,
     `CREATE TABLE IF NOT EXISTS audit_log (

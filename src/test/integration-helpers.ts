@@ -31,9 +31,14 @@ const DDL_STATEMENTS = [
     amount REAL,
     auto_recur INTEGER DEFAULT 0,
     template_id TEXT,
+    parent_id TEXT REFERENCES obligations(id),
+    sequence INTEGER,
+    blocker_reason TEXT,
+    next_recommended_action TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
   )`,
+  `CREATE INDEX IF NOT EXISTS idx_obligations_parent_id ON obligations(parent_id)`,
   `CREATE TABLE IF NOT EXISTS completions (
     id TEXT PRIMARY KEY,
     obligation_id TEXT NOT NULL REFERENCES obligations(id),
@@ -41,6 +46,11 @@ const DDL_STATEMENTS = [
     completed_by TEXT NOT NULL,
     evidence_url TEXT,
     notes TEXT,
+    approved_by TEXT,
+    approved_date TEXT,
+    verification_status TEXT DEFAULT 'unverified',
+    summary TEXT,
+    evidence_urls TEXT,
     created_at TEXT NOT NULL
   )`,
   `CREATE TABLE IF NOT EXISTS audit_log (
@@ -183,6 +193,10 @@ export async function insertObligation(overrides: Partial<{
   autoRecur: boolean
   alertDays: string
   counterparty: string | null
+  parentId: string | null
+  sequence: number | null
+  blockerReason: string | null
+  nextRecommendedAction: string | null
 }> = {}) {
   const now = new Date().toISOString()
   const id = overrides.id ?? ulid()
@@ -211,6 +225,10 @@ export async function insertObligation(overrides: Partial<{
     amount: null,
     autoRecur: overrides.autoRecur ?? false,
     templateId: null,
+    parentId: overrides.parentId ?? null,
+    sequence: overrides.sequence ?? null,
+    blockerReason: overrides.blockerReason ?? null,
+    nextRecommendedAction: overrides.nextRecommendedAction ?? null,
     createdAt: now,
     updatedAt: now,
   } as any)

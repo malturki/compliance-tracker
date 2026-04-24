@@ -42,6 +42,7 @@ export const createObligationSchema = z.object({
   ownerEmail: z.string().email().optional().or(z.literal('')).nullable(),
   assignee: z.string().optional().nullable(),
   assigneeEmail: z.string().email().optional().or(z.literal('')).nullable(),
+  status: z.enum(['current', 'upcoming', 'overdue', 'completed', 'blocked', 'unknown', 'not-applicable']).optional(),
   riskLevel: z.enum(['critical', 'high', 'medium', 'low']).default('medium'),
   alertDays: z.array(z.number()).optional().default([]),
   sourceDocument: z.string().optional().nullable(),
@@ -51,7 +52,14 @@ export const createObligationSchema = z.object({
   jurisdiction: z.string().optional().nullable(),
   amount: z.number().optional().nullable(),
   autoRecur: z.boolean().optional().default(false),
-})
+  parentId: z.string().optional().nullable(),
+  sequence: z.number().int().nonnegative().optional().nullable(),
+  blockerReason: z.string().max(1000).optional().nullable(),
+  nextRecommendedAction: z.string().max(500).optional().nullable(),
+}).refine(
+  data => data.status !== 'blocked' || (data.blockerReason && data.blockerReason.trim().length > 0),
+  { message: 'blockerReason is required when status is "blocked"', path: ['blockerReason'] },
+)
 
 export const updateObligationSchema = z.object({
   title: z.string().min(1).max(500).optional(),
@@ -76,6 +84,7 @@ export const updateObligationSchema = z.object({
   ownerEmail: z.string().email().optional().or(z.literal('')).nullable(),
   assignee: z.string().optional().nullable(),
   assigneeEmail: z.string().email().optional().or(z.literal('')).nullable(),
+  status: z.enum(['current', 'upcoming', 'overdue', 'completed', 'blocked', 'unknown', 'not-applicable']).optional(),
   riskLevel: z.enum(['critical', 'high', 'medium', 'low']).optional(),
   alertDays: z.array(z.number()).optional(),
   sourceDocument: z.string().optional().nullable(),
@@ -85,6 +94,10 @@ export const updateObligationSchema = z.object({
   jurisdiction: z.string().optional().nullable(),
   amount: z.number().optional().nullable(),
   autoRecur: z.boolean().optional(),
+  parentId: z.string().optional().nullable(),
+  sequence: z.number().int().nonnegative().optional().nullable(),
+  blockerReason: z.string().max(1000).optional().nullable(),
+  nextRecommendedAction: z.string().max(500).optional().nullable(),
 })
 
 export const completeObligationSchema = z.object({
@@ -92,4 +105,13 @@ export const completeObligationSchema = z.object({
   completedBy: z.string().min(1),
   evidenceUrl: z.string().url().optional().or(z.literal('')).nullable(),
   notes: z.string().optional().nullable(),
-})
+  // Evidence packet fields — all optional; completionroute populates evidenceUrl and evidenceUrls together.
+  approvedBy: z.string().optional().nullable(),
+  approvedDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD format').optional().nullable(),
+  verificationStatus: z.enum(['unverified', 'self-verified', 'approved', 'audited']).optional(),
+  summary: z.string().max(5000).optional().nullable(),
+  evidenceUrls: z.array(z.string().url()).optional().nullable(),
+}).refine(
+  data => !data.approvedDate || data.approvedDate >= data.completedDate,
+  { message: 'approvedDate must not precede completedDate', path: ['approvedDate'] },
+)

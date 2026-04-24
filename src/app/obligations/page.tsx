@@ -35,7 +35,7 @@ type SortField = 'title' | 'category' | 'frequency' | 'next_due_date' | 'owner' 
 function StatusBadge({ status }: { status: Status }) {
   const labels: Record<Status, string> = {
     overdue: 'OVERDUE', upcoming: 'UPCOMING', current: 'CURRENT',
-    completed: 'DONE', unknown: 'UNKNOWN', 'not-applicable': 'N/A',
+    completed: 'DONE', blocked: 'BLOCKED', unknown: 'UNKNOWN', 'not-applicable': 'N/A',
   }
   return (
     <span className={`inline-flex px-1.5 py-0.5 text-[10px] font-mono font-semibold border ${getStatusColor(status)}`}>

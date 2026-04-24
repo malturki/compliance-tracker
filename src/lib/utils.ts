@@ -66,6 +66,7 @@ export function getStatusColor(status: Status): string {
     case 'upcoming': return 'text-warning bg-warning/10 border-warning/30'
     case 'current': return 'text-graphite bg-white border-silicon'
     case 'completed': return 'text-success bg-success/10 border-success/30'
+    case 'blocked': return 'text-steel bg-silicon/[0.4] border-steel/40'
     default: return 'text-steel bg-silicon/[0.4] border-silicon'
   }
 }

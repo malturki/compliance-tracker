@@ -20,7 +20,7 @@ export async function uploadToBlob(
 
 export function validateFile(
   file: File,
-  maxSizeMB: number = 10
+  maxSizeMB: number = 25
 ): { valid: boolean; error?: string } {
   const maxBytes = maxSizeMB * 1024 * 1024
 

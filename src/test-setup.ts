@@ -42,13 +42,22 @@ beforeAll(async () => {
       counterparty TEXT,
       jurisdiction TEXT, amount REAL,
       auto_recur INTEGER DEFAULT 0, template_id TEXT,
+      parent_id TEXT REFERENCES obligations(id),
+      sequence INTEGER,
+      blocker_reason TEXT,
+      next_recommended_action TEXT,
       created_at TEXT NOT NULL, updated_at TEXT NOT NULL
     )`,
+    `CREATE INDEX IF NOT EXISTS idx_obligations_parent_id ON obligations(parent_id)`,
     `CREATE TABLE IF NOT EXISTS completions (
       id TEXT PRIMARY KEY,
       obligation_id TEXT NOT NULL REFERENCES obligations(id),
       completed_date TEXT NOT NULL, completed_by TEXT NOT NULL,
-      evidence_url TEXT, notes TEXT, created_at TEXT NOT NULL
+      evidence_url TEXT, notes TEXT,
+      approved_by TEXT, approved_date TEXT,
+      verification_status TEXT DEFAULT 'unverified',
+      summary TEXT, evidence_urls TEXT,
+      created_at TEXT NOT NULL
     )`,
     `CREATE TABLE IF NOT EXISTS audit_log (
       id TEXT PRIMARY KEY, ts TEXT NOT NULL,
