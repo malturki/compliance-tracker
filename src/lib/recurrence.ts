@@ -11,7 +11,9 @@ import type { Frequency } from './types'
 
 export const RECURRING_FREQUENCIES = new Set<Frequency>([
   'annual',
+  'semi-annual',
   'quarterly',
+  'bi-monthly',
   'monthly',
   'weekly',
 ])
@@ -41,12 +43,21 @@ export function parseRecurrenceTab(raw: string | null | undefined): RecurrenceTa
  * Cadence sub-filter inside the Recurring tab. `'all'` means "no sub-filter
  * applied — show every recurring obligation regardless of cadence."
  */
-export type RecurrenceCadence = 'all' | 'annual' | 'quarterly' | 'monthly' | 'weekly'
+export type RecurrenceCadence =
+  | 'all'
+  | 'annual'
+  | 'semi-annual'
+  | 'quarterly'
+  | 'bi-monthly'
+  | 'monthly'
+  | 'weekly'
 
 const VALID_CADENCES: ReadonlyArray<RecurrenceCadence> = [
   'all',
   'annual',
+  'semi-annual',
   'quarterly',
+  'bi-monthly',
   'monthly',
   'weekly',
 ]

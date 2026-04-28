@@ -33,7 +33,7 @@ import { ObligationHistory } from '@/components/ObligationHistory'
 const CATEGORIES: Category[] = ['tax', 'investor', 'equity', 'state', 'federal', 'contract', 'insurance', 'benefits', 'governance', 'vendor']
 const STATUSES: Status[] = ['overdue', 'upcoming', 'current', 'completed']
 const RISK_LEVELS: RiskLevel[] = ['critical', 'high', 'medium', 'low']
-const FREQUENCIES: Frequency[] = ['annual', 'quarterly', 'monthly', 'weekly', 'one-time', 'event-triggered']
+const FREQUENCIES: Frequency[] = ['annual', 'semi-annual', 'quarterly', 'bi-monthly', 'monthly', 'weekly', 'one-time', 'event-triggered']
 
 type ObligationWithStatus = Obligation & { computedStatus: Status }
 
@@ -1066,7 +1066,9 @@ function ObligationsPageContent() {
   const cadenceCounts = {
     all: recurringItems.length,
     annual: recurringItems.filter(i => i.frequency === 'annual').length,
+    'semi-annual': recurringItems.filter(i => i.frequency === 'semi-annual').length,
     quarterly: recurringItems.filter(i => i.frequency === 'quarterly').length,
+    'bi-monthly': recurringItems.filter(i => i.frequency === 'bi-monthly').length,
     monthly: recurringItems.filter(i => i.frequency === 'monthly').length,
     weekly: recurringItems.filter(i => i.frequency === 'weekly').length,
   }
@@ -1157,12 +1159,15 @@ function ObligationsPageContent() {
         {!bulkMode && activeTab === 'recurring' && (
           <div className="px-4 md:px-6 py-2 border-b border-black/5 flex flex-wrap items-center gap-1.5 flex-shrink-0 bg-canvas">
             <span className="text-[10px] uppercase tracking-[0.18em] text-steel mr-1">Cadence:</span>
+            {/* Sorted shortest→longest period: a natural reading order. */}
             {([
               ['all', 'All', cadenceCounts.all],
-              ['annual', 'Annual', cadenceCounts.annual],
-              ['quarterly', 'Quarterly', cadenceCounts.quarterly],
-              ['monthly', 'Monthly', cadenceCounts.monthly],
               ['weekly', 'Weekly', cadenceCounts.weekly],
+              ['monthly', 'Monthly', cadenceCounts.monthly],
+              ['bi-monthly', 'Bi-monthly', cadenceCounts['bi-monthly']],
+              ['quarterly', 'Quarterly', cadenceCounts.quarterly],
+              ['semi-annual', 'Semi-annual', cadenceCounts['semi-annual']],
+              ['annual', 'Annual', cadenceCounts.annual],
             ] as [RecurrenceCadence, string, number][]).map(([key, label, count]) => {
               const active = recurringCadence === key
               const empty = count === 0

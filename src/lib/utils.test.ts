@@ -159,8 +159,16 @@ describe('computeNextDueDate', () => {
     expect(computeNextDueDate('2026-03-15', 'annual')).toBe('2027-03-15')
   })
 
+  it('advances semi-annual obligations by six months', () => {
+    expect(computeNextDueDate('2026-03-15', 'semi-annual')).toBe('2026-09-15')
+  })
+
   it('advances quarterly obligations by three months', () => {
     expect(computeNextDueDate('2026-03-15', 'quarterly')).toBe('2026-06-15')
+  })
+
+  it('advances bi-monthly obligations by two months', () => {
+    expect(computeNextDueDate('2026-03-15', 'bi-monthly')).toBe('2026-05-15')
   })
 
   it('advances monthly obligations by one month', () => {

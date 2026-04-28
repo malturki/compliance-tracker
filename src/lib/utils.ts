@@ -102,7 +102,9 @@ export function computeNextDueDate(current: string, frequency: string): string {
   const d = new Date(current)
   switch (frequency) {
     case 'annual': d.setFullYear(d.getFullYear() + 1); break
+    case 'semi-annual': d.setMonth(d.getMonth() + 6); break
     case 'quarterly': d.setMonth(d.getMonth() + 3); break
+    case 'bi-monthly': d.setMonth(d.getMonth() + 2); break
     case 'monthly': d.setMonth(d.getMonth() + 1); break
     case 'weekly': d.setDate(d.getDate() + 7); break
     default: d.setFullYear(d.getFullYear() + 1)

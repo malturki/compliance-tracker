@@ -73,6 +73,13 @@ describe('createObligationSchema', () => {
     expect(res.success).toBe(false)
   })
 
+  it('accepts every Frequency enum value', () => {
+    for (const f of ['annual', 'semi-annual', 'quarterly', 'bi-monthly', 'monthly', 'weekly', 'one-time', 'event-triggered'] as const) {
+      const res = createObligationSchema.safeParse({ ...baseValidObligation, frequency: f })
+      expect(res.success, `frequency ${f} should be accepted`).toBe(true)
+    }
+  })
+
   it('rejects empty owner', () => {
     const res = createObligationSchema.safeParse({ ...baseValidObligation, owner: '' })
     expect(res.success).toBe(false)

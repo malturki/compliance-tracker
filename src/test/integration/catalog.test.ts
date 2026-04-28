@@ -29,7 +29,7 @@ describe('Catalog — recommended additions', () => {
       'tax', 'investor', 'equity', 'state', 'federal',
       'contract', 'insurance', 'benefits', 'governance', 'vendor',
     ])
-    const validFrequencies = new Set(['annual', 'quarterly', 'monthly', 'weekly', 'one-time', 'event-triggered'])
+    const validFrequencies = new Set(['annual', 'semi-annual', 'quarterly', 'bi-monthly', 'monthly', 'weekly', 'one-time', 'event-triggered'])
     const validRisks = new Set(['critical', 'high', 'medium', 'low'])
     const items = listCatalogItems()
     for (const item of items) {

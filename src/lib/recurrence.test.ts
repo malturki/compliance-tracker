@@ -8,7 +8,10 @@ import {
   parseRecurrenceCadence,
 } from './recurrence'
 
-const ALL_FREQUENCIES = ['annual', 'quarterly', 'monthly', 'weekly', 'one-time', 'event-triggered'] as const
+const ALL_FREQUENCIES = [
+  'annual', 'semi-annual', 'quarterly', 'bi-monthly',
+  'monthly', 'weekly', 'one-time', 'event-triggered',
+] as const
 
 describe('recurrence partitioning', () => {
   it('every Frequency value belongs to exactly one set', () => {
@@ -19,9 +22,9 @@ describe('recurrence partitioning', () => {
     }
   })
 
-  it('the two sets together cover all 6 frequencies', () => {
+  it('the two sets together cover all 8 frequencies', () => {
     const union = new Set([...RECURRING_FREQUENCIES, ...ONETIME_FREQUENCIES])
-    expect(union.size).toBe(6)
+    expect(union.size).toBe(8)
     for (const f of ALL_FREQUENCIES) {
       expect(union.has(f)).toBe(true)
     }
@@ -29,7 +32,9 @@ describe('recurrence partitioning', () => {
 
   it('isRecurringFrequency classifies known values correctly', () => {
     expect(isRecurringFrequency('annual')).toBe(true)
+    expect(isRecurringFrequency('semi-annual')).toBe(true)
     expect(isRecurringFrequency('quarterly')).toBe(true)
+    expect(isRecurringFrequency('bi-monthly')).toBe(true)
     expect(isRecurringFrequency('monthly')).toBe(true)
     expect(isRecurringFrequency('weekly')).toBe(true)
     expect(isRecurringFrequency('one-time')).toBe(false)
@@ -70,7 +75,9 @@ describe('parseRecurrenceTab', () => {
 describe('parseRecurrenceCadence', () => {
   it('passes through every valid recurring cadence', () => {
     expect(parseRecurrenceCadence('annual')).toBe('annual')
+    expect(parseRecurrenceCadence('semi-annual')).toBe('semi-annual')
     expect(parseRecurrenceCadence('quarterly')).toBe('quarterly')
+    expect(parseRecurrenceCadence('bi-monthly')).toBe('bi-monthly')
     expect(parseRecurrenceCadence('monthly')).toBe('monthly')
     expect(parseRecurrenceCadence('weekly')).toBe('weekly')
     expect(parseRecurrenceCadence('all')).toBe('all')
