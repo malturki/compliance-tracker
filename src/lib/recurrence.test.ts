@@ -5,6 +5,7 @@ import {
   isRecurringFrequency,
   isOneTimeFrequency,
   parseRecurrenceTab,
+  parseRecurrenceCadence,
 } from './recurrence'
 
 const ALL_FREQUENCIES = ['annual', 'quarterly', 'monthly', 'weekly', 'one-time', 'event-triggered'] as const
@@ -63,5 +64,28 @@ describe('parseRecurrenceTab', () => {
     expect(parseRecurrenceTab(undefined)).toBe('all')
     expect(parseRecurrenceTab('bogus')).toBe('all')
     expect(parseRecurrenceTab('Recurring')).toBe('all') // case-sensitive
+  })
+})
+
+describe('parseRecurrenceCadence', () => {
+  it('passes through every valid recurring cadence', () => {
+    expect(parseRecurrenceCadence('annual')).toBe('annual')
+    expect(parseRecurrenceCadence('quarterly')).toBe('quarterly')
+    expect(parseRecurrenceCadence('monthly')).toBe('monthly')
+    expect(parseRecurrenceCadence('weekly')).toBe('weekly')
+    expect(parseRecurrenceCadence('all')).toBe('all')
+  })
+
+  it('falls back to "all" for one-time / event-triggered (not a cadence sub-filter)', () => {
+    expect(parseRecurrenceCadence('one-time')).toBe('all')
+    expect(parseRecurrenceCadence('event-triggered')).toBe('all')
+  })
+
+  it('falls back to "all" for null/undefined/empty/garbage', () => {
+    expect(parseRecurrenceCadence(null)).toBe('all')
+    expect(parseRecurrenceCadence(undefined)).toBe('all')
+    expect(parseRecurrenceCadence('')).toBe('all')
+    expect(parseRecurrenceCadence('Annual')).toBe('all') // case-sensitive
+    expect(parseRecurrenceCadence('biennial' as any)).toBe('all')
   })
 })

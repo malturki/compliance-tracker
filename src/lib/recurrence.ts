@@ -36,3 +36,25 @@ export function parseRecurrenceTab(raw: string | null | undefined): RecurrenceTa
   if (raw === 'recurring' || raw === 'onetime') return raw
   return 'all'
 }
+
+/**
+ * Cadence sub-filter inside the Recurring tab. `'all'` means "no sub-filter
+ * applied — show every recurring obligation regardless of cadence."
+ */
+export type RecurrenceCadence = 'all' | 'annual' | 'quarterly' | 'monthly' | 'weekly'
+
+const VALID_CADENCES: ReadonlyArray<RecurrenceCadence> = [
+  'all',
+  'annual',
+  'quarterly',
+  'monthly',
+  'weekly',
+]
+
+/** Parse a possibly-invalid `?cadence=` value, falling back to `'all'`. */
+export function parseRecurrenceCadence(raw: string | null | undefined): RecurrenceCadence {
+  if (raw && (VALID_CADENCES as readonly string[]).includes(raw)) {
+    return raw as RecurrenceCadence
+  }
+  return 'all'
+}

@@ -9,7 +9,9 @@ import {
   isRecurringFrequency,
   isOneTimeFrequency,
   parseRecurrenceTab,
+  parseRecurrenceCadence,
   type RecurrenceTab,
+  type RecurrenceCadence,
 } from '@/lib/recurrence'
 import { useSession } from 'next-auth/react'
 import { toast } from 'sonner'
@@ -817,6 +819,9 @@ function ObligationsPageContent() {
   const [sortBy, setSortBy] = useState<SortField>('next_due_date')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
   const [activeTab, setActiveTab] = useState<RecurrenceTab>(parseRecurrenceTab(searchParams.get('tab')))
+  const [recurringCadence, setRecurringCadence] = useState<RecurrenceCadence>(
+    parseRecurrenceCadence(searchParams.get('cadence')),
+  )
   const [selectedId, setSelectedId] = useState<string | null>(searchParams.get('id'))
   const [selectedItem, setSelectedItem] = useState<(Obligation & { computedStatus: Status; completions?: Completion[] }) | null>(null)
   const [subObligations, setSubObligations] = useState<(Obligation & { computedStatus: Status })[]>([])
@@ -1057,8 +1062,20 @@ function ObligationsPageContent() {
     recurring: recurringItems.length,
     onetime: oneTimeItems.length,
   }
+  // Cadence sub-filter (only meaningful inside the Recurring tab).
+  const cadenceCounts = {
+    all: recurringItems.length,
+    annual: recurringItems.filter(i => i.frequency === 'annual').length,
+    quarterly: recurringItems.filter(i => i.frequency === 'quarterly').length,
+    monthly: recurringItems.filter(i => i.frequency === 'monthly').length,
+    weekly: recurringItems.filter(i => i.frequency === 'weekly').length,
+  }
+  const cadenceFilteredRecurring =
+    recurringCadence === 'all'
+      ? recurringItems
+      : recurringItems.filter(i => i.frequency === recurringCadence)
   const displayedItems =
-    activeTab === 'recurring' ? recurringItems
+    activeTab === 'recurring' ? cadenceFilteredRecurring
     : activeTab === 'onetime' ? oneTimeItems
     : topLevelItems
 
@@ -1109,9 +1126,15 @@ function ObligationsPageContent() {
                     setActiveTab(key)
                     setSelectedIds(new Set())
                     setLastSelectedIndex(null)
+                    // Cadence sub-filter only applies inside Recurring; clear
+                    // it when leaving so it doesn't leak into All / One-time.
+                    if (key !== 'recurring') {
+                      setRecurringCadence('all')
+                    }
                     const params = new URLSearchParams(window.location.search)
                     if (key === 'all') params.delete('tab')
                     else params.set('tab', key)
+                    if (key !== 'recurring') params.delete('cadence')
                     const qs = params.toString()
                     router.replace(qs ? `/obligations?${qs}` : '/obligations', { scroll: false })
                   }}
@@ -1123,6 +1146,51 @@ function ObligationsPageContent() {
                 >
                   {label}{' '}
                   <span className="text-[10px] font-mono text-steel/70">({count})</span>
+                </button>
+              )
+            })}
+          </div>
+        )}
+
+        {/* Cadence sub-filter — only visible inside the Recurring tab.
+            URL param `?cadence=annual|quarterly|monthly|weekly` is deep-linkable. */}
+        {!bulkMode && activeTab === 'recurring' && (
+          <div className="px-4 md:px-6 py-2 border-b border-black/5 flex flex-wrap items-center gap-1.5 flex-shrink-0 bg-canvas">
+            <span className="text-[10px] uppercase tracking-[0.18em] text-steel mr-1">Cadence:</span>
+            {([
+              ['all', 'All', cadenceCounts.all],
+              ['annual', 'Annual', cadenceCounts.annual],
+              ['quarterly', 'Quarterly', cadenceCounts.quarterly],
+              ['monthly', 'Monthly', cadenceCounts.monthly],
+              ['weekly', 'Weekly', cadenceCounts.weekly],
+            ] as [RecurrenceCadence, string, number][]).map(([key, label, count]) => {
+              const active = recurringCadence === key
+              const empty = count === 0
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  disabled={empty && !active}
+                  onClick={() => {
+                    setRecurringCadence(key)
+                    setSelectedIds(new Set())
+                    setLastSelectedIndex(null)
+                    const params = new URLSearchParams(window.location.search)
+                    if (key === 'all') params.delete('cadence')
+                    else params.set('cadence', key)
+                    const qs = params.toString()
+                    router.replace(qs ? `/obligations?${qs}` : '/obligations', { scroll: false })
+                  }}
+                  className={`text-[11px] font-mono px-2 py-0.5 border rounded transition-colors ${
+                    active
+                      ? 'bg-light-steel/[0.28] border-light-steel text-graphite'
+                      : empty
+                      ? 'bg-white border-black/5 text-steel/40 cursor-not-allowed'
+                      : 'bg-white border-black/10 text-steel hover:text-graphite'
+                  }`}
+                >
+                  {label}{' '}
+                  <span className={`text-[10px] ${active ? 'text-steel' : 'text-steel/70'}`}>({count})</span>
                 </button>
               )
             })}
