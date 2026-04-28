@@ -5,6 +5,12 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { formatDate, getDaysUntil, getRiskColor, getStatusColor, getCategoryLabel } from '@/lib/utils'
 import type { Obligation, Completion, Category, Status, RiskLevel, Frequency } from '@/lib/types'
 import { Search, ChevronUp, ChevronDown, X, Plus, CheckCircle, ChevronRight, FileText, ExternalLink, Download, Image as ImageIcon } from 'lucide-react'
+import {
+  isRecurringFrequency,
+  isOneTimeFrequency,
+  parseRecurrenceTab,
+  type RecurrenceTab,
+} from '@/lib/recurrence'
 import { useSession } from 'next-auth/react'
 import { toast } from 'sonner'
 import { Input } from '@/components/ui/input'
@@ -810,6 +816,7 @@ function ObligationsPageContent() {
   const [counterpartyOptions, setCounterpartyOptions] = useState<string[]>([])
   const [sortBy, setSortBy] = useState<SortField>('next_due_date')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
+  const [activeTab, setActiveTab] = useState<RecurrenceTab>(parseRecurrenceTab(searchParams.get('tab')))
   const [selectedId, setSelectedId] = useState<string | null>(searchParams.get('id'))
   const [selectedItem, setSelectedItem] = useState<(Obligation & { computedStatus: Status; completions?: Completion[] }) | null>(null)
   const [subObligations, setSubObligations] = useState<(Obligation & { computedStatus: Status })[]>([])
@@ -906,7 +913,7 @@ function ObligationsPageContent() {
       // Ctrl/Cmd+A to select all
       if ((e.ctrlKey || e.metaKey) && e.key === 'a' && !bulkMode) {
         e.preventDefault()
-        setSelectedIds(new Set(items.map(i => i.id)))
+        setSelectedIds(new Set(displayedItems.map(i => i.id)))
         setLastSelectedIndex(null)
       }
     }
@@ -957,7 +964,7 @@ function ObligationsPageContent() {
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedIds(new Set(items.map(i => i.id)))
+      setSelectedIds(new Set(displayedItems.map(i => i.id)))
     } else {
       setSelectedIds(new Set())
     }
@@ -1040,7 +1047,22 @@ function ObligationsPageContent() {
     return sortDir === 'asc' ? <ChevronUp className="w-3 h-3 text-graphite" /> : <ChevronDown className="w-3 h-3 text-graphite" />
   }
 
-  const allSelected = items.length > 0 && selectedIds.size === items.length
+  // Hide playbook sub-obligations from the main list — they live in the parent
+  // detail Sheet, which already renders them as a tree (Phase 1).
+  const topLevelItems = items.filter(i => !(i as any).parentId)
+  const recurringItems = topLevelItems.filter(i => isRecurringFrequency(i.frequency))
+  const oneTimeItems = topLevelItems.filter(i => isOneTimeFrequency(i.frequency))
+  const tabCounts = {
+    all: topLevelItems.length,
+    recurring: recurringItems.length,
+    onetime: oneTimeItems.length,
+  }
+  const displayedItems =
+    activeTab === 'recurring' ? recurringItems
+    : activeTab === 'onetime' ? oneTimeItems
+    : topLevelItems
+
+  const allSelected = displayedItems.length > 0 && selectedIds.size === displayedItems.length
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -1049,7 +1071,7 @@ function ObligationsPageContent() {
         <div className="px-4 md:px-6 py-4 border-b border-black/5 flex items-center justify-between flex-wrap gap-2 flex-shrink-0">
           <div>
             <h1 className="text-lg font-semibold text-graphite">Obligations</h1>
-            <p className="text-xs text-steel mt-0.5 font-mono">{items.length} obligations</p>
+            <p className="text-xs text-steel mt-0.5 font-mono">{displayedItems.length} obligations</p>
           </div>
           {!bulkMode && canEdit && (
             <div className="flex items-center gap-2">
@@ -1067,6 +1089,45 @@ function ObligationsPageContent() {
             </div>
           )}
         </div>
+
+        {/* Recurrence tabs — split top-level obligations by frequency cadence.
+            Only shown when not in bulk-select mode. URL param `?tab=` makes the
+            choice deep-linkable. */}
+        {!bulkMode && (
+          <div className="px-4 md:px-6 border-b border-black/5 flex gap-1 overflow-x-auto flex-shrink-0 bg-white">
+            {([
+              ['all', 'All', tabCounts.all],
+              ['recurring', 'Recurring', tabCounts.recurring],
+              ['onetime', 'One-time', tabCounts.onetime],
+            ] as [RecurrenceTab, string, number][]).map(([key, label, count]) => {
+              const active = activeTab === key
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => {
+                    setActiveTab(key)
+                    setSelectedIds(new Set())
+                    setLastSelectedIndex(null)
+                    const params = new URLSearchParams(window.location.search)
+                    if (key === 'all') params.delete('tab')
+                    else params.set('tab', key)
+                    const qs = params.toString()
+                    router.replace(qs ? `/obligations?${qs}` : '/obligations', { scroll: false })
+                  }}
+                  className={`px-3 py-2 text-xs font-medium transition-colors border-b-2 -mb-px whitespace-nowrap flex-shrink-0 ${
+                    active
+                      ? 'text-graphite border-light-steel'
+                      : 'text-steel border-transparent hover:text-graphite'
+                  }`}
+                >
+                  {label}{' '}
+                  <span className="text-[10px] font-mono text-steel/70">({count})</span>
+                </button>
+              )
+            })}
+          </div>
+        )}
 
         {/* Bulk action bar or filters */}
         {canEdit && bulkMode ? (
@@ -1166,7 +1227,7 @@ function ObligationsPageContent() {
             {counterparty && (
               <FilterChip label={`Counterparty: ${counterparty}`} onRemove={() => setCounterparty('')} />
             )}
-            <span className="text-[10px] text-steel/70 font-mono ml-1">{items.length} result{items.length !== 1 ? 's' : ''}</span>
+            <span className="text-[10px] text-steel/70 font-mono ml-1">{displayedItems.length} result{displayedItems.length !== 1 ? 's' : ''}</span>
           </div>
         )}
 
@@ -1230,12 +1291,14 @@ function ObligationsPageContent() {
                     <td className="px-3 py-3 hidden md:table-cell"><div className="h-3 w-10 bg-silicon/60 rounded" /></td>
                   </tr>
                 ))
-              ) : items.length === 0 ? (
+              ) : displayedItems.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="px-3 py-12 text-center">
-                    {(category || status || riskLevel || search) ? (
+                    {(category || status || riskLevel || search || activeTab !== 'all') ? (
                       <div className="flex flex-col items-center gap-2">
-                        <div className="text-sm text-steel">No obligations match these filters</div>
+                        <div className="text-sm text-steel">
+                          No {activeTab === 'recurring' ? 'recurring ' : activeTab === 'onetime' ? 'one-time ' : ''}obligations match these filters
+                        </div>
                         <button
                           onClick={() => {
                             setCategory('')
@@ -1254,7 +1317,7 @@ function ObligationsPageContent() {
                   </td>
                 </tr>
               ) : (
-                items.map((item, i) => {
+                displayedItems.map((item, i) => {
                   const days = getDaysUntil(item.nextDueDate)
                   const isSelected = bulkMode ? selectedIds.has(item.id) : selectedId === item.id
                   return (
