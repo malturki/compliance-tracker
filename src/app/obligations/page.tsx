@@ -226,15 +226,35 @@ function DetailPanel({
   parentSummary: { id: string; title: string } | null
   onSelectObligation: (id: string) => void
 }) {
+  const { data: session } = useSession()
   const [completing, setCompleting] = useState(false)
   const [completedBy, setCompletedBy] = useState('')
   const [completionNotes, setCompletionNotes] = useState('')
   const [evidenceFiles, setEvidenceFiles] = useState<File[]>([])
   const [evidenceUrl, setEvidenceUrl] = useState('')
   const [uploading, setUploading] = useState(false)
+  const [users, setUsers] = useState<{ id: string; name: string | null; email: string }[]>([])
+
+  // Load the user list once when the form opens — used to populate the
+  // Completed-by dropdown and resolve a friendly display name in history.
+  useEffect(() => {
+    if (!completing) return
+    fetch('/api/users')
+      .then(r => (r.ok ? r.json() : { users: [] }))
+      .then(d => setUsers(d.users ?? []))
+      .catch(() => setUsers([]))
+  }, [completing])
+
+  // Default Completed-by to the session user's email when the form opens.
+  // Allow override via the Select.
+  useEffect(() => {
+    if (completing && !completedBy && session?.user?.email) {
+      setCompletedBy(session.user.email)
+    }
+  }, [completing, completedBy, session])
 
   const handleComplete = async () => {
-    if (!completedBy.trim()) { toast.error('Enter your name'); return }
+    if (!completedBy.trim()) { toast.error('Select who completed this'); return }
 
     setUploading(true)
     try {
@@ -567,12 +587,30 @@ function DetailPanel({
             <div className="space-y-3">
               <div>
                 <Label className="text-xs text-steel">Completed by</Label>
-                <Input
-                  value={completedBy}
-                  onChange={e => setCompletedBy(e.target.value)}
-                  placeholder="Your name"
-                  className="mt-1 bg-white border-black/5 text-graphite text-xs h-8"
-                />
+                <Select value={completedBy} onValueChange={v => v && setCompletedBy(v)}>
+                  <SelectTrigger className="mt-1 bg-white border-black/5 text-graphite text-xs h-8">
+                    <SelectValue placeholder="Select user" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white border-black/5 max-h-72 overflow-y-auto">
+                    {users.length === 0 && session?.user?.email && (
+                      <SelectItem value={session.user.email} className="text-graphite text-xs">
+                        {session.user.name ?? session.user.email}{' '}
+                        <span className="text-steel/70 font-mono">({session.user.email})</span>
+                      </SelectItem>
+                    )}
+                    {users.map(u => (
+                      <SelectItem key={u.id} value={u.email} className="text-graphite text-xs">
+                        {u.name ?? u.email}
+                        {u.name && (
+                          <span className="text-steel/70 font-mono ml-1">({u.email})</span>
+                        )}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-[10px] text-steel/70 mt-1 leading-snug">
+                  Defaults to you. Pick another user if logging on someone else's behalf.
+                </p>
               </div>
               <div>
                 <Label className="text-xs text-steel">Notes (optional)</Label>
