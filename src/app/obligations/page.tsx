@@ -33,7 +33,9 @@ import { ObligationHistory } from '@/components/ObligationHistory'
 const CATEGORIES: Category[] = ['tax', 'investor', 'equity', 'state', 'federal', 'contract', 'insurance', 'benefits', 'governance', 'vendor']
 const STATUSES: Status[] = ['overdue', 'upcoming', 'current', 'completed']
 const RISK_LEVELS: RiskLevel[] = ['critical', 'high', 'medium', 'low']
-const FREQUENCIES: Frequency[] = ['annual', 'semi-annual', 'quarterly', 'bi-monthly', 'monthly', 'weekly', 'one-time', 'event-triggered']
+// Sorted shortest→longest period (matches the Recurring-tab cadence pill order),
+// with the non-recurring values trailing.
+const FREQUENCIES: Frequency[] = ['weekly', 'monthly', 'bi-monthly', 'quarterly', 'semi-annual', 'annual', 'one-time', 'event-triggered']
 
 type ObligationWithStatus = Obligation & { computedStatus: Status }
 
