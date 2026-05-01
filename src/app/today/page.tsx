@@ -4,12 +4,14 @@ import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { format } from 'date-fns'
 import { toast } from 'sonner'
-import { ListTodo, Loader2, AlertTriangle, Clock, Calendar as CalendarIcon, Sparkles } from 'lucide-react'
+import { ListTodo, Loader2 } from 'lucide-react'
 import { TodaySection } from '@/components/today/today-section'
 import { TodayEmptyState } from '@/components/today/empty-state'
 import { MomentumStrip } from '@/components/today/momentum-strip'
-import type { TodayRowItem } from '@/components/today/today-row'
-import type { CompletedTodayEntry } from '@/lib/today'
+import { DayBrief } from '@/components/today/day-brief'
+import { WeekStrip } from '@/components/today/week-strip'
+import { type TodayRowItem } from '@/components/today/today-row'
+import { toIsoDay, type CompletedTodayEntry } from '@/lib/today'
 
 interface TodayResponse {
   summary: { overdue: number; today: number; thisWeek: number; comingUp: number }
@@ -40,7 +42,12 @@ export default function TodayPage() {
   // Optimistic counter — bumped immediately on mutation, then reset to 0 when
   // the next fetch lands (the server-side count picks up the new completion).
   const [localBoost, setLocalBoost] = useState(0)
+  // WeekStrip filter state. selectedDay = ISO date drills into a specific day;
+  // overdueSelected toggles the leading red pill.
+  const [selectedDay, setSelectedDay] = useState<string | null>(null)
+  const [overdueSelected, setOverdueSelected] = useState(false)
   const today = new Date()
+  const todayIso = toIsoDay(today)
 
   const load = async () => {
     setLoading(true)
@@ -77,6 +84,25 @@ export default function TodayPage() {
   const upExists = data.summary.comingUp > 0
   const allEmpty = !overdueExists && !todayExists && !weekExists && !upExists
   const caughtUp = !overdueExists && !todayExists && (weekExists || upExists)
+  const filterActive = selectedDay !== null || overdueSelected
+
+  // Items for the selectedDay drill-in. We pull from today + thisWeek (and
+  // future-period buckets) and filter by exact date match. Sub-grouping by
+  // mine/others is preserved so the same UX as the urgency sections.
+  const filteredForDay = (iso: string) => {
+    const fromBuckets = (b: { mine: TodayRowItem[]; others: TodayRowItem[] }) => ({
+      mine: b.mine.filter(i => i.nextDueDate === iso),
+      others: b.others.filter(i => i.nextDueDate === iso),
+    })
+    const allBuckets = [data.today, data.thisWeek, data.comingUp]
+    return allBuckets.reduce<{ mine: TodayRowItem[]; others: TodayRowItem[] }>(
+      (acc, b) => {
+        const f = fromBuckets(b)
+        return { mine: [...acc.mine, ...f.mine], others: [...acc.others, ...f.others] }
+      },
+      { mine: [], others: [] },
+    )
+  }
 
   return (
     <div className="p-4 md:p-6 max-w-[1100px] overflow-x-hidden">
@@ -91,18 +117,6 @@ export default function TodayPage() {
         </div>
       </div>
 
-      {/* Hero ribbon — sticky on scroll. 2x2 grid on mobile, single row from md+. */}
-      {!loading && !allEmpty && (
-        <div className="sticky top-0 z-20 -mx-4 md:-mx-6 px-4 md:px-6 py-3 bg-canvas/90 backdrop-blur border-b border-black/5 mb-5">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 text-xs">
-            <HeroStat icon={<AlertTriangle className="w-3 h-3" />} label="Overdue" value={data.summary.overdue} tone="danger" />
-            <HeroStat icon={<Clock className="w-3 h-3" />} label="Today" value={data.summary.today} tone="warning" />
-            <HeroStat icon={<CalendarIcon className="w-3 h-3" />} label="This week" value={data.summary.thisWeek} tone="neutral" />
-            <HeroStat icon={<Sparkles className="w-3 h-3" />} label="Coming up" value={data.summary.comingUp} tone="neutral" />
-          </div>
-        </div>
-      )}
-
       {loading ? (
         <div className="flex items-center justify-center gap-2 py-16 text-steel">
           <Loader2 className="w-4 h-4 animate-spin" />
@@ -112,6 +126,33 @@ export default function TodayPage() {
         <TodayEmptyState variant="tracker-empty" canEdit={canEdit} />
       ) : (
         <div className="space-y-4">
+          {/* Personal greeting + situational brief. */}
+          <DayBrief
+            userName={session?.user?.name ?? null}
+            summary={data.summary}
+            overdue={data.overdue}
+            today={data.today}
+            thisWeek={data.thisWeek}
+          />
+
+          {/* Time-as-space calendar strip + overdue pill. */}
+          <WeekStrip
+            todayIso={todayIso}
+            overdue={data.overdue}
+            today={data.today}
+            thisWeek={data.thisWeek}
+            selectedDay={selectedDay}
+            onSelectDay={iso => {
+              setSelectedDay(iso)
+              if (iso !== null) setOverdueSelected(false)
+            }}
+            overdueSelected={overdueSelected}
+            onSelectOverdue={() => {
+              setOverdueSelected(s => !s)
+              setSelectedDay(null)
+            }}
+          />
+
           {/* Daily momentum — only renders when there's completion activity. */}
           <MomentumStrip
             count={data.completedToday.count}
@@ -119,7 +160,8 @@ export default function TodayPage() {
             localBoost={localBoost}
           />
 
-          {overdueExists && (
+          {/* Drill-in views when a strip filter is active */}
+          {overdueSelected && overdueExists && (
             <TodaySection
               title="Overdue"
               group={data.overdue}
@@ -130,7 +172,31 @@ export default function TodayPage() {
               onMutate={() => handleMutate('complete')}
             />
           )}
-          {todayExists && (
+          {selectedDay && (
+            <TodaySection
+              title={selectedDay === todayIso ? 'Today' : `Items due ${selectedDay}`}
+              group={filteredForDay(selectedDay)}
+              defaultOpen
+              tone={selectedDay === todayIso ? 'today' : 'thisWeek'}
+              hideSplit={isViewer}
+              canAct={canEdit}
+              onMutate={() => handleMutate('complete')}
+            />
+          )}
+
+          {/* Default urgency-grouped sections — only when no strip filter is active */}
+          {!filterActive && overdueExists && (
+            <TodaySection
+              title="Overdue"
+              group={data.overdue}
+              defaultOpen
+              tone="overdue"
+              hideSplit={isViewer}
+              canAct={canEdit}
+              onMutate={() => handleMutate('complete')}
+            />
+          )}
+          {!filterActive && todayExists && (
             <TodaySection
               title="Today"
               group={data.today}
@@ -141,8 +207,8 @@ export default function TodayPage() {
               onMutate={() => handleMutate('complete')}
             />
           )}
-          {caughtUp && <TodayEmptyState variant="caught-up" canEdit={canEdit} />}
-          {weekExists && (
+          {!filterActive && caughtUp && <TodayEmptyState variant="caught-up" canEdit={canEdit} />}
+          {!filterActive && weekExists && (
             <TodaySection
               title="This week"
               group={data.thisWeek}
@@ -153,7 +219,7 @@ export default function TodayPage() {
               onMutate={() => handleMutate('snooze')}
             />
           )}
-          {upExists && (
+          {!filterActive && upExists && (
             <TodaySection
               title="Coming up"
               group={data.comingUp}
@@ -164,7 +230,7 @@ export default function TodayPage() {
               onMutate={() => handleMutate('snooze')}
             />
           )}
-          {!weekExists && !upExists && !overdueExists && !todayExists && (
+          {!filterActive && !weekExists && !upExists && !overdueExists && !todayExists && (
             <TodayEmptyState variant="nothing-scheduled" canEdit={canEdit} />
           )}
         </div>
@@ -173,27 +239,3 @@ export default function TodayPage() {
   )
 }
 
-function HeroStat({
-  icon,
-  label,
-  value,
-  tone,
-}: {
-  icon: React.ReactNode
-  label: string
-  value: number
-  tone: 'danger' | 'warning' | 'neutral'
-}) {
-  const numClass =
-    tone === 'danger' && value > 0 ? 'text-danger'
-    : tone === 'warning' && value > 0 ? 'text-warning'
-    : 'text-graphite'
-  return (
-    <div className="bg-white border border-black/5 rounded p-2 md:p-3">
-      <div className="text-[10px] uppercase tracking-[0.18em] text-steel flex items-center gap-1.5">
-        {icon} {label}
-      </div>
-      <div className={`text-xl md:text-2xl font-mono font-semibold mt-0.5 ${numClass}`}>{value}</div>
-    </div>
-  )
-}
