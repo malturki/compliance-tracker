@@ -28,6 +28,7 @@ import {
   HelpCircle,
   Workflow,
   Library,
+  ListTodo,
 } from 'lucide-react'
 import { HELP_TOPICS, visibleTopicsForRole, type HelpRole } from '@/data/help-content'
 
@@ -43,6 +44,7 @@ type RoleLevel = 'viewer' | 'editor' | 'admin'
 const ROLE_HIERARCHY: Record<RoleLevel, number> = { viewer: 0, editor: 1, admin: 2 }
 
 const PAGES: { href: string; label: string; icon: typeof FileText; minRole: RoleLevel }[] = [
+  { href: '/today', label: 'Today', icon: ListTodo, minRole: 'viewer' },
   { href: '/', label: 'Overview', icon: LayoutDashboard, minRole: 'viewer' },
   { href: '/dashboard', label: 'Dashboard', icon: TrendingUp, minRole: 'viewer' },
   { href: '/obligations', label: 'Obligations', icon: FileText, minRole: 'editor' },

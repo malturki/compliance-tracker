@@ -23,6 +23,7 @@ import {
 import { GET as getPlaybookDetail } from '@/app/api/playbooks/[id]/route'
 import { GET as listSubObligations } from '@/app/api/obligations/[id]/sub-obligations/route'
 import { GET as listCatalog } from '@/app/api/catalog/route'
+import { GET as todayRoute } from '@/app/api/today/route'
 
 describe('Role enforcement', () => {
   beforeEach(async () => {
@@ -166,6 +167,11 @@ describe('Role enforcement', () => {
       const res = await listCatalog(mkReq('http://localhost/api/catalog'))
       expect(res.status).toBe(403)
     })
+
+    it('CAN GET /api/today (viewer-readable, returns flat others)', async () => {
+      const res = await todayRoute(mkReq('http://localhost/api/today'))
+      expect(res.status).toBe(200)
+    })
   })
 
   describe('Editor role', () => {
@@ -251,6 +257,11 @@ describe('Role enforcement', () => {
 
     it('can GET /api/catalog (200)', async () => {
       const res = await listCatalog(mkReq('http://localhost/api/catalog'))
+      expect(res.status).toBe(200)
+    })
+
+    it('can GET /api/today (200)', async () => {
+      const res = await todayRoute(mkReq('http://localhost/api/today'))
       expect(res.status).toBe(200)
     })
   })
