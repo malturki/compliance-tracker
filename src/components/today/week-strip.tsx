@@ -103,30 +103,35 @@ export function WeekStrip({
 
   return (
     <div className="bg-white border border-black/5 rounded-card shadow-card p-3 mb-5 overflow-x-auto">
-      <div className="flex items-stretch gap-1.5 min-w-fit">
-        {/* Overdue pill — left of the calendar, always visible if there are overdue items */}
+      <div className="flex items-stretch gap-1 min-w-fit">
+        {/* Overdue pill — accent-as-blade: white base with a danger-toned
+            border-bottom rule. Selected fills lightly. Same visual rhythm as
+            the day cells so the eye scans them as one row. */}
         {overdueCount > 0 && (
           <button
             type="button"
             onClick={() => onSelectOverdue()}
-            className={`flex-shrink-0 flex flex-col items-center justify-center px-3 py-2 rounded border transition-colors min-w-[78px]
+            className={`flex-shrink-0 flex flex-col items-center justify-center px-3 py-2 rounded border transition-colors min-w-[68px] relative
               ${overdueSelected
-                ? 'bg-danger/15 border-danger text-danger'
-                : 'bg-danger/[0.06] border-danger/30 text-danger hover:bg-danger/10'}
+                ? 'bg-danger/[0.08] border-danger text-danger'
+                : 'bg-white border-black/5 text-danger hover:bg-silicon/[0.18]'}
             `}
             aria-pressed={overdueSelected}
           >
-            <AlertTriangle className="w-3.5 h-3.5 mb-0.5" />
-            <span className="text-[10px] font-mono uppercase tracking-wider leading-none">
-              Overdue
+            <span className="flex items-center gap-1 leading-none">
+              <AlertTriangle className="w-3 h-3" />
+              <span className="text-[9px] font-mono uppercase tracking-[0.18em]">Overdue</span>
             </span>
-            <span className="text-base font-mono font-semibold leading-tight mt-1">
+            <span className="text-sm font-mono font-semibold mt-1.5 leading-none">
               {overdueCount}
             </span>
+            {/* Bottom blade — always present so the row aligns with day cells */}
+            <span className="absolute inset-x-2 bottom-0 h-px bg-danger/40" aria-hidden />
           </button>
         )}
 
-        {/* 7-day strip */}
+        {/* 7-day strip — uniform white cells with a Light Steel Blue blade
+            under today and a tinted fill only when selected. */}
         {cells.map(cell => {
           const isSelected = selectedDay === cell.iso
           const monthDay = format(cell.date, 'd')
@@ -138,37 +143,44 @@ export function WeekStrip({
               type="button"
               onClick={() => onSelectDay(isSelected ? null : cell.iso)}
               disabled={empty && !cell.isToday}
-              className={`flex-1 flex-shrink-0 flex flex-col items-center justify-start px-2 py-2 rounded border transition-colors min-w-[78px]
+              className={`flex-1 flex-shrink-0 flex flex-col items-center justify-start px-2 py-2 rounded border transition-colors min-w-[64px] relative
                 ${isSelected
-                  ? 'bg-light-steel/[0.28] border-light-steel'
-                  : cell.isToday
-                  ? 'bg-light-steel/[0.10] border-light-steel/50 hover:bg-light-steel/[0.18]'
-                  : empty
-                  ? 'bg-canvas border-black/5 text-steel/50 cursor-default'
-                  : 'bg-white border-black/10 hover:bg-silicon/[0.18] cursor-pointer'}
+                  ? 'bg-light-steel/[0.18] border-light-steel'
+                  : empty && !cell.isToday
+                  ? 'bg-white border-black/5 cursor-default'
+                  : 'bg-white border-black/5 hover:bg-silicon/[0.18] cursor-pointer'}
               `}
               aria-pressed={isSelected}
               aria-label={`${weekday} ${monthDay}, ${cell.count} item${cell.count === 1 ? '' : 's'}`}
             >
-              <span className={`text-[10px] font-mono uppercase tracking-wider leading-none ${
-                cell.isToday ? 'text-graphite font-semibold' : 'text-steel/70'
+              <span className={`text-[9px] font-mono uppercase tracking-[0.18em] leading-none ${
+                cell.isToday ? 'text-graphite' : empty && !cell.isToday ? 'text-steel/40' : 'text-steel/70'
               }`}>
-                {cell.isToday ? 'TODAY' : weekday}
+                {weekday}
               </span>
-              <span className={`text-lg font-mono leading-tight mt-0.5 ${
-                cell.isToday ? 'text-graphite font-semibold' : 'text-graphite'
+              <span className={`text-base font-mono leading-none mt-1 ${
+                empty && !cell.isToday ? 'text-steel/40' : 'text-graphite'
               }`}>
                 {monthDay}
               </span>
-              {/* Risk dots */}
+              {/* Risk dots — only render the row when there are items, keeps
+                  empty cells crisp. Reserve the height regardless so cells
+                  stay aligned. */}
               <div className="flex items-center gap-0.5 mt-1.5 h-1.5">
                 {renderDots(cell.byRisk)}
               </div>
-              <span className={`text-[10px] font-mono mt-1 ${
-                empty && !cell.isToday ? 'text-steel/40' : 'text-steel'
+              <span className={`text-[10px] font-mono mt-1 leading-none ${
+                empty && !cell.isToday ? 'text-steel/30' : 'text-steel'
               }`}>
                 {cell.count}
               </span>
+              {/* Today blade — accent applied as a 2px under-rule (the kit's
+                  "use it as a blade, not a paint bucket" guidance). Hidden when
+                  the cell is selected because the selected state already
+                  carries a full Light Steel border. */}
+              {cell.isToday && !isSelected && (
+                <span className="absolute inset-x-2 bottom-0 h-0.5 bg-light-steel" aria-hidden />
+              )}
             </button>
           )
         })}
@@ -181,7 +193,7 @@ export function WeekStrip({
               onSelectDay(null)
               if (overdueSelected) onSelectOverdue()
             }}
-            className="flex-shrink-0 self-center text-[10px] font-mono text-steel hover:text-graphite px-2 py-1 ml-1 border border-black/10 rounded transition-colors"
+            className="flex-shrink-0 self-center text-[10px] font-mono text-steel hover:text-graphite px-2 py-1 ml-1 border border-black/5 rounded transition-colors"
           >
             All week
           </button>
