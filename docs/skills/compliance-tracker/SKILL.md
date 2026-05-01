@@ -99,12 +99,26 @@ Returns: `{ success: true }`
 
 ```
 POST /api/obligations/{id}/complete
-Body: { completedBy, completedDate, notes?, evidenceUrls? }
+Body: {
+  completedBy,            // required — email of a system user (not free text)
+  completedDate,
+  notes?,
+  evidenceUrls?,          // array of URLs
+  approvedBy?,            // email of approver (evidence packet)
+  approvedDate?,          // YYYY-MM-DD; must not precede completedDate
+  verificationStatus?,    // 'unverified' | 'self-verified' | 'approved' | 'audited'
+  summary?                // structured completion summary (richer than notes)
+}
 ```
 
-Returns: `{ id, success: true, evidenceUrls }`. If `autoRecur` is true
-on the obligation, its `nextDueDate` automatically advances to the next
-period.
+Returns: `{ id, success: true, evidenceUrls, parentCompleted, parentId }`.
+
+If `autoRecur` is true and the frequency is recurring, the obligation's
+`nextDueDate` advances to the next period. Otherwise the completion is
+terminal (status flips to `completed`). When the completed obligation has
+a `parentId` and every sibling is now complete, the parent auto-completes
+and an `obligation.parent_rollup_complete` audit event is emitted —
+`parentCompleted` and `parentId` in the response signal this.
 
 ### Delete an obligation (editor)
 
@@ -120,6 +134,52 @@ Returns: `{ success: true }`
 POST /api/obligations/bulk   — update-owner, update-risk, mark-complete
 DELETE /api/obligations      — Body: { ids: [...] } (max 100)
 ```
+
+### Sub-obligations (viewer can read)
+
+```
+GET /api/obligations/{id}/sub-obligations
+```
+
+Returns: `{ parent: { id, title }, children: [...] }` — children of an
+obligation, ordered by `sequence`. Used to inspect playbook-applied
+workflow trees.
+
+### Playbooks (editor)
+
+Playbooks are reusable workflow definitions. Applying one creates a
+parent obligation plus a tree of sub-obligations with deadlines computed
+from an anchor date.
+
+```
+GET /api/playbooks                    — list available playbooks
+GET /api/playbooks/{id}               — full definition incl. steps
+POST /api/playbooks                   — apply a playbook
+Body: {
+  playbookId,
+  anchorDate,                         // YYYY-MM-DD
+  counterparty?,                      // required for some playbooks
+  ownerOverrides?: { [stepSlug]: string }
+}
+```
+
+`POST` returns `{ parent: Obligation, children: Obligation[] }`. Each
+child's `nextDueDate` is `anchorDate + step.offsetDaysFromAnchor`.
+Playbook application emits one audit event per row plus a
+`playbook.applied` summary event.
+
+### Recommended-additions catalog (editor)
+
+```
+GET /api/catalog
+```
+
+Returns: `{ items: RecommendedItem[], tagLabels: { ... } }`. Each item is
+a curated standard-startup obligation (state securities, tax, privacy,
+IP, crypto, etc.) the user can add to the tracker. Items have
+`maturity: 'now' | 'future'`; "future" items are reminders for later
+(e.g., trademark maintenance triggers on registration). To add an item,
+`POST /api/obligations` with the item's defaults — no special endpoint.
 
 ### Query the audit log (editor)
 
@@ -141,7 +201,7 @@ GET /api/analytics    — trends, compliance score, risk exposure
 - **Dates**: always ISO-8601 (YYYY-MM-DD for date-only, full ISO for timestamps)
 - **IDs**: ULIDs (26 chars, alphanumeric)
 - **Categories**: tax, investor, equity, state, federal, contract, insurance, benefits, governance, vendor
-- **Frequencies**: annual, quarterly, monthly, weekly, one-time, event-triggered
+- **Frequencies**: annual, semi-annual, quarterly, bi-monthly, monthly, weekly, one-time, event-triggered
 - **Risk levels**: critical, high, medium, low
 - **Roles** (for users/agents): viewer, editor, admin
 

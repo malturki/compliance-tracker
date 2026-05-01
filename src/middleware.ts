@@ -42,7 +42,7 @@ export default auth((req) => {
   }
 
   const role = req.auth.user?.role
-  const editorOnlyPages = ['/calendar', '/obligations', '/templates', '/activity', '/categories', '/settings']
+  const editorOnlyPages = ['/calendar', '/obligations', '/templates', '/playbooks', '/catalog', '/activity', '/categories', '/settings']
   if (role === 'viewer' && editorOnlyPages.some(p => pathname.startsWith(p))) {
     return NextResponse.redirect(new URL('/', req.nextUrl.origin))
   }
