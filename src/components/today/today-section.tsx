@@ -19,9 +19,13 @@ interface Props {
   hideSplit?: boolean
   /** Tone affects the section header color (overdue is danger, today is warning). */
   tone?: 'overdue' | 'today' | 'thisWeek' | 'comingUp'
+  /** True for editor/admin: enables inline complete + snooze actions on each row. */
+  canAct: boolean
+  /** Called after a row mutation (complete / snooze) so the page refreshes. */
+  onMutate: () => void
 }
 
-export function TodaySection({ title, group, defaultOpen, hideSplit, tone = 'comingUp' }: Props) {
+export function TodaySection({ title, group, defaultOpen, hideSplit, tone = 'comingUp', canAct, onMutate }: Props) {
   const [open, setOpen] = useState(defaultOpen)
   const [showOthers, setShowOthers] = useState(false)
 
@@ -52,7 +56,7 @@ export function TodaySection({ title, group, defaultOpen, hideSplit, tone = 'com
             // Viewer view — flat list, no mine/others split.
             <div>
               {[...group.mine, ...group.others].map(item => (
-                <TodayRow key={item.id} item={item} isMine={false} />
+                <TodayRow key={item.id} item={item} isMine={false} canAct={canAct} onMutate={onMutate} />
               ))}
             </div>
           ) : (
@@ -63,7 +67,7 @@ export function TodaySection({ title, group, defaultOpen, hideSplit, tone = 'com
                     My obligations ({group.mine.length})
                   </div>
                   {group.mine.map(item => (
-                    <TodayRow key={item.id} item={item} isMine />
+                    <TodayRow key={item.id} item={item} isMine canAct={canAct} onMutate={onMutate} />
                   ))}
                 </div>
               )}
@@ -78,7 +82,7 @@ export function TodaySection({ title, group, defaultOpen, hideSplit, tone = 'com
                     Owned by others ({group.others.length})
                   </button>
                   {showOthers && group.others.map(item => (
-                    <TodayRow key={item.id} item={item} isMine={false} />
+                    <TodayRow key={item.id} item={item} isMine={false} canAct={canAct} onMutate={onMutate} />
                   ))}
                 </div>
               )}

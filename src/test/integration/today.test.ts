@@ -2,6 +2,8 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { dbReady } from '@/db'
 import { resetDb, mockSession, mkReq, insertObligation } from '../integration-helpers'
 import { GET as today } from '@/app/api/today/route'
+import { POST as completeObligation } from '@/app/api/obligations/[id]/complete/route'
+import { PUT as updateObligation } from '@/app/api/obligations/[id]/route'
 import { addDaysISO, toIsoDay } from '@/lib/today'
 
 const TODAY_ISO = toIsoDay(new Date())
@@ -121,5 +123,100 @@ describe('GET /api/today', () => {
     const body = await res.json()
     expect(body.summary.today).toBe(body.today.mine.length + body.today.others.length)
     expect(body.summary.thisWeek).toBe(body.thisWeek.mine.length + body.thisWeek.others.length)
+  })
+
+  describe('completedToday momentum', () => {
+    it('returns count=0 and empty recent when nothing was completed today', async () => {
+      await insertObligation({ title: 'pending', nextDueDate: TODAY_ISO })
+      const res = await today(mkReq('http://localhost/api/today'))
+      const body = await res.json()
+      expect(body.completedToday).toEqual({ count: 0, recent: [] })
+    })
+
+    it('counts completions for today and surfaces recent entries newest-first', async () => {
+      const id1 = await insertObligation({ title: 'A', nextDueDate: TODAY_ISO })
+      const id2 = await insertObligation({ title: 'B', nextDueDate: TODAY_ISO })
+      // Complete both, B after A so it should appear first in `recent`.
+      await completeObligation(
+        mkReq(`http://localhost/api/obligations/${id1}/complete`, {
+          method: 'POST',
+          body: { completedBy: 'editor@test.com', completedDate: TODAY_ISO },
+        }),
+        { params: { id: id1 } },
+      )
+      await completeObligation(
+        mkReq(`http://localhost/api/obligations/${id2}/complete`, {
+          method: 'POST',
+          body: { completedBy: 'editor@test.com', completedDate: TODAY_ISO },
+        }),
+        { params: { id: id2 } },
+      )
+
+      const res = await today(mkReq('http://localhost/api/today'))
+      const body = await res.json()
+      expect(body.completedToday.count).toBe(2)
+      expect(body.completedToday.recent.map((r: any) => r.title)).toEqual(['B', 'A'])
+      expect(body.completedToday.recent[0].completedBy).toBe('editor@test.com')
+    })
+
+    it('caps recent at 5 entries', async () => {
+      for (let i = 0; i < 7; i++) {
+        const id = await insertObligation({ title: `Done${i}`, nextDueDate: TODAY_ISO })
+        await completeObligation(
+          mkReq(`http://localhost/api/obligations/${id}/complete`, {
+            method: 'POST',
+            body: { completedBy: 'editor@test.com', completedDate: TODAY_ISO },
+          }),
+          { params: { id } },
+        )
+      }
+      const res = await today(mkReq('http://localhost/api/today'))
+      const body = await res.json()
+      expect(body.completedToday.count).toBe(7)
+      expect(body.completedToday.recent).toHaveLength(5)
+    })
+
+    it('excludes completions from prior days', async () => {
+      const id = await insertObligation({ title: 'old-completion', nextDueDate: TODAY_ISO })
+      await completeObligation(
+        mkReq(`http://localhost/api/obligations/${id}/complete`, {
+          method: 'POST',
+          body: { completedBy: 'editor@test.com', completedDate: YESTERDAY },
+        }),
+        { params: { id } },
+      )
+      const res = await today(mkReq('http://localhost/api/today'))
+      const body = await res.json()
+      expect(body.completedToday.count).toBe(0)
+    })
+  })
+
+  describe('snooze via PUT /api/obligations/[id]', () => {
+    it('moves the row from Today to thisWeek when nextDueDate is pushed +3d', async () => {
+      const id = await insertObligation({ title: 'snoozable', nextDueDate: TODAY_ISO })
+
+      // Verify it lands in `today` first.
+      let res = await today(mkReq('http://localhost/api/today'))
+      let body = await res.json()
+      const titlesIn = (g: any) => [...g.mine, ...g.others].map((r: any) => r.title)
+      expect(titlesIn(body.today)).toContain('snoozable')
+
+      // Snooze: push due date forward 3 days.
+      const newDue = addDaysISO(TODAY_ISO, 3)
+      const upd = await updateObligation(
+        mkReq(`http://localhost/api/obligations/${id}`, {
+          method: 'PUT',
+          body: { nextDueDate: newDue },
+        }),
+        { params: { id } },
+      )
+      expect(upd.status).toBe(200)
+
+      // Confirm the row migrated to thisWeek.
+      res = await today(mkReq('http://localhost/api/today'))
+      body = await res.json()
+      expect(titlesIn(body.today)).not.toContain('snoozable')
+      expect(titlesIn(body.thisWeek)).toContain('snoozable')
+    })
   })
 })

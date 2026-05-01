@@ -7,7 +7,9 @@ import { toast } from 'sonner'
 import { ListTodo, Loader2, AlertTriangle, Clock, Calendar as CalendarIcon, Sparkles } from 'lucide-react'
 import { TodaySection } from '@/components/today/today-section'
 import { TodayEmptyState } from '@/components/today/empty-state'
+import { MomentumStrip } from '@/components/today/momentum-strip'
 import type { TodayRowItem } from '@/components/today/today-row'
+import type { CompletedTodayEntry } from '@/lib/today'
 
 interface TodayResponse {
   summary: { overdue: number; today: number; thisWeek: number; comingUp: number }
@@ -15,6 +17,7 @@ interface TodayResponse {
   today:    { mine: TodayRowItem[]; others: TodayRowItem[] }
   thisWeek: { mine: TodayRowItem[]; others: TodayRowItem[] }
   comingUp: { mine: TodayRowItem[]; others: TodayRowItem[] }
+  completedToday: { count: number; recent: CompletedTodayEntry[] }
 }
 
 const EMPTY: TodayResponse = {
@@ -23,6 +26,7 @@ const EMPTY: TodayResponse = {
   today: { mine: [], others: [] },
   thisWeek: { mine: [], others: [] },
   comingUp: { mine: [], others: [] },
+  completedToday: { count: 0, recent: [] },
 }
 
 export default function TodayPage() {
@@ -33,6 +37,9 @@ export default function TodayPage() {
 
   const [data, setData] = useState<TodayResponse>(EMPTY)
   const [loading, setLoading] = useState(true)
+  // Optimistic counter — bumped immediately on mutation, then reset to 0 when
+  // the next fetch lands (the server-side count picks up the new completion).
+  const [localBoost, setLocalBoost] = useState(0)
   const today = new Date()
 
   const load = async () => {
@@ -42,6 +49,8 @@ export default function TodayPage() {
       if (!res.ok) throw new Error('Failed to load today')
       const body = await res.json()
       setData(body)
+      // Server count is now authoritative — clear the optimistic boost.
+      setLocalBoost(0)
     } catch (err: any) {
       toast.error(err.message || 'Failed to load today', {
         action: { label: 'Retry', onClick: load },
@@ -54,6 +63,13 @@ export default function TodayPage() {
   useEffect(() => {
     load()
   }, [])
+
+  /** Called by row actions (complete / snooze). Bumps the momentum counter
+   * immediately, then re-fetches so the server has authoritative data. */
+  const handleMutate = (kind: 'complete' | 'snooze') => {
+    if (kind === 'complete') setLocalBoost(b => b + 1)
+    load()
+  }
 
   const overdueExists = data.summary.overdue > 0
   const todayExists = data.summary.today > 0
@@ -92,22 +108,61 @@ export default function TodayPage() {
           <Loader2 className="w-4 h-4 animate-spin" />
           <span className="text-sm">Loading...</span>
         </div>
-      ) : allEmpty ? (
+      ) : allEmpty && data.completedToday.count + localBoost === 0 ? (
         <TodayEmptyState variant="tracker-empty" canEdit={canEdit} />
       ) : (
         <div className="space-y-4">
+          {/* Daily momentum — only renders when there's completion activity. */}
+          <MomentumStrip
+            count={data.completedToday.count}
+            recent={data.completedToday.recent}
+            localBoost={localBoost}
+          />
+
           {overdueExists && (
-            <TodaySection title="Overdue" group={data.overdue} defaultOpen tone="overdue" hideSplit={isViewer} />
+            <TodaySection
+              title="Overdue"
+              group={data.overdue}
+              defaultOpen
+              tone="overdue"
+              hideSplit={isViewer}
+              canAct={canEdit}
+              onMutate={() => handleMutate('complete')}
+            />
           )}
           {todayExists && (
-            <TodaySection title="Today" group={data.today} defaultOpen tone="today" hideSplit={isViewer} />
+            <TodaySection
+              title="Today"
+              group={data.today}
+              defaultOpen
+              tone="today"
+              hideSplit={isViewer}
+              canAct={canEdit}
+              onMutate={() => handleMutate('complete')}
+            />
           )}
           {caughtUp && <TodayEmptyState variant="caught-up" canEdit={canEdit} />}
           {weekExists && (
-            <TodaySection title="This week" group={data.thisWeek} defaultOpen tone="thisWeek" hideSplit={isViewer} />
+            <TodaySection
+              title="This week"
+              group={data.thisWeek}
+              defaultOpen
+              tone="thisWeek"
+              hideSplit={isViewer}
+              canAct={canEdit}
+              onMutate={() => handleMutate('snooze')}
+            />
           )}
           {upExists && (
-            <TodaySection title="Coming up" group={data.comingUp} defaultOpen={false} tone="comingUp" hideSplit={isViewer} />
+            <TodaySection
+              title="Coming up"
+              group={data.comingUp}
+              defaultOpen={false}
+              tone="comingUp"
+              hideSplit={isViewer}
+              canAct={canEdit}
+              onMutate={() => handleMutate('snooze')}
+            />
           )}
           {!weekExists && !upExists && !overdueExists && !todayExists && (
             <TodayEmptyState variant="nothing-scheduled" canEdit={canEdit} />

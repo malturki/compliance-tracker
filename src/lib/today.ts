@@ -104,6 +104,19 @@ export interface TodayResult<T> {
   comingUp: TodayBucketGroup<T>
 }
 
+/** Single completion entry surfaced in the Today momentum strip. */
+export interface CompletedTodayEntry {
+  obligationId: string
+  title: string
+  completedBy: string
+  completedAt: string  // full ISO timestamp from completions.createdAt
+}
+
+export interface CompletedTodaySummary {
+  count: number
+  recent: CompletedTodayEntry[]  // newest first, capped to 5
+}
+
 export interface GroupOptions {
   todayIso: string
   sessionEmail?: string | null

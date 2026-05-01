@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db, dbReady } from '@/db'
-import { obligations } from '@/db/schema'
-import { ne } from 'drizzle-orm'
+import { obligations, completions } from '@/db/schema'
+import { ne, desc, eq } from 'drizzle-orm'
 import { requireRole } from '@/lib/auth-helpers'
 import { auth } from '@/lib/auth'
 import { computeStatus } from '@/lib/utils'
@@ -51,5 +51,45 @@ export async function GET(req: NextRequest) {
     flatten,
   })
 
-  return NextResponse.json(result)
+  // Daily momentum: completions where completed_date == today.
+  // Reads the completions table directly + joins by obligationId for titles.
+  const todaysCompletions = await db
+    .select({
+      id: completions.id,
+      obligationId: completions.obligationId,
+      completedBy: completions.completedBy,
+      createdAt: completions.createdAt,
+    })
+    .from(completions)
+    .where(eq(completions.completedDate, todayIso))
+    .orderBy(desc(completions.createdAt))
+    .limit(50)
+  const titlesById = new Map(rows.map(r => [r.id, r.title]))
+  // Some completed obligations may have status='completed' and were excluded
+  // from the rows query above. Backfill their titles with one extra select.
+  const missingIds = todaysCompletions
+    .map(c => c.obligationId)
+    .filter(id => !titlesById.has(id))
+  if (missingIds.length > 0) {
+    const extra = await db
+      .select({ id: obligations.id, title: obligations.title })
+      .from(obligations)
+    for (const e of extra) {
+      if (missingIds.includes(e.id) && !titlesById.has(e.id)) titlesById.set(e.id, e.title)
+    }
+  }
+  const recent = todaysCompletions.slice(0, 5).map(c => ({
+    obligationId: c.obligationId,
+    title: titlesById.get(c.obligationId) ?? '(deleted)',
+    completedBy: c.completedBy,
+    completedAt: c.createdAt,
+  }))
+
+  return NextResponse.json({
+    ...result,
+    completedToday: {
+      count: todaysCompletions.length,
+      recent,
+    },
+  })
 }
