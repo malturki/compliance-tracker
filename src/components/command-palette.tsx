@@ -98,9 +98,15 @@ export function CommandPalette() {
   }, [open, canAccess, obligations.length])
 
   const go = (href: string) => {
-    setOpen(false)
-    setQuery('')
+    // Order matters: navigate first, then close. cmdk's onSelect fires inside
+    // a pointerdown handler, and closing the Dialog synchronously can unmount
+    // before router.push commits — the URL changes but the click feels like a
+    // no-op because the palette never visibly transitions to the new page.
     router.push(href)
+    setQuery('')
+    // Defer the close past the current task so router.push has a chance to
+    // settle even when React batches state updates with the Dialog's onOpenChange.
+    setTimeout(() => setOpen(false), 0)
   }
 
   const visiblePages = PAGES.filter(p => canAccess(p.minRole))
@@ -121,13 +127,13 @@ export function CommandPalette() {
 
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
-      <Command shouldFilter={false} className="bg-white border-black/5">
+      <Command shouldFilter={false}>
         <CommandInput
           value={query}
           onValueChange={setQuery}
-          placeholder={canAccess('editor') ? 'Search obligations, pages, help...' : 'Search pages and help...'}
+          placeholder={canAccess('editor') ? 'Search obligations, pages, help…' : 'Search pages and help…'}
         />
-        <CommandList className="max-h-[60vh]">
+        <CommandList>
           <CommandEmpty>
             {loading ? 'Loading...' : 'No results'}
           </CommandEmpty>

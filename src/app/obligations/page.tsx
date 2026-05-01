@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { formatDate, getDaysUntil, getRiskColor, getStatusColor, getCategoryLabel } from '@/lib/utils'
 import type { Obligation, Completion, Category, Status, RiskLevel, Frequency } from '@/lib/types'
-import { Search, ChevronUp, ChevronDown, X, Plus, CheckCircle, ChevronRight, FileText, ExternalLink, Download, Image as ImageIcon } from 'lucide-react'
+import { Search, ChevronUp, ChevronDown, X, Plus, CheckCircle, ChevronRight, FileText, ExternalLink, Download, Image as ImageIcon, Trash2 } from 'lucide-react'
 import {
   isRecurringFrequency,
   isOneTimeFrequency,
@@ -212,6 +212,7 @@ function DetailPanel({
   onClose,
   onComplete,
   onUpdate,
+  onDelete,
   canEdit,
   subObligations,
   parentSummary,
@@ -221,6 +222,7 @@ function DetailPanel({
   onClose: () => void
   onComplete: () => void
   onUpdate: () => void
+  onDelete: () => void
   canEdit: boolean
   subObligations: (Obligation & { computedStatus: Status })[]
   parentSummary: { id: string; title: string } | null
@@ -233,6 +235,7 @@ function DetailPanel({
   const [evidenceFiles, setEvidenceFiles] = useState<File[]>([])
   const [evidenceUrl, setEvidenceUrl] = useState('')
   const [uploading, setUploading] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const [users, setUsers] = useState<{ id: string; name: string | null; email: string }[]>([])
 
   // Load the user list once when the form opens — used to populate the
@@ -296,6 +299,28 @@ function DetailPanel({
       toast.error(err instanceof Error ? err.message : 'Failed to mark complete')
     } finally {
       setUploading(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    const childCount = subObligations.length
+    const warning = childCount > 0
+      ? `Delete "${item.title}"? Its ${childCount} sub-obligation${childCount === 1 ? '' : 's'} will be orphaned and become unreachable. This cannot be undone.`
+      : `Delete "${item.title}"? This cannot be undone.`
+    if (!window.confirm(warning)) return
+
+    setDeleting(true)
+    try {
+      const res = await fetch(`/api/obligations/${item.id}`, { method: 'DELETE' })
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({}))
+        throw new Error(error.error || 'Failed to delete')
+      }
+      toast.success('Obligation deleted')
+      onDelete()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to delete')
+      setDeleting(false)
     }
   }
 
@@ -669,13 +694,24 @@ function DetailPanel({
               </div>
             </div>
           ) : (
-            <Button
-              size="sm"
-              onClick={() => setCompleting(true)}
-              className="w-full bg-graphite hover:bg-graphite/90 text-platinum text-xs h-8"
-            >
-              <CheckCircle className="w-3 h-3 mr-1.5" /> Mark Complete
-            </Button>
+            <div className="space-y-2">
+              <Button
+                size="sm"
+                onClick={() => setCompleting(true)}
+                className="w-full bg-graphite hover:bg-graphite/90 text-platinum text-xs h-8"
+              >
+                <CheckCircle className="w-3 h-3 mr-1.5" /> Mark Complete
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleDelete}
+                disabled={deleting}
+                className="w-full bg-white border border-danger/30 text-danger hover:bg-danger/10 hover:text-danger text-xs h-8 disabled:opacity-50"
+              >
+                <Trash2 className="w-3 h-3 mr-1.5" /> {deleting ? 'Deleting…' : 'Delete obligation'}
+              </Button>
+            </div>
           )}
             </>
           )}
@@ -1518,6 +1554,10 @@ function ObligationsPageContent() {
                     .then(d => setSelectedItem({ ...d, alertDays: d.alertDays || [], computedStatus: d.status }))
                     .catch(() => {})
                 }
+              }}
+              onDelete={() => {
+                setSelectedId(null)
+                fetchItems()
               }}
               canEdit={canEdit}
               subObligations={subObligations}
