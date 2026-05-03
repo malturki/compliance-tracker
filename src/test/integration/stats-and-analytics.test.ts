@@ -118,13 +118,14 @@ describe('GET /api/analytics', () => {
   })
 
   it('on-time completion contributes to last30Days trend', async () => {
+    const completedDate = daysFromNow(-1)
     const id = await insertObligation({
       title: 'On time',
       frequency: 'one-time',
-      nextDueDate: '2026-05-01',
+      nextDueDate: daysFromNow(1),
     })
     // Complete BEFORE the due date — counts as on-time
-    await complete(id, '2026-04-01')
+    await complete(id, completedDate)
 
     const res = await getAnalytics()
     const body = await res.json()
