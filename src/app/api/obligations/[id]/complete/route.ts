@@ -14,6 +14,14 @@ import type { VerificationStatus } from '@/lib/types'
 
 export const dynamic = 'force-dynamic'
 
+function parseEvidenceUrls(raw: FormDataEntryValue | null): string[] {
+  if (!raw) return []
+  if (typeof raw !== 'string') throw new Error('evidenceUrls must be a JSON array of URLs')
+  const parsed = JSON.parse(raw)
+  if (!Array.isArray(parsed)) throw new Error('evidenceUrls must be a JSON array of URLs')
+  return parsed
+}
+
 export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } },
@@ -39,15 +47,22 @@ export async function POST(
     if (contentType.includes('multipart/form-data')) {
       const formData = await req.formData()
 
-      data = {
-        completedBy: formData.get('completedBy') as string,
-        completedDate: (formData.get('completedDate') as string) || new Date().toISOString().split('T')[0],
-        notes: (formData.get('notes') as string | null) ?? null,
-        evidenceUrls: formData.get('evidenceUrls') ? JSON.parse(formData.get('evidenceUrls') as string) : [],
-        approvedBy: (formData.get('approvedBy') as string | null) ?? null,
-        approvedDate: (formData.get('approvedDate') as string | null) ?? null,
-        verificationStatus: (formData.get('verificationStatus') as VerificationStatus | null) ?? null,
-        summary: (formData.get('summary') as string | null) ?? null,
+      try {
+        data = {
+          completedBy: formData.get('completedBy') as string,
+          completedDate: (formData.get('completedDate') as string) || new Date().toISOString().split('T')[0],
+          notes: (formData.get('notes') as string | null) ?? null,
+          evidenceUrls: parseEvidenceUrls(formData.get('evidenceUrls')),
+          approvedBy: (formData.get('approvedBy') as string | null) ?? null,
+          approvedDate: (formData.get('approvedDate') as string | null) ?? null,
+          verificationStatus: (formData.get('verificationStatus') as VerificationStatus | null) ?? null,
+          summary: (formData.get('summary') as string | null) ?? null,
+        }
+      } catch (error) {
+        return NextResponse.json(
+          { error: error instanceof Error ? error.message : 'Invalid evidenceUrls' },
+          { status: 400 }
+        )
       }
 
       // Extract files (keyed as file_0, file_1, etc.)
@@ -74,13 +89,6 @@ export async function POST(
           )
         }
       }
-
-      // Upload files to Vercel Blob
-      const uploadedUrls = await Promise.all(
-        files.map((file) => uploadToBlob(file))
-      )
-
-      data.evidenceUrls = [...data.evidenceUrls, ...uploadedUrls]
     } else {
       // JSON request — accepts both the legacy single-URL shape and the new
       // evidence-packet shape. evidenceUrls (array) wins if both are present.
@@ -123,6 +131,14 @@ export async function POST(
     }
 
     const obligation = rows[0]
+
+    if (files.length > 0) {
+      const uploadedUrls = await Promise.all(
+        files.map((file) => uploadToBlob(file))
+      )
+      data.evidenceUrls = [...data.evidenceUrls, ...uploadedUrls]
+    }
+
     const completionId = ulid()
 
     // Decide whether this completion terminates the obligation (no recurrence

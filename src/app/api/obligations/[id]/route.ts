@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db, dbReady } from '@/db'
 import { obligations, completions } from '@/db/schema'
 import { eq } from 'drizzle-orm'
-import { computeStatus } from '@/lib/utils'
+import { getDisplayStatus } from '@/lib/utils'
 import { updateObligationSchema, formatZodError } from '@/lib/validation'
 import { getActor } from '@/lib/actor'
 import { auditedUpdate } from '@/lib/audit-helpers'
@@ -25,7 +25,7 @@ export async function GET(
     const row = rows[0]
     const comps = await db.select().from(completions).where(eq(completions.obligationId, params.id))
 
-    const computed = computeStatus(row.nextDueDate, row.lastCompletedDate, row.frequency)
+    const computed = getDisplayStatus(row.status, row.nextDueDate, row.lastCompletedDate, row.frequency)
     return NextResponse.json({
       ...row,
       alertDays: JSON.parse(row.alertDays || '[]'),
@@ -61,6 +61,7 @@ export async function PUT(
       'title', 'description', 'category', 'subcategory', 'frequency',
       'nextDueDate', 'lastCompletedDate', 'owner', 'ownerEmail', 'assignee', 'assigneeEmail', 'riskLevel',
       'sourceDocument', 'notes', 'entity', 'counterparty', 'jurisdiction', 'amount', 'autoRecur',
+      'status', 'parentId', 'sequence', 'blockerReason', 'nextRecommendedAction',
     ] as const
     
     for (const key of allowed) {

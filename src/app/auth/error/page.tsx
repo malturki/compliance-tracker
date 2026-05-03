@@ -9,6 +9,7 @@ function ErrorContent() {
   const error = searchParams.get('error')
 
   const isAccessDenied = error === 'AccessDenied'
+  const isPreviewAuthMissing = error === 'PreviewAuthNotConfigured'
 
   return (
     <div className="min-h-screen bg-canvas flex items-center justify-center p-6">
@@ -25,14 +26,22 @@ function ErrorContent() {
           </div>
 
           <h1 className="text-2xl font-medium tracking-[-0.02em] text-graphite mb-2 text-center">
-            {isAccessDenied ? 'Access Denied' : 'Sign-in Error'}
+            {isPreviewAuthMissing ? 'Preview Auth Not Configured' : isAccessDenied ? 'Access Denied' : 'Sign-in Error'}
           </h1>
 
           <p className="text-steel text-sm mb-6 text-center">
-            {isAccessDenied
+            {isPreviewAuthMissing
+              ? 'This branch preview is missing Google OAuth environment variables, so real login cannot be tested here yet.'
+              : isAccessDenied
               ? 'Your account is not authorized to access this application. Only accounts from the company workspace can sign in.'
               : 'Something went wrong during sign-in. Please try again.'}
           </p>
+
+          {isPreviewAuthMissing && (
+            <p className="text-xs text-steel/70 mb-6 text-center">
+              Configure Google OAuth for Vercel Preview, or promote the same env vars used by production into preview.
+            </p>
+          )}
 
           {isAccessDenied && (
             <p className="text-xs text-steel/70 mb-6 text-center">
@@ -41,13 +50,15 @@ function ErrorContent() {
           )}
 
           <div className="space-y-3">
-            <a
-              href="/api/auth/signin"
-              className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-graphite hover:bg-graphite/90 text-platinum text-sm font-medium rounded transition-colors"
-            >
-              Try another account
-              <ArrowRight className="w-4 h-4" />
-            </a>
+            {!isPreviewAuthMissing && (
+              <a
+                href="/api/auth/signin"
+                className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-graphite hover:bg-graphite/90 text-platinum text-sm font-medium rounded transition-colors"
+              >
+                Try another account
+                <ArrowRight className="w-4 h-4" />
+              </a>
+            )}
 
             <a
               href="/api/auth/signout"

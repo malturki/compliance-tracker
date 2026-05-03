@@ -37,6 +37,54 @@ describe('Obligations CRUD workflow', () => {
     expect(rows[0].title).toBe('Integration Create')
   })
 
+  it('creates and reads an obligation with manual blocked status', async () => {
+    const req = mkReq('http://localhost/api/obligations', {
+      method: 'POST',
+      body: {
+        title: 'Blocked filing',
+        category: 'tax',
+        frequency: 'annual',
+        nextDueDate: '2027-06-30',
+        owner: 'Test Owner',
+        riskLevel: 'high',
+        status: 'blocked',
+        blockerReason: 'Waiting on counterparty records',
+        nextRecommendedAction: 'Request the records again',
+      },
+    })
+    const res = await createObligation(req)
+    expect(res.status).toBe(201)
+    const { id } = await res.json()
+
+    const rows = await db.select().from(obligations).where(eq(obligations.id, id))
+    expect(rows[0].status).toBe('blocked')
+    expect(rows[0].blockerReason).toBe('Waiting on counterparty records')
+    expect(rows[0].nextRecommendedAction).toBe('Request the records again')
+
+    const getReq = mkReq(`http://localhost/api/obligations/${id}`)
+    const getRes = await getObligation(getReq, { params: { id } })
+    expect(getRes.status).toBe(200)
+    const body = await getRes.json()
+    expect(body.status).toBe('blocked')
+  })
+
+  it('rejects blocked create without blockerReason', async () => {
+    const req = mkReq('http://localhost/api/obligations', {
+      method: 'POST',
+      body: {
+        title: 'Bad blocked filing',
+        category: 'tax',
+        frequency: 'annual',
+        nextDueDate: '2027-06-30',
+        owner: 'Test Owner',
+        riskLevel: 'high',
+        status: 'blocked',
+      },
+    })
+    const res = await createObligation(req)
+    expect(res.status).toBe(400)
+  })
+
   it('rejects creation with invalid category (400)', async () => {
     const req = mkReq('http://localhost/api/obligations', {
       method: 'POST',
@@ -95,6 +143,43 @@ describe('Obligations CRUD workflow', () => {
     const diff = JSON.parse(entityEvents[0].diff || '{}')
     expect(diff.owner).toEqual(['Old Owner', 'New Owner'])
     expect(diff.notes).toEqual([null, 'Updated notes'])
+  })
+
+  it('updates manual status fields and preserves blocked status on read', async () => {
+    const id = await insertObligation({ title: 'Manual state', nextDueDate: '2027-06-30' })
+    const req = mkReq(`http://localhost/api/obligations/${id}`, {
+      method: 'PUT',
+      body: {
+        status: 'blocked',
+        blockerReason: 'Awaiting board approval',
+        nextRecommendedAction: 'Schedule board vote',
+      },
+    })
+    const res = await updateObligation(req, { params: { id } })
+    expect(res.status).toBe(200)
+
+    const getReq = mkReq(`http://localhost/api/obligations/${id}`)
+    const getRes = await getObligation(getReq, { params: { id } })
+    expect(getRes.status).toBe(200)
+    const body = await getRes.json()
+    expect(body.status).toBe('blocked')
+    expect(body.blockerReason).toBe('Awaiting board approval')
+    expect(body.nextRecommendedAction).toBe('Schedule board vote')
+
+    const events = await db.select().from(auditLog).where(eq(auditLog.eventType, 'obligation.updated'))
+    const diff = JSON.parse(events.find(e => e.entityId === id)?.diff || '{}')
+    expect(diff.status).toEqual(['current', 'blocked'])
+    expect(diff.blockerReason).toEqual([null, 'Awaiting board approval'])
+  })
+
+  it('rejects blocked update without blockerReason', async () => {
+    const id = await insertObligation({ title: 'Manual state' })
+    const req = mkReq(`http://localhost/api/obligations/${id}`, {
+      method: 'PUT',
+      body: { status: 'blocked' },
+    })
+    const res = await updateObligation(req, { params: { id } })
+    expect(res.status).toBe(400)
   })
 
   it('deletes an obligation and its completions together (no orphans)', async () => {

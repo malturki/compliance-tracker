@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import OpenAI from 'openai'
 import { requireRole } from '@/lib/auth-helpers'
+import { z } from 'zod'
 
 export const dynamic = 'force-dynamic'
 
@@ -8,12 +9,47 @@ const openai = process.env.OPENAI_API_KEY
   ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
   : null
 
+const analyticsSummarySchema = z.object({
+  overview: z.object({
+    totalObligations: z.number(),
+    overdueCount: z.number(),
+    dueThisWeek: z.number(),
+    complianceScore: z.number(),
+    completionRate: z.number(),
+  }),
+  trends: z.object({
+    last30Days: z.object({
+      completed: z.number(),
+      overdue: z.number(),
+      completionRate: z.number(),
+    }),
+  }),
+  ownerPerformance: z.array(z.object({
+    owner: z.string(),
+    overdue: z.number(),
+    completionRate: z.number(),
+  })).default([]),
+  riskExposure: z.array(z.object({
+    riskLevel: z.string(),
+    total: z.number(),
+    overdue: z.number(),
+  })).default([]),
+})
+
+type AnalyticsSummaryInput = z.infer<typeof analyticsSummarySchema>
+
 export async function POST(request: Request) {
+  let analyticsData: AnalyticsSummaryInput | null = null
+
   try {
     const { error: authError } = await requireRole('viewer', request)
     if (authError) return authError
 
-    const analyticsData = await request.json()
+    const parsed = analyticsSummarySchema.safeParse(await request.json())
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Invalid analytics payload', issues: parsed.error.issues }, { status: 400 })
+    }
+    analyticsData = parsed.data
 
     // If no OpenAI key, return graceful fallback
     if (!openai) {
@@ -75,24 +111,22 @@ Focus on actionable insights and areas needing attention. Be concise and profess
   } catch (error) {
     console.error('AI Summary API error:', error)
     
-    // Return fallback on error
-    try {
-      const analyticsData = await request.json()
+    if (analyticsData) {
       return NextResponse.json({
         summary: generateFallbackSummary(analyticsData),
         isAI: false,
         error: 'AI generation failed, showing fallback summary'
       })
-    } catch {
-      return NextResponse.json(
-        { error: 'Failed to generate summary' },
-        { status: 500 }
-      )
     }
+
+    return NextResponse.json(
+      { error: 'Failed to generate summary' },
+      { status: 500 }
+    )
   }
 }
 
-function generateFallbackSummary(data: any): string {
+function generateFallbackSummary(data: AnalyticsSummaryInput): string {
   const { overview, ownerPerformance } = data
   const { complianceScore, overdueCount, dueThisWeek, completionRate } = overview
   
@@ -120,7 +154,7 @@ function generateFallbackSummary(data: any): string {
   
   // Highlight worst performer
   if (ownerPerformance && ownerPerformance.length > 0) {
-    const worst = ownerPerformance.find((o: any) => o.overdue > 0)
+    const worst = ownerPerformance.find(o => o.overdue > 0)
     if (worst) {
       summary += ` ${worst.owner} has ${worst.overdue} overdue items.`
     }

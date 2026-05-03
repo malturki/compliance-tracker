@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { processDueAlerts } from '@/lib/alerts'
+import { getActor } from '@/lib/actor'
 
 /**
  * Daily cron job to check and send alerts
@@ -10,35 +12,18 @@ export async function GET(request: NextRequest) {
     const authHeader = request.headers.get('authorization')
     const cronSecret = process.env.CRON_SECRET
 
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (!cronSecret) {
+      return NextResponse.json({ error: 'CRON_SECRET is not configured' }, { status: 500 })
     }
 
-    // Call the alerts API internally
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-    const response = await fetch(`${baseUrl}/api/alerts`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-
-    const data = await response.json()
-
-    if (!response.ok) {
-      return NextResponse.json(
-        {
-          error: 'Alert check failed',
-          details: data,
-        },
-        { status: 500 }
-      )
+    if (authHeader !== `Bearer ${cronSecret}`) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     return NextResponse.json({
       success: true,
       timestamp: new Date().toISOString(),
-      result: data,
+      result: await processDueAlerts(await getActor(request)),
     })
   } catch (error) {
     console.error('Cron check-alerts error:', error)

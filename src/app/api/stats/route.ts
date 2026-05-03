@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { db, dbReady } from '@/db'
 import { obligations } from '@/db/schema'
-import { computeStatus } from '@/lib/utils'
+import { getDisplayStatus } from '@/lib/utils'
 import { requireRole } from '@/lib/auth-helpers'
 import { addDays, startOfDay, endOfDay, endOfMonth } from 'date-fns'
 import type { Stats } from '@/lib/types'
@@ -31,7 +31,7 @@ export async function GET() {
     }
 
     for (const row of rows) {
-      const status = computeStatus(row.nextDueDate, row.lastCompletedDate, row.frequency)
+      const status = getDisplayStatus(row.status, row.nextDueDate, row.lastCompletedDate, row.frequency)
       const due = new Date(row.nextDueDate)
 
       if (status === 'overdue') stats.overdue++

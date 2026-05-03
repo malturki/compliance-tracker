@@ -1,5 +1,6 @@
 import { auth } from '@/lib/auth'
 import { NextResponse } from 'next/server'
+import { isPreviewAuthMissing, previewAuthMissingResponse } from '@/lib/preview-auth'
 
 // Note: Agent token verification happens inside each API route handler via
 // `getActor()` + `requireRole()`, not here. The libsql client used by
@@ -31,6 +32,15 @@ export default auth((req) => {
     return NextResponse.next()
   }
 
+  if (isPreviewAuthMissing()) {
+    if (pathname.startsWith('/api/')) {
+      return NextResponse.json(previewAuthMissingResponse(), { status: 503 })
+    }
+    const errorUrl = new URL('/auth/error', req.nextUrl.origin)
+    errorUrl.searchParams.set('error', 'PreviewAuthNotConfigured')
+    return NextResponse.redirect(errorUrl)
+  }
+
   // No Bearer header — use NextAuth session path
   if (!req.auth) {
     if (pathname.startsWith('/api/')) {
@@ -56,6 +66,6 @@ export default auth((req) => {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico).*)',
+    '/((?!api/auth|_next/static|_next/image|favicon.ico).*)',
   ],
 }

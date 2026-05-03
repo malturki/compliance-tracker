@@ -3,7 +3,7 @@ import { db, dbReady } from '@/db'
 import { obligations, completions } from '@/db/schema'
 import { eq, and, like, asc, desc, or, inArray } from 'drizzle-orm'
 import { ulid } from 'ulid'
-import { computeStatus } from '@/lib/utils'
+import { computeStatus, getDisplayStatus } from '@/lib/utils'
 import { createObligationSchema, formatZodError } from '@/lib/validation'
 import { getActor } from '@/lib/actor'
 import { logEvent } from '@/lib/audit'
@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
       .where(conditions.length > 0 ? and(...conditions) : undefined)
 
     const result = rows.map(row => {
-      const computed = computeStatus(row.nextDueDate, row.lastCompletedDate, row.frequency)
+      const computed = getDisplayStatus(row.status, row.nextDueDate, row.lastCompletedDate, row.frequency)
       return {
         ...row,
         alertDays: JSON.parse(row.alertDays || '[]'),
@@ -94,7 +94,7 @@ export async function POST(req: NextRequest) {
     const now = new Date().toISOString()
     const id = ulid()
 
-    const status = computeStatus(data.nextDueDate, data.lastCompletedDate ?? null, data.frequency)
+    const status = data.status ?? computeStatus(data.nextDueDate, data.lastCompletedDate ?? null, data.frequency)
 
     await db.insert(obligations).values({
       id,
@@ -119,6 +119,10 @@ export async function POST(req: NextRequest) {
       jurisdiction: data.jurisdiction ?? null,
       amount: data.amount ?? null,
       autoRecur: data.autoRecur,
+      parentId: data.parentId ?? null,
+      sequence: data.sequence ?? null,
+      blockerReason: data.blockerReason ?? null,
+      nextRecommendedAction: data.nextRecommendedAction ?? null,
       createdAt: now,
       updatedAt: now,
     })

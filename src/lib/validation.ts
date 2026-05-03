@@ -98,7 +98,10 @@ export const updateObligationSchema = z.object({
   sequence: z.number().int().nonnegative().optional().nullable(),
   blockerReason: z.string().max(1000).optional().nullable(),
   nextRecommendedAction: z.string().max(500).optional().nullable(),
-})
+}).refine(
+  data => data.status !== 'blocked' || (data.blockerReason && data.blockerReason.trim().length > 0),
+  { message: 'blockerReason is required when status is "blocked"', path: ['blockerReason'] },
+)
 
 export const completeObligationSchema = z.object({
   completedDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD format'),

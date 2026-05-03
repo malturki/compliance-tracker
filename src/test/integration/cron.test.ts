@@ -1,26 +1,41 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { dbReady } from '@/db'
 import { resetDb, mkReq } from '../integration-helpers'
+import { processDueAlerts, sendWeeklyDigest } from '@/lib/alerts'
 import { GET as checkAlertsGet, POST as checkAlertsPost } from '@/app/api/cron/check-alerts/route'
 import { GET as weeklyDigestGet, POST as weeklyDigestPost } from '@/app/api/cron/weekly-digest/route'
 
-// The cron routes are thin wrappers that verify CRON_SECRET, then fetch()
-// internal /api/alerts and /api/alerts/digest endpoints. We mock global.fetch
-// so the tests don't depend on a running server or real SMTP.
+vi.mock('@/lib/alerts', () => ({
+  processDueAlerts: vi.fn(),
+  sendWeeklyDigest: vi.fn(),
+}))
 
 describe('Cron routes', () => {
-  let originalFetch: typeof globalThis.fetch
   let originalCronSecret: string | undefined
 
   beforeEach(async () => {
     await dbReady
     await resetDb()
-    originalFetch = globalThis.fetch
     originalCronSecret = process.env.CRON_SECRET
+    vi.mocked(processDueAlerts).mockResolvedValue({
+      success: true,
+      alertsSent: 0,
+      details: [],
+    })
+    vi.mocked(sendWeeklyDigest).mockResolvedValue({
+      success: true,
+      digest: {
+        period: 'May 3 - May 9, 2026',
+        overdue: 0,
+        dueThisWeek: 0,
+        dueNextWeek: 0,
+        recipient: 'ops@example.com',
+      },
+    })
   })
 
   afterEach(() => {
-    globalThis.fetch = originalFetch
+    vi.clearAllMocks()
     if (originalCronSecret === undefined) delete process.env.CRON_SECRET
     else process.env.CRON_SECRET = originalCronSecret
   })
@@ -42,11 +57,13 @@ describe('Cron routes', () => {
       expect(res.status).toBe(401)
     })
 
-    it('with CRON_SECRET set, correct token → calls /api/alerts and returns success', async () => {
+    it('with CRON_SECRET set, correct token → processes alerts directly', async () => {
       process.env.CRON_SECRET = 'top-secret'
-      globalThis.fetch = vi.fn().mockResolvedValue(
-        new Response(JSON.stringify({ sent: 3 }), { status: 200 }),
-      ) as any
+      vi.mocked(processDueAlerts).mockResolvedValue({
+        success: true,
+        alertsSent: 3,
+        details: [{ id: 'obl_1', title: 'Tax filing', daysUntilDue: 7 }],
+      })
 
       const req = mkReq('http://localhost/api/cron/check-alerts', {
         headers: { authorization: 'Bearer top-secret' },
@@ -56,57 +73,42 @@ describe('Cron routes', () => {
       const body = await res.json()
       expect(body.success).toBe(true)
       expect(body.timestamp).toBeDefined()
-      expect(body.result).toEqual({ sent: 3 })
-      expect(globalThis.fetch).toHaveBeenCalledTimes(1)
-      const call = (globalThis.fetch as any).mock.calls[0]
-      expect(call[0]).toMatch(/\/api\/alerts$/)
-      expect(call[1].method).toBe('POST')
+      expect(body.result.alertsSent).toBe(3)
+      expect(processDueAlerts).toHaveBeenCalledTimes(1)
     })
 
-    it('with no CRON_SECRET configured, request without auth header is allowed', async () => {
+    it('with no CRON_SECRET configured, fails closed', async () => {
       delete process.env.CRON_SECRET
-      globalThis.fetch = vi.fn().mockResolvedValue(
-        new Response(JSON.stringify({ sent: 0 }), { status: 200 }),
-      ) as any
-
-      const req = mkReq('http://localhost/api/cron/check-alerts')
-      const res = await checkAlertsGet(req)
-      expect(res.status).toBe(200)
-    })
-
-    it('returns 500 when downstream /api/alerts fails', async () => {
-      delete process.env.CRON_SECRET
-      globalThis.fetch = vi.fn().mockResolvedValue(
-        new Response(JSON.stringify({ error: 'smtp down' }), { status: 500 }),
-      ) as any
 
       const req = mkReq('http://localhost/api/cron/check-alerts')
       const res = await checkAlertsGet(req)
       expect(res.status).toBe(500)
       const body = await res.json()
-      expect(body.error).toMatch(/alert check failed/i)
-      expect(body.details).toEqual({ error: 'smtp down' })
+      expect(body.error).toMatch(/cron_secret/i)
+      expect(processDueAlerts).not.toHaveBeenCalled()
     })
 
-    it('returns 500 when fetch itself throws (network error)', async () => {
-      delete process.env.CRON_SECRET
-      globalThis.fetch = vi.fn().mockRejectedValue(new Error('connection refused')) as any
+    it('returns 500 when alert processing throws', async () => {
+      process.env.CRON_SECRET = 'top-secret'
+      vi.mocked(processDueAlerts).mockRejectedValue(new Error('smtp down'))
 
-      const req = mkReq('http://localhost/api/cron/check-alerts')
+      const req = mkReq('http://localhost/api/cron/check-alerts', {
+        headers: { authorization: 'Bearer top-secret' },
+      })
       const res = await checkAlertsGet(req)
       expect(res.status).toBe(500)
       const body = await res.json()
       expect(body.error).toMatch(/cron job failed/i)
-      expect(body.details).toMatch(/connection refused/i)
+      expect(body.details).toMatch(/smtp down/i)
     })
 
     it('POST handler delegates to GET (manual trigger)', async () => {
-      delete process.env.CRON_SECRET
-      globalThis.fetch = vi.fn().mockResolvedValue(
-        new Response(JSON.stringify({ sent: 1 }), { status: 200 }),
-      ) as any
+      process.env.CRON_SECRET = 'top-secret'
 
-      const req = mkReq('http://localhost/api/cron/check-alerts', { method: 'POST' })
+      const req = mkReq('http://localhost/api/cron/check-alerts', {
+        method: 'POST',
+        headers: { authorization: 'Bearer top-secret' },
+      })
       const res = await checkAlertsPost(req)
       expect(res.status).toBe(200)
       const body = await res.json()
@@ -122,11 +124,8 @@ describe('Cron routes', () => {
       expect(res.status).toBe(401)
     })
 
-    it('with CRON_SECRET set, correct token → calls /api/alerts/digest', async () => {
+    it('with CRON_SECRET set, correct token → sends weekly digest directly', async () => {
       process.env.CRON_SECRET = 'top-secret'
-      globalThis.fetch = vi.fn().mockResolvedValue(
-        new Response(JSON.stringify({ sentDigests: 1 }), { status: 200 }),
-      ) as any
 
       const req = mkReq('http://localhost/api/cron/weekly-digest', {
         headers: { authorization: 'Bearer top-secret' },
@@ -135,30 +134,28 @@ describe('Cron routes', () => {
       expect(res.status).toBe(200)
       const body = await res.json()
       expect(body.success).toBe(true)
-      expect(body.result).toEqual({ sentDigests: 1 })
-      const call = (globalThis.fetch as any).mock.calls[0]
-      expect(call[0]).toMatch(/\/api\/alerts\/digest$/)
-      expect(call[1].method).toBe('POST')
+      expect(body.result.digest.recipient).toBe('ops@example.com')
+      expect(sendWeeklyDigest).toHaveBeenCalledTimes(1)
     })
 
-    it('returns 500 when downstream digest fails', async () => {
+    it('with no CRON_SECRET configured, fails closed', async () => {
       delete process.env.CRON_SECRET
-      globalThis.fetch = vi.fn().mockResolvedValue(
-        new Response(JSON.stringify({ error: 'no recipients' }), { status: 500 }),
-      ) as any
 
       const req = mkReq('http://localhost/api/cron/weekly-digest')
       const res = await weeklyDigestGet(req)
       expect(res.status).toBe(500)
       const body = await res.json()
-      expect(body.error).toMatch(/digest generation failed/i)
+      expect(body.error).toMatch(/cron_secret/i)
+      expect(sendWeeklyDigest).not.toHaveBeenCalled()
     })
 
-    it('returns 500 when weekly digest fetch itself throws', async () => {
-      delete process.env.CRON_SECRET
-      globalThis.fetch = vi.fn().mockRejectedValue(new Error('digest host unavailable')) as any
+    it('returns 500 when weekly digest processing throws', async () => {
+      process.env.CRON_SECRET = 'top-secret'
+      vi.mocked(sendWeeklyDigest).mockRejectedValue(new Error('digest host unavailable'))
 
-      const req = mkReq('http://localhost/api/cron/weekly-digest')
+      const req = mkReq('http://localhost/api/cron/weekly-digest', {
+        headers: { authorization: 'Bearer top-secret' },
+      })
       const res = await weeklyDigestGet(req)
       expect(res.status).toBe(500)
       const body = await res.json()
@@ -167,12 +164,12 @@ describe('Cron routes', () => {
     })
 
     it('POST handler delegates to GET (manual trigger)', async () => {
-      delete process.env.CRON_SECRET
-      globalThis.fetch = vi.fn().mockResolvedValue(
-        new Response(JSON.stringify({ sentDigests: 0 }), { status: 200 }),
-      ) as any
+      process.env.CRON_SECRET = 'top-secret'
 
-      const req = mkReq('http://localhost/api/cron/weekly-digest', { method: 'POST' })
+      const req = mkReq('http://localhost/api/cron/weekly-digest', {
+        method: 'POST',
+        headers: { authorization: 'Bearer top-secret' },
+      })
       const res = await weeklyDigestPost(req)
       expect(res.status).toBe(200)
     })

@@ -51,6 +51,23 @@ export function computeStatus(
   return 'current'
 }
 
+export function getDisplayStatus(
+  storedStatus: string | null | undefined,
+  nextDueDate: string,
+  lastCompletedDate?: string | null,
+  frequency?: string | null,
+): Status {
+  if (storedStatus === 'blocked' || storedStatus === 'unknown' || storedStatus === 'not-applicable') {
+    return storedStatus
+  }
+
+  if (storedStatus === 'completed' && (!lastCompletedDate || frequency === 'one-time' || frequency === 'event-triggered')) {
+    return 'completed'
+  }
+
+  return computeStatus(nextDueDate, lastCompletedDate, frequency)
+}
+
 export function getRiskColor(risk: RiskLevel): string {
   switch (risk) {
     case 'critical': return 'text-danger bg-danger/10 border-danger/30'

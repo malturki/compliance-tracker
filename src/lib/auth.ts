@@ -5,6 +5,8 @@ import { users } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { ulid } from 'ulid'
 
+const googleConfigured = Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET)
+
 declare module 'next-auth' {
   interface Session {
     user: {
@@ -25,7 +27,7 @@ declare module '@auth/core/jwt' {
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  providers: [
+  providers: googleConfigured ? [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
@@ -35,7 +37,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         },
       },
     }),
-  ],
+  ] : [],
   pages: {
     error: '/auth/error',
   },

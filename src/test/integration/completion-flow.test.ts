@@ -9,6 +9,7 @@ import { eq } from 'drizzle-orm'
 import { resetDb, mockSession, mkReq, insertObligation } from '../integration-helpers'
 import { POST as completeObligation } from '@/app/api/obligations/[id]/complete/route'
 import { GET as getObligation } from '@/app/api/obligations/[id]/route'
+import { uploadToBlob } from '@/lib/blob'
 
 // Mock the Vercel Blob uploader so multipart tests don't need real cloud storage.
 // validateFile is kept real so we can exercise its size/type checks.
@@ -46,6 +47,7 @@ describe('Completion flow — validation and edge cases', () => {
     await dbReady
     await resetDb()
     mockSession({ email: 'admin@test.com', role: 'admin' })
+    vi.mocked(uploadToBlob).mockClear()
   })
 
   describe('Validation errors', () => {
@@ -79,6 +81,34 @@ describe('Completion flow — validation and edge cases', () => {
       expect(res.status).toBe(400)
     })
 
+    it('rejects malformed multipart evidenceUrls without uploading files', async () => {
+      const id = await insertObligation({ title: 'X' })
+      const req = mkMultipartReq(
+        `http://localhost/api/obligations/${id}/complete`,
+        {
+          completedBy: 'Tester',
+          completedDate: '2026-04-01',
+          evidenceUrls: '{bad json',
+        },
+        [{ name: 'proof.pdf', type: 'application/pdf', content: 'pdf' }],
+      )
+      const res = await completeObligation(req, { params: { id } })
+      expect(res.status).toBe(400)
+      expect(uploadToBlob).not.toHaveBeenCalled()
+    })
+
+    it('rejects invalid multipart completion without uploading files', async () => {
+      const id = await insertObligation({ title: 'X' })
+      const req = mkMultipartReq(
+        `http://localhost/api/obligations/${id}/complete`,
+        { completedBy: '', completedDate: '2026-04-01' },
+        [{ name: 'proof.pdf', type: 'application/pdf', content: 'pdf' }],
+      )
+      const res = await completeObligation(req, { params: { id } })
+      expect(res.status).toBe(400)
+      expect(uploadToBlob).not.toHaveBeenCalled()
+    })
+
     it('completedDate defaults to today when omitted', async () => {
       const id = await insertObligation({ title: 'X' })
       const req = mkReq(`http://localhost/api/obligations/${id}/complete`, {
@@ -102,6 +132,17 @@ describe('Completion flow — validation and edge cases', () => {
       })
       const res = await completeObligation(req, { params: { id: 'nonexistent' } })
       expect(res.status).toBe(404)
+    })
+
+    it('returns 404 for multipart completion before uploading files', async () => {
+      const req = mkMultipartReq(
+        'http://localhost/api/obligations/nonexistent/complete',
+        { completedBy: 'Tester', completedDate: '2026-04-01' },
+        [{ name: 'proof.pdf', type: 'application/pdf', content: 'pdf' }],
+      )
+      const res = await completeObligation(req, { params: { id: 'nonexistent' } })
+      expect(res.status).toBe(404)
+      expect(uploadToBlob).not.toHaveBeenCalled()
     })
   })
 
