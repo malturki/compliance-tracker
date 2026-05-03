@@ -145,4 +145,40 @@ describe('Obligations CRUD workflow', () => {
     expect(body).toHaveLength(2)
     expect(body.every((o: any) => o.category === 'tax')).toBe(true)
   })
+
+  it('lists obligations with search and sorted title descending', async () => {
+    await insertObligation({ title: 'Alpha Filing', category: 'tax' })
+    await insertObligation({ title: 'Beta Filing', category: 'tax' })
+    await insertObligation({ title: 'Vendor Contract', category: 'vendor' })
+
+    const req = mkReq('http://localhost/api/obligations?search=Filing&sort_by=title&sort_dir=desc')
+    const res = await listObligations(req)
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.map((o: any) => o.title)).toEqual(['Beta Filing', 'Alpha Filing'])
+  })
+
+  it('lists obligations filtered by computed status and risk order', async () => {
+    await insertObligation({ title: 'Medium upcoming', riskLevel: 'medium', nextDueDate: '2027-01-01' })
+    await insertObligation({ title: 'Critical upcoming', riskLevel: 'critical', nextDueDate: '2027-01-01' })
+    await insertObligation({ title: 'Low overdue', riskLevel: 'low', nextDueDate: '2025-01-01' })
+
+    const req = mkReq('http://localhost/api/obligations?status=current&sort_by=risk_level')
+    const res = await listObligations(req)
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.map((o: any) => o.title)).toEqual(['Critical upcoming', 'Medium upcoming'])
+    expect(body.every((o: any) => o.status === 'current')).toBe(true)
+  })
+
+  it('rejects bulk delete without ids', async () => {
+    const req = mkReq('http://localhost/api/obligations', {
+      method: 'DELETE',
+      body: { ids: [] },
+    })
+    const res = await bulkDelete(req)
+    expect(res.status).toBe(400)
+    const body = await res.json()
+    expect(body.error).toMatch(/ids must be/i)
+  })
 })

@@ -40,6 +40,12 @@ describe('User management', () => {
     expect(res.status).toBe(200)
   })
 
+  it('unauthenticated GET /api/users → 401', async () => {
+    mockSession(null)
+    const res = await listUsers()
+    expect(res.status).toBe(401)
+  })
+
   it('admin PUT /api/users/[id] updates role and writes audit event', async () => {
     mockSession({ email: 'admin@test.com', role: 'admin' })
     // Need at least two admins so the target can be safely demoted

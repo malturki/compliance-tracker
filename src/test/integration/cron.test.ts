@@ -154,6 +154,18 @@ describe('Cron routes', () => {
       expect(body.error).toMatch(/digest generation failed/i)
     })
 
+    it('returns 500 when weekly digest fetch itself throws', async () => {
+      delete process.env.CRON_SECRET
+      globalThis.fetch = vi.fn().mockRejectedValue(new Error('digest host unavailable')) as any
+
+      const req = mkReq('http://localhost/api/cron/weekly-digest')
+      const res = await weeklyDigestGet(req)
+      expect(res.status).toBe(500)
+      const body = await res.json()
+      expect(body.error).toMatch(/cron job failed/i)
+      expect(body.details).toMatch(/digest host unavailable/i)
+    })
+
     it('POST handler delegates to GET (manual trigger)', async () => {
       delete process.env.CRON_SECRET
       globalThis.fetch = vi.fn().mockResolvedValue(
