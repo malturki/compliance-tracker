@@ -16,7 +16,8 @@ import { format, formatDistanceToNow } from 'date-fns'
  *
  * Anchored top-right with `position: fixed` so it appears regardless of which
  * page is active. The mobile hamburger lives at top-left, so the two don't
- * collide.
+ * collide. On mobile the "Synced" prefix is dropped so the pill stays compact
+ * (just the green dot + relative label).
  */
 export function LastSyncBadge() {
   const [lastSyncAt, setLastSyncAt] = useState<string | null>(null)
@@ -59,12 +60,15 @@ export function LastSyncBadge() {
 
   return (
     <div
-      className="fixed top-3 right-3 z-[55] hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-full bg-white/90 backdrop-blur border border-black/5 shadow-card text-[10px] font-mono text-steel hover:text-graphite transition-colors"
+      className="fixed top-3 right-3 z-[55] flex items-center gap-1.5 px-2 py-1 rounded-full bg-white/90 backdrop-blur border border-black/5 shadow-card text-[10px] font-mono text-steel hover:text-graphite transition-colors max-w-[60vw] sm:max-w-none"
       title={`Last change: ${absolute}`}
       aria-label={`Last sync ${relative}`}
     >
-      <span className="w-1.5 h-1.5 rounded-full bg-success" aria-hidden />
-      <span>Synced {relative}</span>
+      <span className="w-1.5 h-1.5 rounded-full bg-success flex-shrink-0" aria-hidden />
+      <span className="truncate">
+        <span className="hidden sm:inline">Synced </span>
+        {relative}
+      </span>
     </div>
   )
 }

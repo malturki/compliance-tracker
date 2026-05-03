@@ -111,7 +111,7 @@ export function WeekStrip({
           <button
             type="button"
             onClick={() => onSelectOverdue()}
-            className={`flex-shrink-0 flex flex-col items-center justify-center px-3 py-2 rounded border transition-colors min-w-[68px] relative
+            className={`flex-shrink-0 flex flex-col items-center justify-center px-2 sm:px-3 py-2 rounded border transition-colors min-w-[52px] sm:min-w-[68px] relative
               ${overdueSelected
                 ? 'bg-danger/[0.08] border-danger text-danger'
                 : 'bg-white border-black/5 text-danger hover:bg-silicon/[0.18]'}
@@ -120,7 +120,8 @@ export function WeekStrip({
           >
             <span className="flex items-center gap-1 leading-none">
               <AlertTriangle className="w-3 h-3" />
-              <span className="text-[9px] font-mono uppercase tracking-[0.18em]">Overdue</span>
+              <span className="text-[9px] font-mono uppercase tracking-[0.18em] hidden sm:inline">Overdue</span>
+              <span className="text-[9px] font-mono uppercase tracking-[0.18em] sm:hidden">Late</span>
             </span>
             <span className="text-sm font-mono font-semibold mt-1.5 leading-none">
               {overdueCount}
@@ -136,6 +137,8 @@ export function WeekStrip({
           const isSelected = selectedDay === cell.iso
           const monthDay = format(cell.date, 'd')
           const weekday = format(cell.date, 'EEE')
+          // Single-letter weekday for the mobile column (M T W T F S S).
+          const weekdayShort = format(cell.date, 'EEEEE')
           const empty = cell.count === 0
           return (
             <button
@@ -143,7 +146,7 @@ export function WeekStrip({
               type="button"
               onClick={() => onSelectDay(isSelected ? null : cell.iso)}
               disabled={empty && !cell.isToday}
-              className={`flex-1 flex-shrink-0 flex flex-col items-center justify-start px-2 py-2 rounded border transition-colors min-w-[64px] relative
+              className={`flex-1 flex-shrink-0 flex flex-col items-center justify-start px-1 sm:px-2 py-2 rounded border transition-colors min-w-[40px] sm:min-w-[64px] relative
                 ${isSelected
                   ? 'bg-light-steel/[0.18] border-light-steel'
                   : empty && !cell.isToday
@@ -156,7 +159,8 @@ export function WeekStrip({
               <span className={`text-[9px] font-mono uppercase tracking-[0.18em] leading-none ${
                 cell.isToday ? 'text-graphite' : empty && !cell.isToday ? 'text-steel/40' : 'text-steel/70'
               }`}>
-                {weekday}
+                <span className="sm:hidden">{weekdayShort}</span>
+                <span className="hidden sm:inline">{weekday}</span>
               </span>
               <span className={`text-base font-mono leading-none mt-1 ${
                 empty && !cell.isToday ? 'text-steel/40' : 'text-graphite'

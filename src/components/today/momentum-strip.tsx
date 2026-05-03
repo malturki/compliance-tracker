@@ -50,8 +50,8 @@ export function MomentumStrip({ count, recent, localBoost = 0 }: Props) {
           )}
         </span>
         {recent.length > 0 && (
-          <span className="ml-auto flex items-center gap-1 text-[10px] font-mono text-steel/70">
-            {open ? 'Hide' : 'Show'} feed
+          <span className="ml-auto flex items-center gap-1 text-[10px] font-mono text-steel/70 flex-shrink-0">
+            <span className="hidden sm:inline">{open ? 'Hide' : 'Show'} feed</span>
             {open ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
           </span>
         )}

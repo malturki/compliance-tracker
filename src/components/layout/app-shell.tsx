@@ -15,8 +15,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <main className="flex-1 min-w-0 lg:ml-64 bg-[#F6F8FA] min-h-screen pt-12 lg:pt-0">
         {children}
       </main>
-      {/* "Synced N ago" badge — fixed top-right, visible on every page.
-          Hidden on mobile (<sm) so the hamburger area stays uncrowded. */}
+      {/* "Synced N ago" badge — fixed top-right, visible on every page
+          (mobile and desktop). The mobile hamburger sits at top-left, so the
+          two don't collide; on mobile the badge drops the "Synced" prefix to
+          stay compact. */}
       <LastSyncBadge />
     </div>
   )
