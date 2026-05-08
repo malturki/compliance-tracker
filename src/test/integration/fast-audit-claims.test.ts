@@ -4,7 +4,7 @@ import { auditClaims, auditLog } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { logEvent } from '@/lib/audit'
 import { enqueueMissingAuditClaims } from '@/lib/fast-audit/claims'
-import { publishAuditClaims } from '@/lib/fast-audit/publisher'
+import { publishAuditClaimById, publishAuditClaims } from '@/lib/fast-audit/publisher'
 import { resetDb, mockSession, mkReq } from '../integration-helpers'
 import { GET as publishClaimsCron, POST as postPublishClaimsCron } from '@/app/api/cron/publish-audit-claims/route'
 import { GET as listClaims } from '@/app/api/audit/claims/route'
@@ -111,6 +111,15 @@ vi.mock('@fastxyz/sdk', () => fastSdkMock.sdk)
 vi.mock('@fastxyz/sdk/networks', () => fastSdkMock.networks)
 vi.mock('@fastxyz/schema', () => fastSdkMock.schema)
 
+async function waitForClaimStatus(status: string) {
+  for (let attempt = 0; attempt < 20; attempt++) {
+    const claims = await db.select().from(auditClaims).where(eq(auditClaims.status, status))
+    if (claims.length > 0) return claims
+    await new Promise(resolve => setTimeout(resolve, 0))
+  }
+  return db.select().from(auditClaims).where(eq(auditClaims.status, status))
+}
+
 describe('Fast audit claims', () => {
   const originalMode = process.env.FAST_AUDIT_CLAIMS_MODE
   const originalCronSecret = process.env.CRON_SECRET
@@ -172,6 +181,7 @@ describe('Fast audit claims', () => {
   })
 
   it('publishes pending claims in dry-run mode and stores a receipt', async () => {
+    process.env.FAST_AUDIT_CLAIMS_MODE = 'disabled'
     await logEvent({
       type: 'obligation.created',
       actor: { email: 'admin@test.com', source: 'sso' },
@@ -179,6 +189,9 @@ describe('Fast audit claims', () => {
       entityId: 'ob_1',
       summary: 'Created obligation',
     })
+
+    process.env.FAST_AUDIT_CLAIMS_MODE = 'dry-run'
+    expect(await enqueueMissingAuditClaims()).toEqual({ enqueued: 1 })
 
     const result = await publishAuditClaims()
     expect(result).toMatchObject({ mode: 'dry-run', attempted: 1, confirmed: 1, failed: 0 })
@@ -194,7 +207,78 @@ describe('Fast audit claims', () => {
     expect(second).toMatchObject({ attempted: 0, confirmed: 0, failed: 0 })
   })
 
+  it('publishes a newly logged claim without waiting for the cron sweep', async () => {
+    await logEvent({
+      type: 'obligation.created',
+      actor: { email: 'admin@test.com', source: 'sso' },
+      entityType: 'obligation',
+      entityId: 'ob_1',
+      summary: 'Created obligation',
+    })
+
+    const [claim] = await waitForClaimStatus('confirmed')
+    expect(claim.attempts).toBe(1)
+    expect(claim.fastTxId).toMatch(/^dryrun:/)
+
+    const sweep = await publishAuditClaims()
+    expect(sweep).toMatchObject({ attempted: 0, confirmed: 0, failed: 0 })
+  })
+
+  it('does not publish the same claim again after id-specific publishing succeeds', async () => {
+    process.env.FAST_AUDIT_CLAIMS_MODE = 'disabled'
+    await logEvent({
+      type: 'obligation.created',
+      actor: { email: 'admin@test.com', source: 'sso' },
+      entityType: 'obligation',
+      entityId: 'ob_1',
+      summary: 'Created obligation',
+    })
+
+    process.env.FAST_AUDIT_CLAIMS_MODE = 'dry-run'
+    await enqueueMissingAuditClaims()
+    const [queued] = await db.select().from(auditClaims)
+
+    const first = await publishAuditClaimById(queued.id)
+    expect(first).toMatchObject({ attempted: 1, confirmed: 1, failed: 0, skipped: 0 })
+
+    const second = await publishAuditClaimById(queued.id)
+    expect(second).toMatchObject({ attempted: 0, confirmed: 0, failed: 0, skipped: 0 })
+
+    const [claim] = await db.select().from(auditClaims).where(eq(auditClaims.id, queued.id))
+    expect(claim.status).toBe('confirmed')
+    expect(claim.attempts).toBe(1)
+  })
+
+  it('only lets one concurrent id-specific publisher claim a queued audit claim', async () => {
+    process.env.FAST_AUDIT_CLAIMS_MODE = 'disabled'
+    await logEvent({
+      type: 'obligation.created',
+      actor: { email: 'admin@test.com', source: 'sso' },
+      entityType: 'obligation',
+      entityId: 'ob_1',
+      summary: 'Created obligation',
+    })
+
+    process.env.FAST_AUDIT_CLAIMS_MODE = 'dry-run'
+    await enqueueMissingAuditClaims()
+    const [queued] = await db.select().from(auditClaims)
+
+    const results = await Promise.all([
+      publishAuditClaimById(queued.id),
+      publishAuditClaimById(queued.id),
+      publishAuditClaimById(queued.id),
+    ])
+
+    expect(results.filter(result => result.confirmed === 1)).toHaveLength(1)
+    expect(results.filter(result => result.attempted === 0)).toHaveLength(2)
+
+    const [claim] = await db.select().from(auditClaims).where(eq(auditClaims.id, queued.id))
+    expect(claim.status).toBe('confirmed')
+    expect(claim.attempts).toBe(1)
+  })
+
   it('cron route enforces CRON_SECRET and publishes claims', async () => {
+    process.env.FAST_AUDIT_CLAIMS_MODE = 'disabled'
     await logEvent({
       type: 'agent.created',
       actor: { email: 'admin@test.com', source: 'sso' },
@@ -203,6 +287,7 @@ describe('Fast audit claims', () => {
       summary: 'Created agent',
     })
 
+    process.env.FAST_AUDIT_CLAIMS_MODE = 'dry-run'
     process.env.CRON_SECRET = 'top-secret'
     const unauthorized = await publishClaimsCron(mkReq('http://localhost/api/cron/publish-audit-claims'))
     expect(unauthorized.status).toBe(401)
@@ -213,6 +298,7 @@ describe('Fast audit claims', () => {
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.success).toBe(true)
+    expect(body.backfill.enqueued).toBe(1)
     expect(body.published.confirmed).toBe(1)
   })
 
@@ -230,11 +316,12 @@ describe('Fast audit claims', () => {
     expect(res.status).toBe(500)
     expect(await res.json()).toEqual({ error: 'CRON_SECRET is not configured' })
 
-    const claims = await db.select().from(auditClaims)
-    expect(claims[0].status).toBe('pending')
+    const claims = await waitForClaimStatus('confirmed')
+    expect(claims[0].status).toBe('confirmed')
   })
 
   it('cron POST publishes claims the same way as GET', async () => {
+    process.env.FAST_AUDIT_CLAIMS_MODE = 'disabled'
     await logEvent({
       type: 'agent.revoked',
       actor: { email: 'admin@test.com', source: 'sso' },
@@ -243,12 +330,14 @@ describe('Fast audit claims', () => {
       summary: 'Revoked agent',
     })
 
+    process.env.FAST_AUDIT_CLAIMS_MODE = 'dry-run'
     process.env.CRON_SECRET = 'top-secret'
     const res = await postPublishClaimsCron(mkReq('http://localhost/api/cron/publish-audit-claims', {
       headers: { authorization: 'Bearer top-secret' },
     }))
     expect(res.status).toBe(200)
     const body = await res.json()
+    expect(body.backfill.enqueued).toBe(1)
     expect(body.published.confirmed).toBe(1)
   })
 
@@ -313,7 +402,7 @@ describe('Fast audit claims', () => {
       entityId: 'ob_1',
       summary: 'Deleted obligation',
     })
-    await publishAuditClaims()
+    await waitForClaimStatus('confirmed')
 
     const res = await listClaims(mkReq('http://localhost/api/audit/claims?status=confirmed'))
     expect(res.status).toBe(200)
@@ -338,8 +427,7 @@ describe('Fast audit claims', () => {
       summary: 'Changed role',
     })
 
-    const result = await publishAuditClaims()
-    expect(result.failed).toBe(1)
+    await waitForClaimStatus('failed')
     const [claim] = await db.select().from(auditClaims).where(eq(auditClaims.status, 'failed'))
     expect(claim.attempts).toBe(1)
     expect(claim.lastError).toMatch(/FAST_AUDIT_RPC_URL/)
@@ -376,8 +464,7 @@ describe('Fast audit claims', () => {
       summary: 'Completed obligation',
     })
 
-    const result = await publishAuditClaims()
-    expect(result).toMatchObject({ mode: 'testnet', attempted: 1, confirmed: 1, failed: 0 })
+    await waitForClaimStatus('confirmed')
     expect(fetchMock).toHaveBeenCalledTimes(1)
 
     const [claim] = await db.select().from(auditClaims).where(eq(auditClaims.status, 'confirmed'))
@@ -400,8 +487,7 @@ describe('Fast audit claims', () => {
       summary: 'Created obligation',
     })
 
-    const first = await publishAuditClaims()
-    expect(first).toMatchObject({ attempted: 1, confirmed: 0, failed: 1 })
+    await waitForClaimStatus('failed')
     let [claim] = await db.select().from(auditClaims).where(eq(auditClaims.status, 'failed'))
     expect(claim.attempts).toBe(1)
     expect(claim.lastError).toMatch(/did not include a transaction id/)
@@ -432,8 +518,7 @@ describe('Fast audit claims', () => {
       summary: 'Created obligation',
     })
 
-    const result = await publishAuditClaims()
-    expect(result).toMatchObject({ confirmed: 1, failed: 0 })
+    await waitForClaimStatus('confirmed')
     const [claim] = await db.select().from(auditClaims).where(eq(auditClaims.status, 'confirmed'))
     expect(claim.fastTxId).toBe('0x010203')
     expect(claim.fastSender).toBe('fast-submitter')
@@ -458,8 +543,7 @@ describe('Fast audit claims', () => {
       summary: 'Created obligation',
     })
 
-    const result = await publishAuditClaims()
-    expect(result).toMatchObject({ attempted: 1, confirmed: 0, failed: 1 })
+    await waitForClaimStatus('failed')
     const [claim] = await db.select().from(auditClaims).where(eq(auditClaims.status, 'failed'))
     expect(claim.lastError).toContain('Fast request failed (503)')
   })
@@ -480,8 +564,7 @@ describe('Fast audit claims', () => {
       summary: 'Created obligation',
     })
 
-    const result = await publishAuditClaims()
-    expect(result).toMatchObject({ attempted: 1, confirmed: 0, failed: 1 })
+    await waitForClaimStatus('failed')
     const [claim] = await db.select().from(auditClaims).where(eq(auditClaims.status, 'failed'))
     expect(claim.lastError).toMatch(/must include transaction and signature/)
   })
@@ -510,8 +593,7 @@ describe('Fast audit claims', () => {
       summary: 'Created obligation',
     })
 
-    const result = await publishAuditClaims()
-    expect(result).toMatchObject({ attempted: 1, confirmed: 0, failed: 1 })
+    await waitForClaimStatus('failed')
     const [claim] = await db.select().from(auditClaims).where(eq(auditClaims.status, 'failed'))
     expect(claim.lastError).toContain('Fast RPC error')
     expect(claim.lastError).toContain('proxy rejected')
@@ -541,8 +623,7 @@ describe('Fast audit claims', () => {
       summary: 'Created obligation',
     })
 
-    const result = await publishAuditClaims()
-    expect(result).toMatchObject({ attempted: 1, confirmed: 0, failed: 1 })
+    await waitForClaimStatus('failed')
     const [claim] = await db.select().from(auditClaims).where(eq(auditClaims.status, 'failed'))
     expect(claim.lastError).toMatch(/Fast RPC response did not include a transaction id/)
   })
@@ -574,8 +655,7 @@ describe('Fast audit claims', () => {
       summary: 'Completed obligation',
     })
 
-    const result = await publishAuditClaims()
-    expect(result).toMatchObject({ confirmed: 1, failed: 0 })
+    await waitForClaimStatus('confirmed')
     const [claim] = await db.select().from(auditClaims).where(eq(auditClaims.status, 'confirmed'))
     expect(claim.fastTxId).toBe('0xsigned')
     expect(claim.fastSender).toBe('fast1signed')
@@ -638,8 +718,7 @@ describe('Fast audit claims', () => {
       summary: 'Completed obligation',
     })
 
-    const result = await publishAuditClaims()
-    expect(result).toMatchObject({ mode: 'testnet', attempted: 1, confirmed: 1, failed: 0 })
+    await waitForClaimStatus('confirmed')
     expect(fetchMock).toHaveBeenCalledTimes(2)
 
     const [claim] = await db.select().from(auditClaims).where(eq(auditClaims.status, 'confirmed'))
@@ -660,8 +739,7 @@ describe('Fast audit claims', () => {
       summary: 'Completed obligation',
     })
 
-    const result = await publishAuditClaims()
-    expect(result).toMatchObject({ mode: 'testnet', attempted: 1, confirmed: 1, failed: 0 })
+    await waitForClaimStatus('confirmed')
 
     expect(fastSdkMock.calls.privateKeys).toEqual(['0x' + '11'.repeat(32)])
     expect(fastSdkMock.calls.providerOptions).toEqual([fastSdkMock.networks.testnet])
@@ -725,8 +803,7 @@ describe('Fast audit claims', () => {
       summary: 'Revoked agent',
     })
 
-    const result = await publishAuditClaims()
-    expect(result).toMatchObject({ confirmed: 1, failed: 0 })
+    await waitForClaimStatus('confirmed')
     expect(fastSdkMock.calls.privateKeys).toEqual(['0x' + '22'.repeat(32)])
     expect(fastSdkMock.calls.providerOptions).toEqual([
       { url: 'https://custom.fast.test/proxy-rest', networkId: 'fast:devnet' },
@@ -755,8 +832,7 @@ describe('Fast audit claims', () => {
       summary: 'Created agent',
     })
 
-    const result = await publishAuditClaims()
-    expect(result).toMatchObject({ confirmed: 1, failed: 0 })
+    await waitForClaimStatus('confirmed')
     expect(fastSdkMock.calls.privateKeys).toEqual(['0x' + '33'.repeat(32)])
     expect(fastSdkMock.calls.providerOptions).toEqual([fastSdkMock.networks.mainnet])
     expect(fastSdkMock.calls.builderOptions).toEqual([
@@ -779,8 +855,7 @@ describe('Fast audit claims', () => {
       summary: 'Created agent',
     })
 
-    const result = await publishAuditClaims()
-    expect(result).toMatchObject({ attempted: 1, confirmed: 0, failed: 1 })
+    await waitForClaimStatus('failed')
     const [claim] = await db.select().from(auditClaims).where(eq(auditClaims.status, 'failed'))
     expect(claim.lastError).toMatch(/did not contain a privateKey field/)
   })
@@ -798,13 +873,13 @@ describe('Fast audit claims', () => {
       summary: 'Completed obligation',
     })
 
-    const result = await publishAuditClaims()
-    expect(result).toMatchObject({ attempted: 1, confirmed: 0, failed: 1 })
+    await waitForClaimStatus('failed')
     const [claim] = await db.select().from(auditClaims).where(eq(auditClaims.status, 'failed'))
     expect(claim.lastError).toMatch(/Fast SDK response did not include a transaction id/)
   })
 
   it('recovers stale submitting claims before publishing', async () => {
+    process.env.FAST_AUDIT_CLAIMS_MODE = 'disabled'
     await logEvent({
       type: 'obligation.created',
       actor: { email: 'admin@test.com', source: 'sso' },
@@ -812,8 +887,13 @@ describe('Fast audit claims', () => {
       entityId: 'ob_1',
       summary: 'Created obligation',
     })
+    process.env.FAST_AUDIT_CLAIMS_MODE = 'dry-run'
+    await enqueueMissingAuditClaims()
     const [queued] = await db.select().from(auditClaims)
-    await db.update(auditClaims).set({ status: 'submitting' }).where(eq(auditClaims.id, queued.id))
+    await db.update(auditClaims).set({
+      status: 'submitting',
+      updatedAt: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
+    }).where(eq(auditClaims.id, queued.id))
 
     const result = await publishAuditClaims()
     expect(result).toMatchObject({ attempted: 1, confirmed: 1, failed: 0 })
@@ -821,5 +901,30 @@ describe('Fast audit claims', () => {
     const [claim] = await db.select().from(auditClaims).where(eq(auditClaims.id, queued.id))
     expect(claim.status).toBe('confirmed')
     expect(claim.attempts).toBe(1)
+  })
+
+  it('does not recover fresh submitting claims that another publisher may still own', async () => {
+    process.env.FAST_AUDIT_CLAIMS_MODE = 'disabled'
+    await logEvent({
+      type: 'obligation.created',
+      actor: { email: 'admin@test.com', source: 'sso' },
+      entityType: 'obligation',
+      entityId: 'ob_1',
+      summary: 'Created obligation',
+    })
+    process.env.FAST_AUDIT_CLAIMS_MODE = 'dry-run'
+    await enqueueMissingAuditClaims()
+    const [queued] = await db.select().from(auditClaims)
+    await db.update(auditClaims).set({
+      status: 'submitting',
+      updatedAt: new Date().toISOString(),
+    }).where(eq(auditClaims.id, queued.id))
+
+    const result = await publishAuditClaims()
+    expect(result).toMatchObject({ attempted: 0, confirmed: 0, failed: 0 })
+
+    const [claim] = await db.select().from(auditClaims).where(eq(auditClaims.id, queued.id))
+    expect(claim.status).toBe('submitting')
+    expect(claim.attempts).toBe(0)
   })
 })

@@ -1,9 +1,9 @@
-import { eq } from 'drizzle-orm'
+import { and, eq, inArray } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
 import { db, dbReady } from '@/db'
 import { auditClaims } from '@/db/schema'
 import { canonicalize } from './canonical'
-import { getPublishableClaims, markStuckSubmittingAsFailed } from './claims'
+import { getPublishableClaimById, getPublishableClaims, markStuckSubmittingAsFailed } from './claims'
 import { sha256Urn } from './hash'
 
 export type FastAuditPublishMode = 'disabled' | 'dry-run' | 'testnet'
@@ -292,6 +292,86 @@ async function publishPayload(payloadJson: string): Promise<PublishResult | null
   return publishDryRun(payloadJson)
 }
 
+type PublishableClaim = typeof auditClaims.$inferSelect
+
+async function claimForPublishing(claim: PublishableClaim): Promise<boolean> {
+  const now = new Date().toISOString()
+  const result = await db
+    .update(auditClaims)
+    .set({
+      status: 'submitting',
+      attempts: claim.attempts + 1,
+      updatedAt: now,
+      lastError: null,
+    })
+    .where(and(
+      eq(auditClaims.id, claim.id),
+      inArray(auditClaims.status, ['pending', 'failed']),
+    ))
+    .returning({ id: auditClaims.id })
+  return result.length === 1
+}
+
+async function publishClaim(claim: PublishableClaim): Promise<{ confirmed: boolean; failed: boolean; skipped: boolean; error?: string }> {
+  const claimed = await claimForPublishing(claim)
+  if (!claimed) return { confirmed: false, failed: false, skipped: true }
+
+  try {
+    const result = await publishPayload(claim.payloadJson)
+    if (!result) {
+      await db.update(auditClaims).set({
+        status: 'skipped',
+        updatedAt: new Date().toISOString(),
+        lastError: 'FAST_AUDIT_CLAIMS_MODE=disabled',
+      }).where(eq(auditClaims.id, claim.id))
+      return { confirmed: false, failed: false, skipped: true }
+    }
+
+    const finishedAt = new Date().toISOString()
+    await db.update(auditClaims).set({
+      status: 'confirmed',
+      fastSender: result.sender,
+      fastTxId: result.txId,
+      fastCertificate: result.certificate ? canonicalize(result.certificate) : null,
+      submittedAt: finishedAt,
+      confirmedAt: finishedAt,
+      updatedAt: finishedAt,
+    }).where(eq(auditClaims.id, claim.id))
+    return { confirmed: true, failed: false, skipped: false }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown Fast publish error'
+    await db.update(auditClaims).set({
+      status: 'failed',
+      lastError: message,
+      updatedAt: new Date().toISOString(),
+    }).where(eq(auditClaims.id, claim.id))
+    return { confirmed: false, failed: true, skipped: false, error: `${claim.auditLogId}: ${message}` }
+  }
+}
+
+export async function publishAuditClaimById(id: string) {
+  await dbReady
+  const mode = getMode()
+  if (mode === 'disabled') {
+    return { mode, attempted: 0, confirmed: 0, failed: 0, skipped: 0, errors: [] as string[] }
+  }
+
+  const claim = await getPublishableClaimById(id)
+  if (!claim) {
+    return { mode, attempted: 0, confirmed: 0, failed: 0, skipped: 0, errors: [] as string[] }
+  }
+
+  const result = await publishClaim(claim)
+  return {
+    mode,
+    attempted: result.skipped ? 0 : 1,
+    confirmed: result.confirmed ? 1 : 0,
+    failed: result.failed ? 1 : 0,
+    skipped: result.skipped ? 1 : 0,
+    errors: result.error ? [result.error] : [] as string[],
+  }
+}
+
 export async function publishAuditClaims(limit = 25) {
   await dbReady
   await markStuckSubmittingAsFailed()
@@ -303,52 +383,15 @@ export async function publishAuditClaims(limit = 25) {
   const claims = await getPublishableClaims(limit)
   let confirmed = 0
   let failed = 0
+  let skipped = 0
   const errors: string[] = []
 
   for (const claim of claims) {
-    const now = new Date().toISOString()
-    await db
-      .update(auditClaims)
-      .set({
-        status: 'submitting',
-        attempts: claim.attempts + 1,
-        updatedAt: now,
-        lastError: null,
-      })
-      .where(eq(auditClaims.id, claim.id))
-
-    try {
-      const result = await publishPayload(claim.payloadJson)
-      if (!result) {
-        await db.update(auditClaims).set({
-          status: 'skipped',
-          updatedAt: new Date().toISOString(),
-          lastError: 'FAST_AUDIT_CLAIMS_MODE=disabled',
-        }).where(eq(auditClaims.id, claim.id))
-        continue
-      }
-
-      const finishedAt = new Date().toISOString()
-      await db.update(auditClaims).set({
-        status: 'confirmed',
-        fastSender: result.sender,
-        fastTxId: result.txId,
-        fastCertificate: result.certificate ? canonicalize(result.certificate) : null,
-        submittedAt: finishedAt,
-        confirmedAt: finishedAt,
-        updatedAt: finishedAt,
-      }).where(eq(auditClaims.id, claim.id))
-      confirmed++
-    } catch (error) {
-      failed++
-      const message = error instanceof Error ? error.message : 'Unknown Fast publish error'
-      errors.push(`${claim.auditLogId}: ${message}`)
-      await db.update(auditClaims).set({
-        status: 'failed',
-        lastError: message,
-        updatedAt: new Date().toISOString(),
-      }).where(eq(auditClaims.id, claim.id))
-    }
+    const result = await publishClaim(claim)
+    if (result.confirmed) confirmed++
+    if (result.failed) failed++
+    if (result.skipped) skipped++
+    if (result.error) errors.push(result.error)
   }
 
   return {
@@ -356,7 +399,7 @@ export async function publishAuditClaims(limit = 25) {
     attempted: claims.length,
     confirmed,
     failed,
-    skipped: 0,
+    skipped,
     errors,
   }
 }

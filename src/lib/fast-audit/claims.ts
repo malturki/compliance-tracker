@@ -1,4 +1,4 @@
-import { asc, desc, eq, inArray, notInArray } from 'drizzle-orm'
+import { and, asc, desc, eq, inArray, lt, notInArray } from 'drizzle-orm'
 import { ulid } from 'ulid'
 import { db, dbReady } from '@/db'
 import { auditClaims, auditLog } from '@/db/schema'
@@ -108,17 +108,18 @@ export async function enqueueAuditClaim(params: {
   auditId: string
   event: LogEventInput
   timestamp: string
-}): Promise<void> {
-  if (!shouldEnqueueAuditClaims()) return
+}): Promise<string | null> {
+  if (!shouldEnqueueAuditClaims()) return null
 
   const previousEventHash = await latestAuditClaimHash()
   const core = buildPayloadCore({ ...params, previousEventHash })
   const payload: AuditClaimPayload = { ...core, eventHash: hashCanonical(core) }
   const payloadJson = canonicalize(payload)
   const now = new Date().toISOString()
+  const id = ulid()
 
   await db.insert(auditClaims).values({
-    id: ulid(),
+    id,
     auditLogId: params.auditId,
     status: 'pending',
     fastNetwork: payload.network,
@@ -130,6 +131,7 @@ export async function enqueueAuditClaim(params: {
     createdAt: now,
     updatedAt: now,
   })
+  return id
 }
 
 export async function enqueueMissingAuditClaims(limit = 100): Promise<{ enqueued: number }> {
@@ -170,7 +172,8 @@ export async function enqueueMissingAuditClaims(limit = 100): Promise<{ enqueued
   return { enqueued }
 }
 
-export async function markStuckSubmittingAsFailed() {
+export async function markStuckSubmittingAsFailed(staleAfterMs = 5 * 60 * 1000) {
+  const cutoff = new Date(Date.now() - staleAfterMs).toISOString()
   await db
     .update(auditClaims)
     .set({
@@ -178,7 +181,7 @@ export async function markStuckSubmittingAsFailed() {
       lastError: 'Recovered stale submitting claim',
       updatedAt: new Date().toISOString(),
     })
-    .where(eq(auditClaims.status, 'submitting'))
+    .where(and(eq(auditClaims.status, 'submitting'), lt(auditClaims.updatedAt, cutoff)))
 }
 
 export async function getPublishableClaims(limit: number) {
@@ -189,4 +192,15 @@ export async function getPublishableClaims(limit: number) {
     .where(inArray(auditClaims.status, ['pending', 'failed']))
     .orderBy(auditClaims.createdAt, auditClaims.id)
     .limit(limit)
+}
+
+export async function getPublishableClaimById(id: string) {
+  await dbReady
+  const rows = await db
+    .select()
+    .from(auditClaims)
+    .where(eq(auditClaims.id, id))
+    .limit(1)
+  const claim = rows[0]
+  return claim && (claim.status === 'pending' || claim.status === 'failed') ? claim : null
 }

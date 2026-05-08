@@ -3,6 +3,7 @@ import { db } from '@/db'
 import { auditLog } from '@/db/schema'
 import type { Actor } from './actor'
 import { enqueueAuditClaim } from './fast-audit/claims'
+import { publishAuditClaimById } from './fast-audit/publisher'
 
 export type AuditEventType =
   | 'obligation.created'
@@ -49,7 +50,12 @@ export async function logEvent(event: LogEventInput): Promise<void> {
       metadata: event.metadata ? JSON.stringify(event.metadata) : null,
     })
     try {
-      await enqueueAuditClaim({ auditId: id, event, timestamp: ts })
+      const claimId = await enqueueAuditClaim({ auditId: id, event, timestamp: ts })
+      if (claimId) {
+        void publishAuditClaimById(claimId).catch(err => {
+          console.error('[audit] publishAuditClaimById failed', err)
+        })
+      }
     } catch (err) {
       console.error('[audit] enqueueAuditClaim failed', err)
     }

@@ -14,6 +14,15 @@ afterEach(() => {
   delete process.env.FAST_AUDIT_NETWORK
 })
 
+async function waitForConfirmedClaimCount(count: number) {
+  for (let attempt = 0; attempt < 20; attempt++) {
+    const claims = await db.select().from(auditClaims)
+    if (claims.length === count && claims.every(claim => claim.status === 'confirmed')) return claims
+    await new Promise(resolve => setTimeout(resolve, 0))
+  }
+  return db.select().from(auditClaims)
+}
+
 describe('logEvent', () => {
   it('writes one row with all fields populated', async () => {
     await logEvent({
@@ -38,10 +47,11 @@ describe('logEvent', () => {
     expect(JSON.parse(row.metadata!)).toEqual({ secretNote: 'raw-secret-metadata-value' })
     expect(row.ts).toMatch(/^\d{4}-\d{2}-\d{2}T/)
 
-    const claims = await db.select().from(auditClaims)
+    const claims = await waitForConfirmedClaimCount(1)
     expect(claims).toHaveLength(1)
     expect(claims[0].auditLogId).toBe(row.id)
-    expect(claims[0].status).toBe('pending')
+    expect(claims[0].status).toBe('confirmed')
+    expect(claims[0].fastTxId).toMatch(/^dryrun:/)
     const payload = JSON.parse(claims[0].payloadJson)
     expect(payload.claimType).toBe('fast.external_claim')
     expect(payload.eventType).toBe('obligation.updated')
@@ -80,8 +90,9 @@ describe('logEvent', () => {
       summary: 'Created',
     })
 
-    const [claim] = await db.select().from(auditClaims)
+    const [claim] = await waitForConfirmedClaimCount(1)
     expect(claim.fastNetwork).toBe('testnet')
+    expect(claim.status).toBe('confirmed')
     expect(JSON.parse(claim.payloadJson).network).toBe('testnet')
   })
 
@@ -93,6 +104,7 @@ describe('logEvent', () => {
       entityId: 'ob_1',
       summary: 'Created',
     })
+    await waitForConfirmedClaimCount(1)
     const rows = await db.select().from(auditLog)
     expect(rows[0].diff).toBeNull()
     expect(rows[0].metadata).toBeNull()
@@ -114,10 +126,11 @@ describe('logEvent', () => {
       summary: 'Updated',
     })
 
-    const claims = await db.select().from(auditClaims)
+    const claims = await waitForConfirmedClaimCount(2)
     expect(claims).toHaveLength(2)
     expect(claims[0].previousEventHash).toBeNull()
     expect(claims[1].previousEventHash).toBe(claims[0].eventHash)
+    expect(claims.every(claim => claim.status === 'confirmed')).toBe(true)
   })
 
   it('does not throw when the DB write fails (swallow-on-error)', async () => {
@@ -152,6 +165,7 @@ describe('logEvent', () => {
         summary: 'Second insert (should also succeed)',
       }),
     ).resolves.toBeUndefined()
+    await waitForConfirmedClaimCount(2)
 
     errSpy.mockRestore()
   })
