@@ -23,7 +23,10 @@ describe('recurrence partitioning', () => {
   })
 
   it('the two sets together cover all 8 frequencies', () => {
-    const union = new Set([...RECURRING_FREQUENCIES, ...ONETIME_FREQUENCIES])
+    const union = new Set([
+      ...Array.from(RECURRING_FREQUENCIES),
+      ...Array.from(ONETIME_FREQUENCIES),
+    ])
     expect(union.size).toBe(8)
     for (const f of ALL_FREQUENCIES) {
       expect(union.has(f)).toBe(true)

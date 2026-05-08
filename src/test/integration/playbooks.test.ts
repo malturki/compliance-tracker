@@ -43,7 +43,7 @@ describe('Playbooks — engine', () => {
           anchorDate: '2026-06-30',
           counterparty: 'Acme Capital LP',
         },
-        { email: 'editor@test.com', source: 'user' },
+        { email: 'editor@test.com', source: 'sso' },
       )
 
       expect(result.parent.title).toBe('Acme Capital LP — Q2 2026 Quarterly Report')
@@ -83,7 +83,7 @@ describe('Playbooks — engine', () => {
           counterparty: 'Acme Capital LP',
           ownerOverrides: { 'collect-financials': 'Alex Jones', archive: 'Priya' },
         },
-        { email: 'editor@test.com', source: 'user' },
+        { email: 'editor@test.com', source: 'sso' },
       )
       expect(result.children[0].owner).toBe('Alex Jones') // collect-financials
       expect(result.children[4].owner).toBe('Priya')      // archive
@@ -97,7 +97,7 @@ describe('Playbooks — engine', () => {
             playbookId: 'quarterly-investor-report',
             anchorDate: '2026-06-30',
           },
-          { email: 'editor@test.com', source: 'user' },
+          { email: 'editor@test.com', source: 'sso' },
         ),
       ).rejects.toThrow(/requires a counterparty/i)
     })
@@ -106,7 +106,7 @@ describe('Playbooks — engine', () => {
       await expect(
         applyPlaybookDirect(
           { playbookId: 'does-not-exist', anchorDate: '2026-06-30' },
-          { email: 'editor@test.com', source: 'user' },
+          { email: 'editor@test.com', source: 'sso' },
         ),
       ).rejects.toThrow(/unknown playbook/i)
     })
@@ -119,7 +119,7 @@ describe('Playbooks — engine', () => {
             anchorDate: '2026-06-30',
             counterparty: 'Acme Insurance',
           },
-          { email: 'editor@test.com', source: 'user' },
+          { email: 'editor@test.com', source: 'sso' },
         ),
       ).rejects.toThrow(/no steps defined/i)
     })
@@ -132,7 +132,7 @@ describe('Playbooks — engine', () => {
             anchorDate: '06/30/2026',
             counterparty: 'X',
           },
-          { email: 'editor@test.com', source: 'user' },
+          { email: 'editor@test.com', source: 'sso' },
         ),
       ).rejects.toThrow(/YYYY-MM-DD/i)
     })
@@ -144,7 +144,7 @@ describe('Playbooks — engine', () => {
           anchorDate: '2026-06-30',
           counterparty: 'Acme Capital LP',
         },
-        { email: 'editor@test.com', source: 'user' },
+        { email: 'editor@test.com', source: 'sso' },
       )
       const b = await applyPlaybookDirect(
         {
@@ -152,7 +152,7 @@ describe('Playbooks — engine', () => {
           anchorDate: '2026-06-30',
           counterparty: 'Beta Ventures LP',
         },
-        { email: 'editor@test.com', source: 'user' },
+        { email: 'editor@test.com', source: 'sso' },
       )
       expect(a.parent.id).not.toBe(b.parent.id)
       expect(a.children[0].parentId).toBe(a.parent.id)
@@ -168,7 +168,7 @@ describe('Playbooks — engine', () => {
           anchorDate: '2026-06-30',
           counterparty: 'Acme Capital LP',
         },
-        { email: 'editor@test.com', source: 'user' },
+        { email: 'editor@test.com', source: 'sso' },
       )
       const events = await db.select().from(auditLog)
       const byType = events.reduce<Record<string, number>>((acc, e) => {
@@ -273,7 +273,7 @@ describe('Playbooks — engine', () => {
           anchorDate: '2026-06-30',
           counterparty: 'Acme',
         },
-        { email: 'editor@test.com', source: 'user' },
+        { email: 'editor@test.com', source: 'sso' },
       )
       const req = mkReq(`http://localhost/api/obligations/${result.parent.id}/sub-obligations`)
       const res = await listSubObligations(req, { params: { id: result.parent.id } })
@@ -299,7 +299,7 @@ describe('Playbooks — engine', () => {
           anchorDate: '2026-06-30',
           counterparty: 'Acme',
         },
-        { email: 'editor@test.com', source: 'user' },
+        { email: 'editor@test.com', source: 'sso' },
       )
 
       // Complete all 5 children
@@ -331,7 +331,7 @@ describe('Playbooks — engine', () => {
           anchorDate: '2026-06-30',
           counterparty: 'Acme',
         },
-        { email: 'editor@test.com', source: 'user' },
+        { email: 'editor@test.com', source: 'sso' },
       )
       // Complete every child (triggers first rollup).
       for (const child of result.children) {
@@ -346,7 +346,7 @@ describe('Playbooks — engine', () => {
       const { maybeRollupParent } = await import('@/lib/playbooks')
       const again = await maybeRollupParent(result.children[0].id, {
         email: 'editor@test.com',
-        source: 'user',
+        source: 'sso',
       })
       expect(again.parentCompleted).toBe(false)
       expect(again.parentId).toBe(result.parent.id)
@@ -362,7 +362,7 @@ describe('Playbooks — engine', () => {
     it('is a no-op for obligations without a parent', async () => {
       const id = await insertObligation({ title: 'Top-level' })
       const { maybeRollupParent } = await import('@/lib/playbooks')
-      const result = await maybeRollupParent(id, { email: 'x', source: 'user' })
+      const result = await maybeRollupParent(id, { email: 'x', source: 'sso' })
       expect(result).toEqual({ parentCompleted: false })
     })
 
@@ -374,7 +374,7 @@ describe('Playbooks — engine', () => {
           anchorDate: '2026-06-30',
           counterparty: 'Acme',
         },
-        { email: 'editor@test.com', source: 'user' },
+        { email: 'editor@test.com', source: 'sso' },
       )
       // Complete just 2 of 5
       for (const child of result.children.slice(0, 2)) {

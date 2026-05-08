@@ -40,20 +40,20 @@ describe('getActor', () => {
 
   it('does not match cron on wrong secret', async () => {
     process.env.CRON_SECRET = 'shh'
-    process.env.NODE_ENV = 'production'
+    Reflect.set(process.env, 'NODE_ENV', 'production')
     const actor = await getActor(mkReq({ auth: 'Bearer wrong' }))
     expect(actor).toEqual({ email: 'system', source: 'system' })
   })
 
   it('returns dev actor in non-production when no session', async () => {
-    process.env.NODE_ENV = 'development'
+    Reflect.set(process.env, 'NODE_ENV', 'development')
     process.env.DEV_ACTOR = 'dev@local'
     const actor = await getActor(mkReq())
     expect(actor).toEqual({ email: 'dev@local', source: 'dev' })
   })
 
   it('returns system when nothing present in production', async () => {
-    process.env.NODE_ENV = 'production'
+    Reflect.set(process.env, 'NODE_ENV', 'production')
     delete process.env.CRON_SECRET
     const actor = await getActor(mkReq())
     expect(actor).toEqual({ email: 'system', source: 'system' })
