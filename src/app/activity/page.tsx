@@ -115,7 +115,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: Sea
                   <th className="text-left px-3 py-2 font-medium">Actor</th>
                   <th className="text-left px-3 py-2 font-medium hidden md:table-cell">Event</th>
                   <th className="text-left px-3 py-2 font-medium">Summary</th>
-                  <th className="text-left px-3 py-2 font-medium font-mono hidden lg:table-cell">Fast</th>
+                  <th className="text-left px-3 py-2 font-medium font-mono hidden md:table-cell">Fast</th>
                   <th className="text-right px-3 py-2 font-medium font-mono hidden md:table-cell">Link</th>
                 </tr>
               </thead>
@@ -127,8 +127,18 @@ export default async function ActivityPage({ searchParams }: { searchParams: Sea
                     </td>
                     <td className="px-3 py-2 text-graphite">{r.actor}</td>
                     <td className="px-3 py-2 font-mono text-steel text-[11px] hidden md:table-cell">{r.eventType}</td>
-                    <td className="px-3 py-2 text-steel">{r.summary}</td>
-                    <td className="px-3 py-2 hidden lg:table-cell">
+                    <td className="px-3 py-2 text-steel">
+                      <div>{r.summary}</div>
+                      <div className="mt-1 md:hidden">
+                        <FastClaimLink
+                          network={r.fastNetwork}
+                          txId={r.fastTxId}
+                          status={r.claimStatus}
+                          lastError={r.fastLastError}
+                        />
+                      </div>
+                    </td>
+                    <td className="px-3 py-2 hidden md:table-cell">
                       <FastClaimLink
                         network={r.fastNetwork}
                         txId={r.fastTxId}
