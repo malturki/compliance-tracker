@@ -119,6 +119,28 @@ async function initInMemory() {
   await client.execute(`CREATE INDEX IF NOT EXISTS idx_audit_log_ts ON audit_log(ts DESC)`)
   await client.execute(`CREATE INDEX IF NOT EXISTS idx_audit_log_entity ON audit_log(entity_type, entity_id, ts DESC)`)
 
+  await client.execute(`CREATE TABLE IF NOT EXISTS audit_claims (
+    id TEXT PRIMARY KEY,
+    audit_log_id TEXT NOT NULL UNIQUE REFERENCES audit_log(id),
+    status TEXT NOT NULL DEFAULT 'pending',
+    fast_network TEXT NOT NULL,
+    fast_sender TEXT,
+    fast_tx_id TEXT,
+    fast_certificate TEXT,
+    payload_json TEXT NOT NULL,
+    payload_hash TEXT NOT NULL,
+    event_hash TEXT NOT NULL,
+    previous_event_hash TEXT,
+    attempts INTEGER NOT NULL DEFAULT 0,
+    last_error TEXT,
+    submitted_at TEXT,
+    confirmed_at TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  )`)
+  await client.execute(`CREATE INDEX IF NOT EXISTS idx_audit_claims_status ON audit_claims(status, updated_at)`)
+  await client.execute(`CREATE INDEX IF NOT EXISTS idx_audit_claims_event_hash ON audit_claims(event_hash)`)
+
   await client.execute(`CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY,
     email TEXT NOT NULL UNIQUE,

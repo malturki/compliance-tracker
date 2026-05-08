@@ -63,6 +63,41 @@ async function seed() {
     evidence_urls TEXT,
     created_at TEXT NOT NULL
   )`,
+  `CREATE TABLE IF NOT EXISTS audit_log (
+    id TEXT PRIMARY KEY,
+    ts TEXT NOT NULL,
+    event_type TEXT NOT NULL,
+    actor TEXT NOT NULL,
+    actor_source TEXT NOT NULL,
+    entity_type TEXT NOT NULL,
+    entity_id TEXT,
+    summary TEXT NOT NULL,
+    diff TEXT,
+    metadata TEXT
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_audit_log_ts ON audit_log(ts DESC)`,
+  `CREATE INDEX IF NOT EXISTS idx_audit_log_entity ON audit_log(entity_type, entity_id, ts DESC)`,
+  `CREATE TABLE IF NOT EXISTS audit_claims (
+    id TEXT PRIMARY KEY,
+    audit_log_id TEXT NOT NULL UNIQUE REFERENCES audit_log(id),
+    status TEXT NOT NULL DEFAULT 'pending',
+    fast_network TEXT NOT NULL,
+    fast_sender TEXT,
+    fast_tx_id TEXT,
+    fast_certificate TEXT,
+    payload_json TEXT NOT NULL,
+    payload_hash TEXT NOT NULL,
+    event_hash TEXT NOT NULL,
+    previous_event_hash TEXT,
+    attempts INTEGER NOT NULL DEFAULT 0,
+    last_error TEXT,
+    submitted_at TEXT,
+    confirmed_at TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_audit_claims_status ON audit_claims(status, updated_at)`,
+  `CREATE INDEX IF NOT EXISTS idx_audit_claims_event_hash ON audit_claims(event_hash)`,
 ]
 
 // Execute table creation with Turso client

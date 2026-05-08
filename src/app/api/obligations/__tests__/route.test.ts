@@ -188,6 +188,25 @@ async function ensureSchema() {
       entity_type TEXT NOT NULL, entity_id TEXT,
       summary TEXT NOT NULL, diff TEXT, metadata TEXT
     )`,
+    `CREATE TABLE IF NOT EXISTS audit_claims (
+      id TEXT PRIMARY KEY,
+      audit_log_id TEXT NOT NULL UNIQUE REFERENCES audit_log(id),
+      status TEXT NOT NULL DEFAULT 'pending',
+      fast_network TEXT NOT NULL,
+      fast_sender TEXT,
+      fast_tx_id TEXT,
+      fast_certificate TEXT,
+      payload_json TEXT NOT NULL,
+      payload_hash TEXT NOT NULL,
+      event_hash TEXT NOT NULL,
+      previous_event_hash TEXT,
+      attempts INTEGER NOT NULL DEFAULT 0,
+      last_error TEXT,
+      submitted_at TEXT,
+      confirmed_at TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    )`,
   ];
   for (const sql of ddl) await client.execute(sql);
 }
@@ -199,8 +218,9 @@ describe('audit: POST /api/obligations', () => {
     vi.doUnmock('ulid');
     await ensureSchema();
     const { db, dbReady } = await import('@/db');
-    const { auditLog } = await import('@/db/schema');
+    const { auditClaims, auditLog } = await import('@/db/schema');
     await dbReady;
+    await db.delete(auditClaims);
     await db.delete(auditLog);
   });
 
@@ -210,9 +230,10 @@ describe('audit: POST /api/obligations', () => {
     vi.doUnmock('ulid');
     const { POST: RealPOST } = await import('../route');
     const { db, dbReady } = await import('@/db');
-    const { auditLog, obligations } = await import('@/db/schema');
+    const { auditClaims, auditLog, obligations } = await import('@/db/schema');
     const { eq } = await import('drizzle-orm');
     await dbReady;
+    await db.delete(auditClaims);
     await db.delete(auditLog);
 
     const title = 'Audit Trail Test Filing ' + Date.now();
@@ -256,9 +277,10 @@ describe('audit: PUT /api/obligations/[id]', () => {
     await ensureSchema();
     const { PUT } = await import('../[id]/route');
     const { db, dbReady } = await import('@/db');
-    const { auditLog, obligations } = await import('@/db/schema');
+    const { auditClaims, auditLog, obligations } = await import('@/db/schema');
     const { eq } = await import('drizzle-orm');
     await dbReady;
+    await db.delete(auditClaims);
     await db.delete(auditLog);
 
     const id = 'test-audit-upd-1';
@@ -295,6 +317,7 @@ describe('audit: PUT /api/obligations/[id]', () => {
     expect(diff).toMatchObject({ owner: ['Internal', 'Anderson & Co'] });
 
     await db.delete(obligations).where(eq(obligations.id, id));
+    await db.delete(auditClaims);
     await db.delete(auditLog);
   });
 });

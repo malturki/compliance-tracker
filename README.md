@@ -23,6 +23,41 @@ Get these by creating a free Turso account at https://turso.tech
 
 This app is designed for serverless deployment (Vercel, Netlify, etc.) and uses Turso as a hosted database.
 
+## Fast Audit Claims
+
+Every `audit_log` event is also queued as a privacy-preserving Fast audit claim.
+The claim payload stores event metadata and SHA-256 commitments, not raw actor
+emails, summaries, diffs, notes, or evidence URLs. Local audit rows remain the
+readable source of truth.
+
+Before enabling real Fast testnet publishing, apply:
+
+```
+scripts/migrate-2026-05-08-fast-audit-claims.sql
+```
+
+Modes:
+
+- `FAST_AUDIT_CLAIMS_MODE=disabled` - do not enqueue or publish claims.
+- `FAST_AUDIT_CLAIMS_MODE=dry-run` - default; confirms claims locally with dry-run receipts.
+- `FAST_AUDIT_CLAIMS_MODE=testnet` - submit signed `ExternalClaim` transactions to Fast testnet.
+
+Testnet publishing uses one of two integration styles:
+
+- `FAST_AUDIT_PRIVATE_KEY` or `FAST_AUDIT_PRIVATE_KEY_FILE` - use the official
+  `@fastxyz/sdk` locally to sign and submit `ExternalClaim` transactions.
+- `FAST_AUDIT_SUBMITTER_URL` - a signing/submission service that receives the
+  canonical claim payload and returns a Fast tx id/certificate.
+- `FAST_AUDIT_SIGNER_URL` + `FAST_AUDIT_RPC_URL` - a signer returns a documented
+  Fast `transaction` and `signature`; the app submits them to the proxy using
+  `FAST_AUDIT_RPC_METHOD` (default: `set_proxy_submitTransaction`).
+
+All styles use `FAST_AUDIT_SENDER` and optional `FAST_AUDIT_API_TOKEN`. Direct
+SDK signing defaults to non-archival transactions because Fast testnet currently
+rejects archival submissions; set `FAST_AUDIT_ARCHIVAL=true` only on networks
+that support it. The cron route `/api/cron/publish-audit-claims` publishes
+pending claims and is protected by `CRON_SECRET`.
+
 ## AI Agent Access
 
 AI agents (Claude Code sessions, automation scripts, bots) can read and

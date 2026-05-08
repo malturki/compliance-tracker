@@ -1,6 +1,6 @@
 import { vi } from 'vitest'
 import { db, dbReady, __getClientForTests } from '@/db'
-import { obligations, completions, auditLog, users, agents } from '@/db/schema'
+import { obligations, completions, auditLog, auditClaims, users, agents } from '@/db/schema'
 import { auth } from '@/lib/auth'
 import { ulid } from 'ulid'
 import { hashToken } from '@/lib/token-utils'
@@ -65,6 +65,27 @@ const DDL_STATEMENTS = [
     diff TEXT,
     metadata TEXT
   )`,
+  `CREATE TABLE IF NOT EXISTS audit_claims (
+    id TEXT PRIMARY KEY,
+    audit_log_id TEXT NOT NULL UNIQUE REFERENCES audit_log(id),
+    status TEXT NOT NULL DEFAULT 'pending',
+    fast_network TEXT NOT NULL,
+    fast_sender TEXT,
+    fast_tx_id TEXT,
+    fast_certificate TEXT,
+    payload_json TEXT NOT NULL,
+    payload_hash TEXT NOT NULL,
+    event_hash TEXT NOT NULL,
+    previous_event_hash TEXT,
+    attempts INTEGER NOT NULL DEFAULT 0,
+    last_error TEXT,
+    submitted_at TEXT,
+    confirmed_at TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_audit_claims_status ON audit_claims(status, updated_at)`,
+  `CREATE INDEX IF NOT EXISTS idx_audit_claims_event_hash ON audit_claims(event_hash)`,
   `CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY,
     email TEXT NOT NULL UNIQUE,
@@ -103,6 +124,7 @@ export async function resetDb(options: { keepSeed?: boolean } = {}) {
   for (const sql of DDL_STATEMENTS) {
     await client.execute(sql)
   }
+  await db.delete(auditClaims)
   await db.delete(auditLog)
   await db.delete(completions)
   await db.delete(users)

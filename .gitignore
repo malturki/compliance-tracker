@@ -21,6 +21,7 @@ npm-debug.log*
 .env*.local
 .env
 .claude/settings.local.json
+.fast-audit-account/
 
 # vercel
 .vercel

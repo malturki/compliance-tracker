@@ -63,6 +63,26 @@ export const auditLog = sqliteTable('audit_log', {
   metadata: text('metadata'),
 })
 
+export const auditClaims = sqliteTable('audit_claims', {
+  id: text('id').primaryKey(),
+  auditLogId: text('audit_log_id').notNull().unique().references(() => auditLog.id),
+  status: text('status').notNull().default('pending'),
+  fastNetwork: text('fast_network').notNull(),
+  fastSender: text('fast_sender'),
+  fastTxId: text('fast_tx_id'),
+  fastCertificate: text('fast_certificate'),
+  payloadJson: text('payload_json').notNull(),
+  payloadHash: text('payload_hash').notNull(),
+  eventHash: text('event_hash').notNull(),
+  previousEventHash: text('previous_event_hash'),
+  attempts: integer('attempts').notNull().default(0),
+  lastError: text('last_error'),
+  submittedAt: text('submitted_at'),
+  confirmedAt: text('confirmed_at'),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+})
+
 export const users = sqliteTable('users', {
   id: text('id').primaryKey(),
   email: text('email').notNull().unique(),

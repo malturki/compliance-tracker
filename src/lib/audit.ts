@@ -2,6 +2,7 @@ import { ulid } from 'ulid'
 import { db } from '@/db'
 import { auditLog } from '@/db/schema'
 import type { Actor } from './actor'
+import { enqueueAuditClaim } from './fast-audit/claims'
 
 export type AuditEventType =
   | 'obligation.created'
@@ -33,9 +34,11 @@ export type LogEventInput = {
 
 export async function logEvent(event: LogEventInput): Promise<void> {
   try {
+    const id = ulid()
+    const ts = new Date().toISOString()
     await db.insert(auditLog).values({
-      id: ulid(),
-      ts: new Date().toISOString(),
+      id,
+      ts,
       eventType: event.type,
       actor: event.actor.email,
       actorSource: event.actor.source,
@@ -45,6 +48,11 @@ export async function logEvent(event: LogEventInput): Promise<void> {
       diff: event.diff ? JSON.stringify(event.diff) : null,
       metadata: event.metadata ? JSON.stringify(event.metadata) : null,
     })
+    try {
+      await enqueueAuditClaim({ auditId: id, event, timestamp: ts })
+    } catch (err) {
+      console.error('[audit] enqueueAuditClaim failed', err)
+    }
   } catch (err) {
     // Never break a user-facing mutation because the audit write failed.
     console.error('[audit] logEvent failed', err)
