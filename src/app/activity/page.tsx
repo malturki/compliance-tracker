@@ -1,8 +1,9 @@
 import { db, dbReady } from '@/db'
-import { auditLog } from '@/db/schema'
+import { auditClaims, auditLog } from '@/db/schema'
 import { and, desc, eq, lt, type SQL } from 'drizzle-orm'
 import { formatDistanceToNow } from 'date-fns'
 import Link from 'next/link'
+import { getFastExplorerTxUrl } from '@/lib/fast-audit/explorer'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,11 +17,67 @@ async function fetchEvents(params: SearchParams) {
   if (params.entity) clauses.push(eq(auditLog.entityId, params.entity))
   if (params.before) clauses.push(lt(auditLog.ts, params.before))
   return db
-    .select()
+    .select({
+      id: auditLog.id,
+      ts: auditLog.ts,
+      eventType: auditLog.eventType,
+      actor: auditLog.actor,
+      actorSource: auditLog.actorSource,
+      entityType: auditLog.entityType,
+      entityId: auditLog.entityId,
+      summary: auditLog.summary,
+      diff: auditLog.diff,
+      metadata: auditLog.metadata,
+      claimStatus: auditClaims.status,
+      fastNetwork: auditClaims.fastNetwork,
+      fastTxId: auditClaims.fastTxId,
+      fastConfirmedAt: auditClaims.confirmedAt,
+      fastLastError: auditClaims.lastError,
+    })
     .from(auditLog)
+    .leftJoin(auditClaims, eq(auditClaims.auditLogId, auditLog.id))
     .where(clauses.length ? and(...clauses) : undefined)
     .orderBy(desc(auditLog.ts))
     .limit(50)
+}
+
+function FastClaimLink({
+  network,
+  txId,
+  status,
+  lastError,
+}: {
+  network: string | null
+  txId: string | null
+  status: string | null
+  lastError: string | null
+}) {
+  if (!status) return <span className="text-steel/60">not queued</span>
+
+  const explorerUrl = getFastExplorerTxUrl(network, txId)
+  if (explorerUrl) {
+    return (
+      <a
+        href={explorerUrl}
+        target="_blank"
+        rel="noreferrer"
+        className="text-graphite hover:underline font-mono"
+        title={txId ?? undefined}
+      >
+        Fast tx ↗
+      </a>
+    )
+  }
+
+  if (txId?.startsWith('dryrun:')) {
+    return <span className="text-steel font-mono" title={txId}>dry-run</span>
+  }
+
+  if (status === 'failed') {
+    return <span className="text-red-700 font-mono" title={lastError ?? undefined}>failed</span>
+  }
+
+  return <span className="text-steel font-mono">{status}</span>
 }
 
 export default async function ActivityPage({ searchParams }: { searchParams: SearchParams }) {
@@ -51,13 +108,14 @@ export default async function ActivityPage({ searchParams }: { searchParams: Sea
       ) : (
         <div className="bg-white border border-black/5 rounded-card shadow-card overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full md:min-w-[720px] text-xs">
+            <table className="w-full md:min-w-[820px] text-xs">
               <thead>
                 <tr className="text-[10px] uppercase tracking-[0.18em] text-steel border-b border-black/5">
                   <th className="text-left px-3 py-2 font-medium font-mono">When</th>
                   <th className="text-left px-3 py-2 font-medium">Actor</th>
                   <th className="text-left px-3 py-2 font-medium hidden md:table-cell">Event</th>
                   <th className="text-left px-3 py-2 font-medium">Summary</th>
+                  <th className="text-left px-3 py-2 font-medium font-mono hidden lg:table-cell">Fast</th>
                   <th className="text-right px-3 py-2 font-medium font-mono hidden md:table-cell">Link</th>
                 </tr>
               </thead>
@@ -70,6 +128,14 @@ export default async function ActivityPage({ searchParams }: { searchParams: Sea
                     <td className="px-3 py-2 text-graphite">{r.actor}</td>
                     <td className="px-3 py-2 font-mono text-steel text-[11px] hidden md:table-cell">{r.eventType}</td>
                     <td className="px-3 py-2 text-steel">{r.summary}</td>
+                    <td className="px-3 py-2 hidden lg:table-cell">
+                      <FastClaimLink
+                        network={r.fastNetwork}
+                        txId={r.fastTxId}
+                        status={r.claimStatus}
+                        lastError={r.fastLastError}
+                      />
+                    </td>
                     <td className="px-3 py-2 text-right hidden md:table-cell">
                       {r.entityType === 'obligation' && r.entityId ? (
                         <Link href={`/obligations?id=${r.entityId}`} className="text-graphite hover:underline font-mono">
