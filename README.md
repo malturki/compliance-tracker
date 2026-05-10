@@ -55,8 +55,11 @@ Testnet publishing uses one of two integration styles:
 All styles use `FAST_AUDIT_SENDER` and optional `FAST_AUDIT_API_TOKEN`. Direct
 SDK signing defaults to non-archival transactions because Fast testnet currently
 rejects archival submissions; set `FAST_AUDIT_ARCHIVAL=true` only on networks
-that support it. The cron route `/api/cron/publish-audit-claims` publishes
-pending claims and is protected by `CRON_SECRET`.
+that support it. SDK signing pays fees with the network default token
+(`testUSDC` on testnet, `fastUSD` on mainnet); set `FAST_AUDIT_FEE_TOKEN` to a
+token id for custom networks or to `native` for native-token fees. The cron
+route `/api/cron/publish-audit-claims` publishes pending claims and is protected
+by `CRON_SECRET`.
 
 ## AI Agent Access
 

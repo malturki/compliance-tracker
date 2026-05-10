@@ -100,8 +100,16 @@ const fastSdkMock = vi.hoisted(() => {
     },
     sdk: { Signer, FastProvider, TransactionBuilder },
     networks: {
-      mainnet: { url: 'https://mainnet.fast.test/proxy-rest', networkId: 'fast:mainnet' },
-      testnet: { url: 'https://testnet.fast.test/proxy-rest', networkId: 'fast:testnet' },
+      mainnet: {
+        url: 'https://mainnet.fast.test/proxy-rest',
+        networkId: 'fast:mainnet',
+        defaultToken: { tokenId: '0xmainnetfee', symbol: 'fastUSD', decimals: 6 },
+      },
+      testnet: {
+        url: 'https://testnet.fast.test/proxy-rest',
+        networkId: 'fast:testnet',
+        defaultToken: { tokenId: '0xtestnetfee', symbol: 'testUSDC', decimals: 6 },
+      },
     },
     schema: { bcsSchema: { ExternalClaimBody: 'ExternalClaimBodySchema' } },
   }
@@ -132,6 +140,7 @@ describe('Fast audit claims', () => {
   const originalNetwork = process.env.FAST_AUDIT_NETWORK
   const originalNetworkId = process.env.FAST_AUDIT_NETWORK_ID
   const originalArchival = process.env.FAST_AUDIT_ARCHIVAL
+  const originalFeeToken = process.env.FAST_AUDIT_FEE_TOKEN
   const originalApiToken = process.env.FAST_AUDIT_API_TOKEN
 
   beforeEach(async () => {
@@ -148,6 +157,7 @@ describe('Fast audit claims', () => {
     delete process.env.FAST_AUDIT_NETWORK
     delete process.env.FAST_AUDIT_NETWORK_ID
     delete process.env.FAST_AUDIT_ARCHIVAL
+    delete process.env.FAST_AUDIT_FEE_TOKEN
     delete process.env.FAST_AUDIT_API_TOKEN
     fastSdkMock.reset()
   })
@@ -175,6 +185,8 @@ describe('Fast audit claims', () => {
     else process.env.FAST_AUDIT_NETWORK_ID = originalNetworkId
     if (originalArchival === undefined) delete process.env.FAST_AUDIT_ARCHIVAL
     else process.env.FAST_AUDIT_ARCHIVAL = originalArchival
+    if (originalFeeToken === undefined) delete process.env.FAST_AUDIT_FEE_TOKEN
+    else process.env.FAST_AUDIT_FEE_TOKEN = originalFeeToken
     if (originalApiToken === undefined) delete process.env.FAST_AUDIT_API_TOKEN
     else process.env.FAST_AUDIT_API_TOKEN = originalApiToken
     vi.restoreAllMocks()
@@ -774,6 +786,7 @@ describe('Fast audit claims', () => {
         networkId: 'fast:testnet',
         nonce: BigInt(42),
         archival: false,
+        feeToken: '0xtestnetfee',
       }),
     ])
 
@@ -788,6 +801,7 @@ describe('Fast audit claims', () => {
     process.env.FAST_AUDIT_NETWORK = 'https://custom.fast.test/proxy-rest'
     process.env.FAST_AUDIT_NETWORK_ID = 'fast:devnet'
     process.env.FAST_AUDIT_ARCHIVAL = 'true'
+    process.env.FAST_AUDIT_FEE_TOKEN = '0xcustomfee'
 
     const { writeFile } = await import('fs/promises')
     await writeFile('/tmp/fast-audit-test-key.json', JSON.stringify({
@@ -812,6 +826,7 @@ describe('Fast audit claims', () => {
       expect.objectContaining({
         networkId: 'fast:devnet',
         archival: true,
+        feeToken: '0xcustomfee',
       }),
     ])
   })
@@ -836,7 +851,26 @@ describe('Fast audit claims', () => {
     expect(fastSdkMock.calls.privateKeys).toEqual(['0x' + '33'.repeat(32)])
     expect(fastSdkMock.calls.providerOptions).toEqual([fastSdkMock.networks.mainnet])
     expect(fastSdkMock.calls.builderOptions).toEqual([
-      expect.objectContaining({ networkId: 'fast:mainnet' }),
+      expect.objectContaining({ networkId: 'fast:mainnet', feeToken: '0xmainnetfee' }),
+    ])
+  })
+
+  it('allows local SDK publishing to opt back into native fee payment', async () => {
+    process.env.FAST_AUDIT_CLAIMS_MODE = 'testnet'
+    process.env.FAST_AUDIT_PRIVATE_KEY = '0x' + '55'.repeat(32)
+    process.env.FAST_AUDIT_FEE_TOKEN = 'native'
+
+    await logEvent({
+      type: 'agent.created',
+      actor: { email: 'admin@test.com', source: 'sso' },
+      entityType: 'agent',
+      entityId: 'agent_1',
+      summary: 'Created agent',
+    })
+
+    await waitForClaimStatus('confirmed')
+    expect(fastSdkMock.calls.builderOptions).toEqual([
+      expect.objectContaining({ networkId: 'fast:testnet', feeToken: null }),
     ])
   })
 

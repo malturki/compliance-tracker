@@ -169,6 +169,15 @@ function shouldRequestArchivalTransaction() {
   return process.env.FAST_AUDIT_ARCHIVAL === 'true'
 }
 
+function getFastFeeToken(defaultTokenId?: string): string | null {
+  const raw = process.env.FAST_AUDIT_FEE_TOKEN?.trim()
+  if (raw) {
+    if (raw === 'native' || raw === 'none' || raw === 'null') return null
+    return raw
+  }
+  return defaultTokenId ?? null
+}
+
 async function publishWithLocalSdk(payloadJson: string, privateKey: string): Promise<PublishResult> {
   const [
     { FastProvider, Signer, TransactionBuilder },
@@ -187,6 +196,7 @@ async function publishWithLocalSdk(payloadJson: string, privateKey: string): Pro
         : {
           url: process.env.FAST_AUDIT_RPC_URL || networkName,
           networkId: getFastNetworkId(),
+          defaultToken: undefined,
         }
 
   const signer = new Signer(privateKey)
@@ -211,6 +221,7 @@ async function publishWithLocalSdk(payloadJson: string, privateKey: string): Pro
     signer,
     nonce: account.nextNonce,
     archival: shouldRequestArchivalTransaction(),
+    feeToken: getFastFeeToken(network.defaultToken?.tokenId),
   }).addExternalClaim({
     claim,
     signatures: [
